@@ -37,7 +37,7 @@ export function IndigoIntroSection({
       }`}
     >
       <h2 className="section-title text-xl text-white md:text-2xl">{title}</h2>
-      <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/80 md:text-base">
+      <p className="mt-4 max-w-xl text-base leading-relaxed text-white/85 md:text-lg md:leading-relaxed">
         {description}
       </p>
       {cta ? (
@@ -72,11 +72,16 @@ export function IndigoIntroSection({
             <MotionDiv>
               <div className="flex flex-col justify-center">{content}</div>
             </MotionDiv>
-            <MotionDiv delay={0.1}>{aside}</MotionDiv>
+            <MotionDiv
+              delay={0.1}
+              className="flex w-full items-center justify-center md:justify-end lg:justify-center"
+            >
+              {aside}
+            </MotionDiv>
           </div>
         ) : (
           <MotionDiv
-            className={`flex max-w-lg flex-col justify-center ${
+            className={`flex max-w-xl flex-col justify-center ${
               center ? "mx-auto items-center" : ""
             }`}
           >

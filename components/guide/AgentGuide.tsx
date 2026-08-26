@@ -46,17 +46,17 @@ export function AgentGuide() {
     <>
       <section className="section-indigo w-full">
         <div className="mx-auto max-w-[1200px] px-6 pb-12 pt-20 md:pb-16 md:pt-28">
-          <MotionDiv className="mx-auto max-w-2xl text-center">
+          <MotionDiv className="mx-auto flex max-w-2xl flex-col items-center text-center">
             <p className="text-xs font-medium uppercase tracking-wider text-white/60">
               Formation agent
             </p>
             <h1 className="section-title mt-4 text-white">
               Comment gagner des commissions sur Merline
             </h1>
-            <p className="mt-4 text-sm leading-relaxed text-white/80 md:text-base">
-              Un guide pratique : lire le catalogue, comprendre ce que vous
-              touchez, puis trouver des acheteurs — sites de revente suisses,
-              réseaux sociaux, téléphone et publicité.
+            <p className="mt-4 max-w-xl text-balance text-base leading-relaxed text-white/85 md:text-lg md:leading-relaxed">
+              Un guide pratique : comprendre ce que vous touchez, puis trouver
+              des acheteurs — sites de revente suisses, réseaux sociaux,
+              téléphone et publicité.
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
               <Link href="/#catalogue" className="btn-vendre-submit">

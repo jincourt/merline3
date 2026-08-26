@@ -17,14 +17,10 @@ export default function ConnexionPage({
             Retour
           </Link>
 
-            <div className="mt-6 border-b border-[var(--border)] pb-6">
+            <div className="mt-6 border-b border-[var(--border)] text-center">
               <h1 className="text-xl font-medium tracking-tight md:text-2xl">
                 Se connecter
               </h1>
-              <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
-                Entrez votre email — un code vous sera envoyé. Compte créé
-                automatiquement si besoin.
-              </p>
             </div>
 
             <ConnexionError searchParams={searchParams} />

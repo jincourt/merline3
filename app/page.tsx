@@ -13,7 +13,7 @@ export default function Home() {
           id="annonceurs"
           top
           title="Vous avez un objet ou un service à vendre ?"
-          description="Publiez votre annonce en indiquant la commission que vous proposez, fixe ou en pourcentage. Les agents vous contactent lorsqu'ils ont un client intéressé."
+          description="Publiez votre annonce en indiquant la commission. Les agents vous contactent lorsqu'ils ont un client intéressé."
           cta={{
             href: "/vendre",
             label: "Publier une annonce",
