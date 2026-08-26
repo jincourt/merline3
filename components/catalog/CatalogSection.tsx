@@ -1,19 +1,37 @@
 import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import type { Product } from "@/lib/types";
 import { mergeCatalogListings } from "@/lib/catalog";
 import { CatalogBrowser } from "./CatalogBrowser";
 
 async function fetchListings() {
-  const supabase = await createClient();
+  if (!isSupabaseConfigured()) {
+    console.error(
+      "Catalog unavailable: missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    );
+    return [];
+  }
 
-  const { data } = await supabase
-    .from("products")
-    .select("*")
-    .order("created_at", { ascending: false });
+  try {
+    const supabase = await createClient();
 
-  const products = (data ?? []) as Product[];
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  return mergeCatalogListings(products);
+    if (error) {
+      console.error("Catalog fetch failed:", error.message);
+      return [];
+    }
+
+    const products = (data ?? []) as Product[];
+
+    return mergeCatalogListings(products);
+  } catch (error) {
+    console.error("Catalog fetch failed:", error);
+    return [];
+  }
 }
 
 type CatalogSectionProps = {
