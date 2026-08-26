@@ -1,0 +1,13 @@
+export function SiteContainer({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`mx-auto w-full max-w-[1200px] px-6 ${className}`.trim()}>
+      {children}
+    </div>
+  );
+}
