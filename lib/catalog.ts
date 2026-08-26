@@ -126,22 +126,18 @@ export async function fetchPublicListing(
   src: ListingSource,
   id: string,
 ): Promise<PublicListing | null> {
-  const table = src === "prod" ? "products" : "buy_requests";
-  const select =
-    src === "prod"
-      ? "id, listing_type, category, title, description, commission_type, commission_value, address, photos, email, user_id, created_at, status"
-      : "id, listing_type, category, title, description, price, is_free, address, photos, email, user_id, created_at, status";
-
-  const { data } = await supabase
-    .from(table)
-    .select(select)
-    .eq("id", id)
-    .eq("status", "active")
-    .maybeSingle();
-
-  if (!data) return null;
-
   if (src === "prod") {
+    const { data } = await supabase
+      .from("products")
+      .select(
+        "id, listing_type, category, title, description, commission_type, commission_value, address, photos, email, user_id, created_at, status",
+      )
+      .eq("id", id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (!data) return null;
+
     return {
       id: data.id,
       src,
@@ -161,6 +157,17 @@ export async function fetchPublicListing(
       created_at: data.created_at,
     };
   }
+
+  const { data } = await supabase
+    .from("buy_requests")
+    .select(
+      "id, listing_type, category, title, description, price, is_free, address, photos, email, user_id, created_at, status",
+    )
+    .eq("id", id)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (!data) return null;
 
   return {
     id: data.id,

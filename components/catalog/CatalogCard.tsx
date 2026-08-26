@@ -7,6 +7,14 @@ import { formatListingPrice } from "@/lib/catalog";
 import { getListingHref } from "@/lib/types";
 import { MotionArticle } from "@/components/ui/motion";
 
+function formatDate(iso: string) {
+  return new Intl.DateTimeFormat("fr-CH", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(iso));
+}
+
 function ListingImage({
   image,
   title,
