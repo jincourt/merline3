@@ -123,7 +123,7 @@ function Callout({
   children: ReactNode;
 }) {
   return (
-    <aside className="min-w-0 max-w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 md:p-5">
+    <aside className="min-w-0 max-w-full rounded-md border border-[var(--border)] bg-[var(--surface)] p-4 md:p-5">
       <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--indigo)]">
         {label}
       </p>
@@ -134,7 +134,7 @@ function Callout({
 
 function Script({ title, text }: { title: string; text: string }) {
   return (
-    <div className="min-w-0 max-w-full rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 md:p-5">
+    <div className="min-w-0 max-w-full rounded-md border border-[var(--border)] bg-[var(--surface-elevated)] p-4 md:p-5">
       <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--muted-dim)]">
         {title}
       </p>
@@ -191,7 +191,7 @@ function RoleChapter() {
         ].map((card) => (
           <div
             key={card.t}
-            className="rounded-xl border border-[var(--border)] p-4"
+            className="rounded-md border border-[var(--border)] p-4"
           >
             <p className="text-sm font-medium text-[var(--foreground)]">
               {card.t}
@@ -239,8 +239,8 @@ function CommissionsChapter() {
       </p>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="rounded-xl border border-[var(--border)] p-5">
-          <span className="inline-flex rounded-full bg-[var(--indigo)] px-3 py-1 text-xs font-semibold text-white">
+        <div className="rounded-md border border-[var(--border)] p-5">
+          <span className="inline-flex rounded-sm bg-[var(--indigo)] px-3 py-1 text-xs font-semibold text-white">
             CHF 150.-
           </span>
           <p className="mt-4 text-sm font-medium text-[var(--foreground)]">
@@ -256,8 +256,8 @@ function CommissionsChapter() {
             Ex. canapé Lausanne, vendu 650 CHF → vous : 150 CHF.
           </p>
         </div>
-        <div className="rounded-xl border border-[var(--border)] p-5">
-          <span className="inline-flex rounded-full bg-[var(--indigo)] px-3 py-1 text-xs font-semibold text-white">
+        <div className="rounded-md border border-[var(--border)] p-5">
+          <span className="inline-flex rounded-sm bg-[var(--indigo)] px-3 py-1 text-xs font-semibold text-white">
             12%
           </span>
           <p className="mt-4 text-sm font-medium text-[var(--foreground)]">
@@ -289,7 +289,7 @@ function CommissionsChapter() {
         </p>
       </Sub>
 
-      <div className="min-w-0 max-w-full overflow-x-auto rounded-xl border border-[var(--border)]">
+      <div className="min-w-0 max-w-full overflow-x-auto rounded-md border border-[var(--border)]">
         <table className="w-full min-w-[480px] text-left text-sm">
           <thead className="bg-[var(--surface)] text-[10px] uppercase tracking-wider text-[var(--muted-dim)]">
             <tr>
@@ -442,7 +442,7 @@ function FirstClientsChapter() {
       </Sub>
       <Sub title="Deux stratégies, à mener en parallèle">
         <div className="grid gap-3 md:grid-cols-2">
-          <div className="rounded-xl border border-[var(--border)] p-4">
+          <div className="rounded-md border border-[var(--border)] p-4">
             <p className="font-medium text-[var(--foreground)]">
               Produit d&apos;abord
             </p>
@@ -453,7 +453,7 @@ function FirstClientsChapter() {
               temps sans demande réelle.
             </p>
           </div>
-          <div className="rounded-xl border border-[var(--border)] p-4">
+          <div className="rounded-md border border-[var(--border)] p-4">
             <p className="font-medium text-[var(--foreground)]">
               Acheteur d&apos;abord
             </p>
@@ -498,7 +498,7 @@ function ResaleSitesChapter() {
       lead="Tutti, Anibis, Ricardo et Marketplace sont les endroits où la demande d'objets se voit déjà. Votre job n'est pas de spammer : c'est de répondre à des gens qui cherchent."
     >
       <Sub title="Où aller, et pour quoi">
-        <div className="min-w-0 max-w-full overflow-x-auto rounded-xl border border-[var(--border)]">
+        <div className="min-w-0 max-w-full overflow-x-auto rounded-md border border-[var(--border)]">
           <table className="w-full min-w-[480px] text-left text-sm">
             <thead className="bg-[var(--surface)] text-[10px] uppercase tracking-wider text-[var(--muted-dim)]">
               <tr>
@@ -865,7 +865,7 @@ function AdsChapter() {
         </p>
       </Sub>
 
-      <div className="rounded-xl border border-[var(--border)] p-5">
+      <div className="rounded-md border border-[var(--border)] p-5">
         <p className="text-sm font-medium text-[var(--foreground)]">
           Exemple de test sur 5 jours
         </p>
@@ -929,7 +929,7 @@ function OtherChannelsChapter() {
         ].map((card) => (
           <div
             key={card.t}
-            className="rounded-xl border border-[var(--border)] p-4"
+            className="rounded-md border border-[var(--border)] p-4"
           >
             <p className="text-sm font-medium text-[var(--foreground)]">
               {card.t}
@@ -993,7 +993,7 @@ function RoutineChapter() {
       title="Routine d'une semaine, et erreurs à éviter"
       lead="Cinq heures bien placées battent quinze heures de scroll. Une routine simple, répétée, suffit à encaisser les premières commissions."
     >
-      <div className="min-w-0 max-w-full overflow-x-auto rounded-xl border border-[var(--border)]">
+      <div className="min-w-0 max-w-full overflow-x-auto rounded-md border border-[var(--border)]">
         <table className="w-full min-w-[480px] text-left text-sm">
           <thead className="bg-[var(--surface)] text-[10px] uppercase tracking-wider text-[var(--muted-dim)]">
             <tr>
@@ -1092,7 +1092,7 @@ function RoutineChapter() {
 
 function GuideCta() {
   return (
-    <div className="rounded-2xl bg-[var(--indigo)] px-6 py-8 text-center text-white md:px-10">
+    <div className="rounded-md bg-[var(--indigo)] px-6 py-8 text-center text-white md:px-10">
       <p className="text-lg font-medium tracking-tight md:text-xl">
         Passez du guide au catalogue
       </p>

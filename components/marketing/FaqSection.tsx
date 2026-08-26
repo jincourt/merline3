@@ -49,7 +49,7 @@ export function FaqSection() {
         <div className="mt-10 space-y-3">
           {faqs.map((faq, index) => (
             <MotionDiv key={faq.question} delay={index * 0.06}>
-              <details className="group rounded-xl border border-white/15 bg-white/5 open:bg-white/10">
+              <details className="group rounded-md border border-white/15 bg-white/5 open:bg-white/10">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-medium text-white marker:content-none md:text-base [&::-webkit-details-marker]:hidden">
                   {faq.question}
                   <span

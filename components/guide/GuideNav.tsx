@@ -15,7 +15,7 @@ export function GuideNav({
   onSelect: (index: number) => void;
 }) {
   return (
-    <aside className="section-light w-full min-w-0 self-start rounded-2xl border border-[var(--border)] bg-white p-4 shadow-[0_24px_60px_rgba(15,23,42,0.18)] md:sticky md:top-24 md:p-5">
+    <aside className="section-light w-full min-w-0 self-start rounded-md border border-[var(--border)] bg-white p-4 shadow-[0_24px_60px_rgba(15,23,42,0.18)] md:sticky md:top-24 md:p-5">
       <nav aria-label="Sommaire du guide">
         <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--muted-dim)]">
           Sommaire
@@ -29,7 +29,7 @@ export function GuideNav({
                   type="button"
                   onClick={() => onSelect(index)}
                   aria-current={isActive ? "step" : undefined}
-                  className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                  className={`flex w-full items-center gap-2.5 rounded-sm px-2.5 py-2 text-left text-sm transition-colors ${
                     isActive
                       ? "bg-[var(--indigo-soft)] text-[var(--indigo)]"
                       : "text-[var(--muted)] hover:bg-[var(--surface-elevated)] hover:text-[var(--foreground)]"

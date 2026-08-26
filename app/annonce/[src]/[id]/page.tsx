@@ -61,7 +61,7 @@ export default async function AnnoncePage({
 
           <div className="mt-6 grid gap-6 md:grid-cols-2 md:gap-8 md:items-start">
             <MotionDiv delay={0.06}>
-              <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white">
+              <div className="overflow-hidden rounded-md border border-[var(--border)] bg-white">
                 {image ? (
                   <div className="relative aspect-square">
                     <Image

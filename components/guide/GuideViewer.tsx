@@ -45,7 +45,7 @@ export function GuideViewer({ chapters }: { chapters: GuideChapter[] }) {
           </MotionDiv>
 
           <div key={chapter.id} className="min-w-0 w-full">
-            <MotionDiv className="section-light w-full min-w-0 rounded-2xl bg-white p-5 shadow-[0_24px_60px_rgba(15,23,42,0.18)] sm:p-6 md:min-h-[420px] md:p-10">
+            <MotionDiv className="section-light w-full min-w-0 rounded-md bg-white p-5 shadow-[0_24px_60px_rgba(15,23,42,0.18)] sm:p-6 md:min-h-[420px] md:p-10">
               <div className="min-w-0">{chapter.content}</div>
 
               <div className="mt-10 flex flex-col gap-4 border-t border-[var(--border)] pt-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">

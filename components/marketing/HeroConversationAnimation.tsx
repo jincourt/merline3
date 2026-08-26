@@ -183,7 +183,7 @@ export function HeroConversationAnimation() {
 
   return (
     <div className="flex h-full flex-col items-center justify-center">
-      <div className="w-full max-w-sm rounded-2xl border border-white/15 bg-white/10 shadow-[0_20px_50px_rgba(15,23,42,0.2)] backdrop-blur-sm md:max-w-md">
+      <div className="w-full max-w-sm rounded-md border border-white/15 bg-white/10 shadow-[0_20px_50px_rgba(15,23,42,0.2)] backdrop-blur-sm md:max-w-md">
         <div className="flex items-center gap-2 px-4 py-3 md:px-5">
           <MessageIcon />
           <p className="text-xs font-medium text-white/90">Messages</p>
@@ -218,7 +218,7 @@ export function HeroConversationAnimation() {
                   }`}
                 >
                   <div
-                    className={`max-w-[82%] rounded-2xl px-3.5 py-2 text-sm leading-snug ${
+                    className={`max-w-[82%] rounded-md px-3.5 py-2 text-sm leading-snug ${
                       isAgent
                         ? "rounded-bl-md border border-white/15 bg-white/15 text-white"
                         : "rounded-br-md bg-white text-[#1e1b4b]"

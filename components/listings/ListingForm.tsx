@@ -29,7 +29,7 @@ const COMMISSION_UNIT_OPTIONS = [
 const FORM_ID = "listing-form";
 
 const FORM_CARD_CLASS =
-  "section-light overflow-hidden rounded-2xl bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.18)] md:p-8";
+  "section-light overflow-hidden rounded-md bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.18)] md:p-8";
 
 const initialState = { success: false, message: "" };
 
@@ -101,7 +101,7 @@ function Toggle({
   return (
     <label
       htmlFor={id}
-      className="flex w-full cursor-pointer items-start justify-between gap-4 rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3"
+      className="flex w-full cursor-pointer items-start justify-between gap-4 rounded-md border border-[var(--border)] bg-[var(--background)] px-4 py-3"
     >
       <span>
         <span className="block text-sm font-medium text-[var(--foreground)]">
@@ -527,7 +527,7 @@ export function ListingForm({
               type="file"
               accept="image/*"
               multiple
-              className="mt-3 block w-full text-sm text-[var(--muted)] file:mr-4 file:rounded-full file:border file:border-[var(--border)] file:bg-[var(--surface)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-[var(--foreground)] hover:file:bg-[var(--surface-hover)]"
+              className="mt-3 block w-full text-sm text-[var(--muted)] file:mr-4 file:rounded-md file:border file:border-[var(--border)] file:bg-[var(--surface)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-[var(--foreground)] hover:file:bg-[var(--surface-hover)]"
               onChange={(event) => handlePhotoUpload(event.target.files)}
               disabled={uploading || pending}
             />
