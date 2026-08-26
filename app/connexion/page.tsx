@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { PageMotion } from "@/components/layout/PageMotion";
 
@@ -10,37 +9,44 @@ export default function ConnexionPage({
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
   return (
-    <div className="page-form min-h-full">
-      <Header indigo />
-      <main className="border-b border-[var(--border)]">
-        <PageMotion className="mx-auto max-w-[440px] px-6 py-10 md:py-14">
-          <Link
-            href="/"
-            className="btn-link text-[var(--muted)] hover:text-[var(--foreground)]"
-          >
+    <div className="page-form flex min-h-dvh flex-col bg-white">
+      <Header light gifIndigo />
+      <main className="flex flex-1 items-center justify-center px-6 py-8 md:py-12">
+        <PageMotion className="w-full max-w-[400px] text-left">
+          <Link href="/" className="btn-link-back">
             Retour
           </Link>
 
-          <div className="mt-6 border-b border-[var(--border)] pb-6">
-            <h1 className="text-xl font-medium tracking-tight md:text-2xl">
-              Se connecter
-            </h1>
-            <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
-              Entrez votre email — un code vous sera envoyé. Compte créé
-              automatiquement si besoin.
-            </p>
-          </div>
+            <div className="mt-6 border-b border-[var(--border)] pb-6">
+              <h1 className="text-xl font-medium tracking-tight md:text-2xl">
+                Se connecter
+              </h1>
+              <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+                Entrez votre email — un code vous sera envoyé. Compte créé
+                automatiquement si besoin.
+              </p>
+            </div>
 
-          <ConnexionError searchParams={searchParams} />
+            <ConnexionError searchParams={searchParams} />
 
-          <div className="mt-8">
-            <AuthForm />
-          </div>
-        </PageMotion>
+            <div className="mt-8">
+              <ConnexionAuthForm searchParams={searchParams} />
+            </div>
+          </PageMotion>
       </main>
-      <Footer light />
     </div>
   );
+}
+
+async function ConnexionAuthForm({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+  const returnPath = next?.startsWith("/") ? next : "/dashboard";
+
+  return <AuthForm returnPath={returnPath} />;
 }
 
 async function ConnexionError({

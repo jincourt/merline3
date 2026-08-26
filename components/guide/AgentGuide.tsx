@@ -59,7 +59,7 @@ export function AgentGuide() {
               réseaux sociaux, téléphone et publicité.
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/#catalogue" className="btn-on-indigo">
+              <Link href="/#catalogue" className="btn-vendre-submit">
                 Voir le catalogue
               </Link>
               <a href="#guide-content" className="btn-on-indigo-ghost">
@@ -1101,7 +1101,7 @@ function GuideCta() {
         un acheteur autour de vous avant d&apos;élargir.
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        <Link href="/#catalogue" className="btn-on-indigo">
+        <Link href="/#catalogue" className="btn-vendre-submit">
           Ouvrir le catalogue
         </Link>
         <Link href="/connexion" className="btn-on-indigo-ghost">

@@ -19,9 +19,7 @@ export function FormPageHero({
           </p>
         </MotionDiv>
         <MotionDiv delay={0.08} className="mx-auto mt-10 max-w-[720px]">
-          <div className="section-light overflow-hidden rounded-2xl bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.18)] md:p-8">
-            {children}
-          </div>
+          {children}
         </MotionDiv>
       </div>
     </section>

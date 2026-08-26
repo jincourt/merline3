@@ -12,6 +12,7 @@ type IndigoIntroSectionProps = {
   cta?: {
     href: string;
     label: string;
+    className?: string;
   };
   stats?: readonly TypewriterStat[];
   aside?: React.ReactNode;
@@ -41,7 +42,10 @@ export function IndigoIntroSection({
       </p>
       {cta ? (
         <div className="mt-6">
-          <Link href={cta.href} className="btn-on-indigo">
+          <Link
+            href={cta.href}
+            className={cta.className ?? "btn-on-indigo"}
+          >
             {cta.label}
           </Link>
         </div>

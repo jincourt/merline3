@@ -69,7 +69,10 @@ export function GuideViewer({ chapters }: { chapters: GuideChapter[] }) {
 
                 <div className="flex justify-end">
                   {isLast ? (
-                    <Link href="/#catalogue" className="btn-primary w-full sm:w-auto">
+                    <Link
+                      href="/#catalogue"
+                      className="btn-vendre-submit w-full sm:w-auto"
+                    >
                       Ouvrir le catalogue
                     </Link>
                   ) : (

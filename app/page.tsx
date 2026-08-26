@@ -14,7 +14,11 @@ export default function Home() {
           top
           title="Vous avez un objet ou un service à vendre ?"
           description="Publiez votre annonce en indiquant la commission que vous proposez, fixe ou en pourcentage. Les agents vous contactent lorsqu'ils ont un client intéressé."
-          cta={{ href: "/vendre", label: "Publier une annonce" }}
+          cta={{
+            href: "/vendre",
+            label: "Publier une annonce",
+            className: "btn-vendre-submit",
+          }}
           aside={<HeroConversationAnimation />}
         />
         <ProductCatalog />
@@ -23,7 +27,11 @@ export default function Home() {
           center
           title="Devenir un agent"
           description="Trouvez des opportunités adaptées à votre réseau et touchez une commission à chaque vente que vous apportez."
-          cta={{ href: "/guide", label: "Découvrir le guide" }}
+          cta={{
+            href: "/guide",
+            label: "Découvrir le guide",
+            className: "btn-vendre-submit",
+          }}
         />
       </main>
       <Footer indigo />

@@ -26,6 +26,11 @@ const COMMISSION_UNIT_OPTIONS = [
   { value: "percent", label: "%" },
 ] as const;
 
+const FORM_ID = "listing-form";
+
+const FORM_CARD_CLASS =
+  "section-light overflow-hidden rounded-2xl bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.18)] md:p-8";
+
 const initialState = { success: false, message: "" };
 
 export type FormMode = "sell" | "buy";
@@ -425,23 +430,24 @@ export function ListingForm({
   const resolvedCategory =
     category === "Personnalisé" ? customCategory.trim() : category;
   const showDetailsSection = Boolean(resolvedCategory);
+  const externalSubmit = mode === "sell" && !isEditing;
 
-  return (
-    <>
-      <form ref={formRef} action={action} onSubmit={handleSubmit} className="space-y-3">
-        {!canSubmit ? (
-          <div className="border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
-            <button
-              type="button"
-              onClick={openAuthDialog}
-              className="text-[var(--indigo)] hover:underline"
-            >
-              Connectez-vous
-            </button>{" "}
-            pour publier et gérer vos annonces depuis votre espace.
-          </div>
-        ) : null}
+  const submitLabel = pending
+    ? isEditing
+      ? "Enregistrement…"
+      : copy.submitPending
+    : isEditing
+      ? "Enregistrer les modifications"
+      : copy.submitLabel;
 
+  const form = (
+    <form
+      id={externalSubmit ? FORM_ID : undefined}
+      ref={formRef}
+      action={action}
+      onSubmit={handleSubmit}
+      className="space-y-3"
+    >
         <input type="hidden" name="photos" value={JSON.stringify(photos)} />
         <input type="hidden" name="listing_type" value={listingType} />
         {editListing ? (
@@ -694,24 +700,42 @@ export function ListingForm({
             </p>
           ) : null}
 
-          <div className="flex justify-end pt-2">
-            <button
-              type="submit"
-              className="btn-form btn-primary"
-              disabled={pending}
-            >
-              {pending
-                ? isEditing
-                  ? "Enregistrement…"
-                  : copy.submitPending
-                : isEditing
-                  ? "Enregistrer les modifications"
-                  : copy.submitLabel}
-            </button>
-          </div>
+          {!externalSubmit ? (
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                className="btn-form btn-primary"
+                disabled={pending}
+              >
+                {submitLabel}
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </form>
+  );
+
+  return (
+    <>
+      {externalSubmit ? (
+        <div className={FORM_CARD_CLASS}>{form}</div>
+      ) : (
+        form
+      )}
+
+      {externalSubmit && showDetailsSection ? (
+        <div className="mt-6 flex justify-end">
+          <button
+            type="submit"
+            form={FORM_ID}
+            className="btn-vendre-submit"
+            disabled={pending}
+          >
+            {submitLabel}
+          </button>
+        </div>
+      ) : null}
 
       <AuthDialog
         open={authDialogOpen}
