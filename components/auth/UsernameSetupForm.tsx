@@ -6,9 +6,10 @@ import { useActionState, useEffect, useState } from "react";
 import {
   checkUsernameAvailability,
   setupUsername,
+  type AuthResult,
 } from "@/app/auth/actions";
 
-const initialState = { success: false, message: "" };
+const initialState: AuthResult = { success: false, message: "" };
 
 export function UsernameSetupForm({
   returnPath = "/",
