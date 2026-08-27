@@ -123,6 +123,15 @@ body {
   color: var(--foreground);
 }
 
+.section-subtitle {
+  display: block;
+  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
 .hero-title {
   font-size: clamp(2.5rem, 7vw, 4.5rem);
   font-weight: 500;
@@ -234,6 +243,12 @@ body {
   cursor: not-allowed;
 }
 
+.btn-vendre-submit.btn-vendre-submit-lg {
+  height: 3.25rem;
+  font-size: 1.125rem;
+  letter-spacing: 0;
+}
+
 .btn-on-indigo-ghost {
   display: inline-flex;
   align-items: center;
@@ -328,6 +343,87 @@ body {
   outline: none;
   border-color: var(--indigo);
   box-shadow: 0 0 0 3px var(--indigo-soft);
+}
+
+.legal-prose {
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+
+.legal-prose section + section {
+  margin-top: 2.5rem;
+}
+
+.legal-prose h2 {
+  margin-bottom: 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.legal-prose p + p,
+.legal-prose ul {
+  margin-top: 0.875rem;
+}
+
+.legal-prose ul {
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+
+.legal-prose li + li {
+  margin-top: 0.5rem;
+}
+
+.legal-prose a {
+  color: var(--indigo);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legal-prose a:hover {
+  color: var(--indigo-hover);
+}
+
+.signup-terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.signup-terms input {
+  margin-top: 0.15rem;
+  height: 1rem;
+  width: 1rem;
+  flex-shrink: 0;
+  accent-color: var(--indigo);
+}
+
+.signup-terms label {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.signup-terms a {
+  color: var(--foreground);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.signup-terms a:hover {
+  color: var(--indigo);
+}
+
+.auth-page-main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
 }
 
 textarea.field-input {
@@ -706,6 +802,12 @@ textarea.field-input {
   font-weight: 500;
   letter-spacing: 0.01em;
   border-radius: 0.375rem;
+}
+
+.btn-form.btn-form-lg {
+  height: 3.25rem;
+  font-size: 1.125rem;
+  letter-spacing: 0;
 }
 
 @media (min-width: 768px) {

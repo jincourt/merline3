@@ -1,19 +1,21 @@
 import { createClient } from "@/lib/supabase/server";
+import { resolvePostAuthRedirect } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = searchParams.get("next");
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      const destination = await resolvePostAuthRedirect(next);
+      return NextResponse.redirect(`${origin}${destination}`);
     }
   }
 
-  return NextResponse.redirect(`${origin}/connexion?error=auth`);
+  return NextResponse.redirect(`${origin}/login?error=auth`);
 }

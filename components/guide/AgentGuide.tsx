@@ -1104,7 +1104,7 @@ function GuideCta() {
         <Link href="/#catalogue" className="btn-vendre-submit">
           Ouvrir le catalogue
         </Link>
-        <Link href="/connexion" className="btn-on-indigo-ghost">
+        <Link href="/login" className="btn-on-indigo-ghost">
           Créer un compte
         </Link>
       </div>

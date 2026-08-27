@@ -62,7 +62,7 @@ export default async function MessagesPage() {
       const otherUserId = conv.owner_id === user.id ? conv.peer_id : conv.owner_id;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("username")
         .eq("id", otherUserId)
         .maybeSingle();
 
@@ -70,7 +70,7 @@ export default async function MessagesPage() {
         id: conv.id,
         title,
         href: getListingHref(conv.listing_id, sourceToIntent(conv.src)),
-        otherName: profile?.full_name?.trim() || "Utilisateur",
+        otherName: profile?.username?.trim() || "Utilisateur",
         lastBody: lastMsgResult.data?.body ?? "",
         lastAt: lastMsgResult.data?.created_at ?? conv.updated_at,
         unread: unreadResult.count ?? 0,

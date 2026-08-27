@@ -20,7 +20,7 @@ export default async function PaiementPage({
   }
 
   if (!user) {
-    redirect(`/connexion?next=/paiement?plan=${planParam}`);
+    redirect(`/login?next=/paiement?plan=${planParam}`);
   }
 
   const plan = PLANS[planParam as PlanId];

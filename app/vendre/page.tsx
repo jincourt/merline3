@@ -14,8 +14,7 @@ export default async function VendrePage() {
       <main className="section-indigo flex-1">
         <FormPageHero
           title="Publiez votre annonce"
-          description="Décrivez votre offre et la commission souhaitée. Des agents vous contacteront."
-     
+          description="Publiez votre annonce en indiquant la commission que vous proposez. Les agents vous contactent lorsqu'ils ont un client intéressé."
         >
           <ListingForm
             mode="sell"

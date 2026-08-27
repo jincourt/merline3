@@ -41,7 +41,7 @@ export default async function AnnoncePage({
   const intent = sourceToIntent(src);
   const typeLabel = getListingTypeLabel(listing.listing_type);
   const isOwner = Boolean(user && listing.user_id && user.id === listing.user_id);
-  const loginHref = `/connexion?next=${encodeURIComponent(`/annonce/${src}/${id}`)}`;
+  const loginHref = `/login?next=${encodeURIComponent(`/annonce/${src}/${id}`)}`;
   const priceLabel = formatListingPrice(listing);
   const amountLabel = intent === "sell" ? "Commission" : "Budget";
 

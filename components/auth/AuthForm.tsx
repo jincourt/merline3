@@ -10,24 +10,22 @@ import {
 
 const initialState = { success: false, message: "" };
 
+function EmailIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M16 14H0V2H16V14ZM12 6H10V8H6V6H4V8H6V10H10V8H12V6H14V4H12V6ZM2 6H4V4H2V6Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
 function GoogleIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden>
+    <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden>
       <path
-        fill="#4285F4"
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+        d="M14 2H16V4H4V12H12V10H8V6H16V14H14V16H2V14H0V2H2V0H14V2Z"
+        fill="currentColor"
       />
     </svg>
   );
@@ -36,7 +34,7 @@ function GoogleIcon() {
 export function AuthForm({
   inline = false,
   onSuccess,
-  returnPath = "/dashboard",
+  returnPath = "/",
 }: {
   inline?: boolean;
   onSuccess?: () => void;
@@ -44,6 +42,7 @@ export function AuthForm({
 }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [emailOpen, setEmailOpen] = useState(inline);
   const [codeSent, setCodeSent] = useState(false);
   const [sendState, sendAction, sendPending] = useActionState(
     sendEmailCode,
@@ -68,27 +67,42 @@ export function AuthForm({
   }, [inline, verifyState.success, verifyState.message, router, onSuccess]);
 
   return (
-    <div className="space-y-5">
-      <form action={signInWithGoogle}>
-        <input type="hidden" name="next" value={returnPath} />
-        <button type="submit" className="btn-form btn-ghost w-full gap-2">
-          <GoogleIcon />
-          Continuer avec Google
-        </button>
-      </form>
+    <div className="space-y-4">
+      {!emailOpen && !codeSent ? (
+        <>
+          <form action={signInWithGoogle}>
+            <input type="hidden" name="next" value={returnPath} />
+            <button type="submit" className="btn-form btn-ghost w-full gap-2">
+              <GoogleIcon />
+              Continuer avec Google
+            </button>
+          </form>
 
-      <div className="flex items-center gap-3">
-        <span className="h-px flex-1 bg-[var(--border)]" />
-        <span className="text-xs text-[var(--muted)]">ou par email</span>
-        <span className="h-px flex-1 bg-[var(--border)]" />
-      </div>
-
-      {!codeSent ? (
+          <button
+            type="button"
+            className="btn-form btn-ghost w-full gap-2"
+            onClick={() => setEmailOpen(true)}
+          >
+            <EmailIcon />
+            Continuer avec un email
+          </button>
+        </>
+      ) : !codeSent ? (
         <form action={sendAction} className="space-y-4">
+          {!inline ? (
+            <button
+              type="button"
+              onClick={() => {
+                setEmailOpen(false);
+                setEmail("");
+              }}
+              className="btn-link-back"
+            >
+              Retour
+            </button>
+          ) : null}
+
           <div>
-            <label htmlFor={inline ? "dialog-email" : "email"} className="field-label">
-              Email
-            </label>
             <input
               id={inline ? "dialog-email" : "email"}
               name="email"
@@ -96,8 +110,10 @@ export function AuthForm({
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="vous@email.com"
-              className="field-input mt-2"
+              placeholder="Email"
+              aria-label="Email"
+              className="field-input"
+              autoFocus={!inline}
             />
           </div>
 
@@ -114,7 +130,7 @@ export function AuthForm({
 
           <button
             type="submit"
-            className="btn-form btn-primary w-full"
+            className="btn-form btn-form-lg btn-primary w-full"
             disabled={sendPending}
           >
             {sendPending ? "Envoi…" : "Recevoir un code"}
@@ -123,6 +139,7 @@ export function AuthForm({
       ) : (
         <form action={verifyAction} className="space-y-4">
           <input type="hidden" name="email" value={email} />
+          <input type="hidden" name="next" value={returnPath} />
           {inline ? <input type="hidden" name="inline" value="true" /> : null}
 
           <p className="text-sm text-[var(--muted)]">
@@ -159,7 +176,7 @@ export function AuthForm({
 
           <button
             type="submit"
-            className="btn-form btn-primary w-full"
+            className="btn-form btn-form-lg btn-primary w-full"
             disabled={verifyPending}
           >
             {verifyPending ? "Vérification…" : "Continuer"}
@@ -167,7 +184,10 @@ export function AuthForm({
 
           <button
             type="button"
-            onClick={() => setCodeSent(false)}
+            onClick={() => {
+              setCodeSent(false);
+              setEmailOpen(true);
+            }}
             className="btn-link w-full text-center text-xs text-[var(--muted)]"
           >
             Changer d&apos;email

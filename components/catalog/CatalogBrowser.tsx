@@ -76,8 +76,8 @@ export function CatalogBrowser({
       <MotionDiv className="space-y-6">
         {showSearch ? (
           <div className="catalog-search">
-            <label htmlFor="catalog-search" className="field-label">
-              Rechercher
+            <label htmlFor="catalog-search" className="section-title">
+              Rechercher une commission
             </label>
             <input
               id="catalog-search"
@@ -85,7 +85,7 @@ export function CatalogBrowser({
               value={filters.q}
               onChange={(event) => updateFilter("q", event.target.value)}
               placeholder="Titre, catégorie, description, lieu…"
-              className="field-input mt-2"
+              className="field-input mt-4"
             />
           </div>
         ) : null}
@@ -95,6 +95,8 @@ export function CatalogBrowser({
             <SelectDropdown
               id="catalog-category"
               label="Catégorie"
+              labelClassName="section-subtitle"
+              labelSpacing="lg"
               value={filters.category}
               onChange={(value) => updateFilter("category", value)}
               options={categoryOptions}
@@ -103,8 +105,8 @@ export function CatalogBrowser({
           </div>
 
           <div className="catalog-filter-col">
-            <p className="field-label">Type</p>
-            <div className="catalog-filter-grid mt-2">
+            <p className="section-subtitle">Type</p>
+            <div className="catalog-filter-grid mt-4">
               {TYPE_OPTIONS.map((option) => (
                 <button
                   key={option.value}
@@ -122,7 +124,7 @@ export function CatalogBrowser({
         </div>
       </MotionDiv>
 
-      <p className="text-xs text-[var(--muted)]">
+      <p className="section-subtitle">
         {filtered.length} annonce{filtered.length > 1 ? "s" : ""}
       </p>
 

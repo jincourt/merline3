@@ -17,7 +17,7 @@ export default function Home() {
           cta={{
             href: "/vendre",
             label: "Publier une annonce",
-            className: "btn-vendre-submit",
+            className: "btn-vendre-submit btn-vendre-submit-lg",
           }}
           aside={<HeroConversationAnimation />}
         />
@@ -25,12 +25,13 @@ export default function Home() {
         <IndigoIntroSection
           id="agents"
           center
+          variant="dark"
           title="Devenir un agent"
           description="Trouvez des opportunités adaptées à votre réseau et touchez une commission à chaque vente que vous apportez."
           cta={{
             href: "/guide",
             label: "Découvrir le guide",
-            className: "btn-vendre-submit",
+            className: "btn-vendre-submit btn-vendre-submit-lg",
           }}
         />
       </main>

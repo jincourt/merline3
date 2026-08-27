@@ -44,7 +44,7 @@ export function AuthDialog({
         <div className="flex items-start justify-between gap-4 border-b border-[var(--border)] pb-4">
           <div>
             <h2 id="auth-dialog-title" className="text-lg font-medium">
-              Se connecter
+              Se connecter à Merline
             </h2>
             <p className="mt-1 text-xs text-[var(--muted)]">
               Un code sera envoyé à votre email. Votre brouillon est conservé.

@@ -15,6 +15,8 @@ type SelectDropdownProps = {
   options: SelectDropdownOption[];
   placeholder?: string;
   className?: string;
+  labelClassName?: string;
+  labelSpacing?: "sm" | "md" | "lg";
 };
 
 function ChevronIcon({ open }: { open: boolean }) {
@@ -46,6 +48,8 @@ export function SelectDropdown({
   options,
   placeholder = "Sélectionner…",
   className = "",
+  labelClassName = "field-label",
+  labelSpacing,
 }: SelectDropdownProps) {
   const generatedId = useId();
   const triggerId = id ?? generatedId;
@@ -146,10 +150,17 @@ export function SelectDropdown({
     </ul>
   );
 
+  const triggerSpacing =
+    labelSpacing === "lg"
+      ? "mt-4"
+      : labelSpacing === "md" || labelClassName !== "field-label"
+        ? "mt-3"
+        : "mt-2";
+
   return (
     <div ref={containerRef} className={`select-dropdown ${className}`}>
       {label ? (
-        <label htmlFor={triggerId} className="field-label">
+        <label htmlFor={triggerId} className={labelClassName}>
           {label}
         </label>
       ) : null}
@@ -157,7 +168,7 @@ export function SelectDropdown({
       <button
         id={triggerId}
         type="button"
-        className={`select-dropdown-trigger ${label ? "mt-2" : ""} ${
+        className={`select-dropdown-trigger ${label ? triggerSpacing : ""} ${
           !selected ? "select-dropdown-trigger-placeholder" : ""
         }`}
         aria-haspopup="listbox"

@@ -8,11 +8,13 @@ export async function Header({
   indigo = false,
   gifIndigo = false,
   transparent = false,
+  hideAuthLink = false,
 }: {
   light?: boolean;
   indigo?: boolean;
   gifIndigo?: boolean;
   transparent?: boolean;
+  hideAuthLink?: boolean;
 }) {
   const user = await getUser();
 
@@ -52,33 +54,35 @@ export async function Header({
         <HeaderNav indigo={indigo} light={light || transparent} />
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          {user ? (
-            <Link
-              href="/dashboard"
-              className={`whitespace-nowrap text-sm ${
-                indigo
-                  ? "text-white/75 hover:text-white"
-                  : light || transparent
-                    ? "text-[#52525b] hover:text-[#0a0a0a]"
-                    : "text-[var(--muted)] hover:text-[var(--foreground)]"
-              }`}
-            >
-              Mon espace
-            </Link>
-          ) : (
-            <Link
-              href="/connexion"
-              className={`whitespace-nowrap text-sm ${
-                indigo
-                  ? "text-white/75 hover:text-white"
-                  : light || transparent
-                    ? "text-[#52525b] hover:text-[#0a0a0a]"
-                    : "text-[var(--muted)] hover:text-[var(--foreground)]"
-              }`}
-            >
-              Se connecter
-            </Link>
-          )}
+          {!hideAuthLink ? (
+            user ? (
+              <Link
+                href="/dashboard"
+                className={`whitespace-nowrap text-sm ${
+                  indigo
+                    ? "text-white/75 hover:text-white"
+                    : light || transparent
+                      ? "text-[#52525b] hover:text-[#0a0a0a]"
+                      : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                }`}
+              >
+                Mon espace
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className={`whitespace-nowrap text-sm ${
+                  indigo
+                    ? "text-white/75 hover:text-white"
+                    : light || transparent
+                      ? "text-[#52525b] hover:text-[#0a0a0a]"
+                      : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                }`}
+              >
+                Se connecter
+              </Link>
+            )
+          ) : null}
         </div>
       </div>
     </header>

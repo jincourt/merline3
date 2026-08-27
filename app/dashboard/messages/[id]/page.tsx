@@ -12,7 +12,7 @@ export default async function ConversationPage({
   params: Promise<{ id: string }>;
 }) {
   const user = await getUser();
-  if (!user) redirect("/connexion?next=/dashboard/messages");
+  if (!user) redirect("/login?next=/dashboard/messages");
 
   const { id } = await params;
   const supabase = await createClient();
@@ -32,7 +32,7 @@ export default async function ConversationPage({
 
   const [{ data: listing }, { data: profile }, { data: messages }] = await Promise.all([
     supabase.from(table).select("title").eq("id", conv.listing_id).maybeSingle(),
-    supabase.from("profiles").select("full_name").eq("id", otherUserId).maybeSingle(),
+    supabase.from("profiles").select("username").eq("id", otherUserId).maybeSingle(),
     supabase
       .from("conv_msgs")
       .select("id, sender_id, body, created_at, read_at")
@@ -48,7 +48,7 @@ export default async function ConversationPage({
     .is("read_at", null);
 
   const listingTitle = listing?.title ?? "Annonce";
-  const otherName = profile?.full_name?.trim() || "Utilisateur";
+  const otherName = profile?.username?.trim() || "Utilisateur";
 
   return (
     <PageMotion className="dashboard-page dashboard-conv-page">

@@ -16,7 +16,7 @@ export default async function ModifierAnnoncePage({
   params: Promise<{ intent: string; id: string }>;
 }) {
   const user = await getUser();
-  if (!user) redirect("/connexion?next=/dashboard/annonces");
+  if (!user) redirect("/login?next=/dashboard/annonces");
 
   const { intent, id } = await params;
   if (!isIntent(intent) || intent !== "sell") notFound();

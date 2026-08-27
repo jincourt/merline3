@@ -30,7 +30,7 @@ export function CheckoutButton({
 
       if (!response.ok) {
         if (response.status === 401) {
-          window.location.href = `/connexion?next=/paiement?plan=${planId}`;
+          window.location.href = `/login?next=/paiement?plan=${planId}`;
           return;
         }
         setError(data.error ?? "Paiement indisponible.");

@@ -18,6 +18,7 @@ type IndigoIntroSectionProps = {
   aside?: React.ReactNode;
   top?: boolean;
   center?: boolean;
+  variant?: "indigo" | "dark";
 };
 
 export function IndigoIntroSection({
@@ -29,6 +30,7 @@ export function IndigoIntroSection({
   aside,
   top = false,
   center = false,
+  variant = "indigo",
 }: IndigoIntroSectionProps) {
   const content = (
     <div
@@ -53,13 +55,16 @@ export function IndigoIntroSection({
     </div>
   );
 
+  const sectionClass = variant === "dark" ? "section-dark" : "section-indigo";
+  const paddingClass = top
+    ? "pb-12 pt-20 md:pb-20 md:pt-28"
+    : variant === "dark"
+      ? "pb-16 pt-16 md:pb-20 md:pt-24"
+      : "pb-12 pt-0 md:pb-16";
+
   return (
-    <section id={id} className="section-indigo w-full">
-      <div
-        className={`mx-auto max-w-[1200px] px-6 ${
-          top ? "pb-12 pt-20 md:pb-20 md:pt-28" : "pb-12 pt-0 md:pb-16"
-        }`}
-      >
+    <section id={id} className={`${sectionClass} w-full`}>
+      <div className={`mx-auto max-w-[1200px] px-6 ${paddingClass}`}>
         {stats ? (
           <div className="grid gap-10 md:grid-cols-2 md:items-stretch md:gap-12">
             <MotionDiv>{content}</MotionDiv>
