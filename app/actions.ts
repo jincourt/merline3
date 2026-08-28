@@ -549,6 +549,116 @@ export async function startConversation(
   };
 }
 
+export async function startProfileConversation(
+  _prev: ConversationActionResult | null,
+  formData: FormData,
+): Promise<ConversationActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      success: false,
+      message: "Connectez-vous pour envoyer un message.",
+    };
+  }
+
+  const profileId = String(formData.get("profile_id") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+
+  if (!profileId || body.length < 1) {
+    return {
+      success: false,
+      message: "Message invalide.",
+    };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", profileId)
+    .maybeSingle();
+
+  if (!profile) {
+    return {
+      success: false,
+      message: "Profil introuvable.",
+    };
+  }
+
+  if (profile.id === user.id) {
+    return {
+      success: false,
+      message: "Vous ne pouvez pas vous envoyer un message.",
+    };
+  }
+
+  let convId: string | undefined;
+
+  const { data: existingConv } = await supabase
+    .from("convs")
+    .select("id")
+    .eq("listing_id", profile.id)
+    .eq("src", "profile")
+    .eq("peer_id", user.id)
+    .maybeSingle();
+
+  if (existingConv) {
+    convId = existingConv.id;
+  } else {
+    const { data: newConv, error: convError } = await supabase
+      .from("convs")
+      .insert({
+        listing_id: profile.id,
+        src: "profile",
+        owner_id: profile.id,
+        peer_id: user.id,
+      })
+      .select("id")
+      .single();
+
+    if (convError || !newConv) {
+      console.error("startProfileConversation:", convError?.message);
+      return {
+        success: false,
+        message: "Impossible de créer la conversation.",
+      };
+    }
+
+    convId = newConv.id;
+  }
+
+  const { error: msgError } = await supabase.from("conv_msgs").insert({
+    conv_id: convId,
+    sender_id: user.id,
+    body,
+  });
+
+  if (msgError) {
+    console.error("startProfileConversation msg:", msgError.message);
+    return {
+      success: false,
+      message: "Impossible d'envoyer le message.",
+    };
+  }
+
+  await supabase
+    .from("convs")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("id", convId);
+
+  revalidatePath("/dashboard/messages");
+  revalidatePath(`/dashboard/messages/${convId}`);
+
+  return {
+    success: true,
+    message: "Message envoyé.",
+    convId,
+  };
+}
+
 export async function sendConvMessage(
   _prev: ActionResult | null,
   formData: FormData,

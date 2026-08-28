@@ -7,18 +7,24 @@ import { Star } from "lucide-react";
 type ProfileReviewsSectionProps = {
   summary: ProfileReviewSummary;
   title?: string;
+  titleClassName?: string;
   stacked?: boolean;
 };
 
 export function ProfileReviewsSection({
   summary,
   title = "Avis",
+  titleClassName,
   stacked = false,
 }: ProfileReviewsSectionProps) {
+  const titleClass =
+    titleClassName ??
+    (stacked ? "section-subtitle" : "section-title");
+
   return (
     <section className={`profile-reviews-section ${stacked ? "profile-reviews-section-stacked" : ""}`.trim()}>
       <div className={stacked ? "profile-reviews-header-stacked" : "profile-reviews-header"}>
-        <h2 className={stacked ? "section-subtitle" : "section-title"}>{title}</h2>
+        <h2 className={titleClass}>{title}</h2>
       </div>
 
       {summary.reviews.length === 0 ? (

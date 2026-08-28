@@ -7,6 +7,7 @@ import { ConvMessages } from "@/components/messages/ConvMessages";
 import { ConvReplyForm } from "@/components/messages/ConvReplyForm";
 import { getUserBankAccount } from "@/lib/profile-bank";
 import { getUserProfile } from "@/lib/profile";
+import { getAgentDisplayName } from "@/lib/agent-profiles";
 import { getListingHref, sourceToIntent } from "@/lib/types";
 import { getProfileHref } from "@/lib/profile-reviews";
 
@@ -33,11 +34,27 @@ export default async function ConversationPage({
 
   const table = conv.src === "prod" ? "products" : "buy_requests";
   const otherUserId = conv.owner_id === user.id ? conv.peer_id : conv.owner_id;
+  const isProfileConv = conv.src === "profile";
 
-  const [{ data: listing }, { data: profile }, { data: messages }, userProfile, bankAccount] =
-    await Promise.all([
-    supabase.from(table).select("title").eq("id", conv.listing_id).maybeSingle(),
+  const [
+    { data: listing },
+    { data: profile },
+    { data: ownerProfile },
+    { data: messages },
+    userProfile,
+    bankAccount,
+  ] = await Promise.all([
+    isProfileConv
+      ? Promise.resolve({ data: null })
+      : supabase.from(table).select("title").eq("id", conv.listing_id).maybeSingle(),
     supabase.from("profiles").select("username").eq("id", otherUserId).maybeSingle(),
+    isProfileConv
+      ? supabase
+          .from("profiles")
+          .select("name, username")
+          .eq("id", conv.owner_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
     supabase
       .from("conv_msgs")
       .select("id, sender_id, body, created_at, read_at")
@@ -54,9 +71,17 @@ export default async function ConversationPage({
     .neq("sender_id", user.id)
     .is("read_at", null);
 
-  const listingTitle = listing?.title ?? "Annonce";
+  const listingTitle = isProfileConv
+    ? ownerProfile
+      ? `Profil · ${getAgentDisplayName({
+          name: ownerProfile.name?.trim() ?? "",
+          username: ownerProfile.username?.trim() ?? "",
+        })}`
+      : "Profil"
+    : (listing?.title ?? "Annonce");
   const otherUsername = profile?.username?.trim() ?? "";
   const otherName = otherUsername || "Utilisateur";
+  const ownerUsername = ownerProfile?.username?.trim() ?? "";
 
   return (
     <PageMotion className="dashboard-page dashboard-conv-page">
@@ -83,10 +108,14 @@ export default async function ConversationPage({
             </p>
           </div>
           <Link
-            href={getListingHref(conv.listing_id, sourceToIntent(conv.src))}
+            href={
+              isProfileConv && ownerUsername
+                ? getProfileHref(ownerUsername)
+                : getListingHref(conv.listing_id, sourceToIntent(conv.src))
+            }
             className="dashboard-conv-listing-link btn-ghost shrink-0 text-sm"
           >
-            Voir l&apos;annonce
+            {isProfileConv ? "Voir le profil" : "Voir l'annonce"}
           </Link>
         </div>
       </header>

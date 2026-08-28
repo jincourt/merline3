@@ -1,5 +1,5 @@
 import type { CatalogListing, BuyRequest, Product } from "@/lib/types";
-import { mergeCatalogListings, toCatalogListing } from "@/lib/catalog";
+import { buyRequestToCatalogListing, mergeCatalogListings } from "@/lib/catalog";
 
 export async function getProfileListings(
   supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>,
@@ -26,7 +26,7 @@ export async function getProfileListings(
 
   const sellListings = mergeCatalogListings((products ?? []) as Product[]);
   const buyListings = (buyRequests ?? []).map((item) =>
-    toCatalogListing(item as BuyRequest, "buy"),
+    buyRequestToCatalogListing(item as BuyRequest),
   );
 
   return [...sellListings, ...buyListings].sort(

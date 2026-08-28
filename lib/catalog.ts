@@ -1,4 +1,4 @@
-import type { CatalogListing, ListingSource, Product } from "@/lib/types";
+import type { BuyRequest, CatalogListing, ListingSource, Product } from "@/lib/types";
 import { formatCommission, sourceToIntent } from "@/lib/types";
 
 export type CatalogFilters = {
@@ -58,6 +58,24 @@ export function toCatalogListing(
     commission_value: item.commission_value,
     price: null,
     is_free: false,
+    address: item.address,
+    photos: item.photos,
+    created_at: item.created_at,
+  };
+}
+
+export function buyRequestToCatalogListing(item: BuyRequest): CatalogListing {
+  return {
+    id: item.id,
+    intent: "buy",
+    listing_type: item.listing_type,
+    category: item.category,
+    title: item.title,
+    description: item.description,
+    commission_type: null,
+    commission_value: null,
+    price: item.price,
+    is_free: item.is_free,
     address: item.address,
     photos: item.photos,
     created_at: item.created_at,

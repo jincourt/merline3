@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import {
   FavoritesIcon,
   ListingsIcon,
@@ -5,12 +6,13 @@ import {
   UserIcon,
 } from "./HeaderIcons";
 import { getProfileHref } from "@/lib/profile-reviews";
-import type { LucideIcon } from "lucide-react";
+
+export type HeaderMenuIcon = ComponentType<{ className?: string }>;
 
 export type AccountMenuLink = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: HeaderMenuIcon;
 };
 
 const dashboardMenuLinks: AccountMenuLink[] = [

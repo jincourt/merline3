@@ -2,6 +2,8 @@ export type ListingType = "objet" | "service";
 
 export type ListingSource = "prod" | "buy";
 
+export type ConvSource = ListingSource | "profile";
+
 export type ListingStatus = "active" | "paused" | "sold" | "closed" | "found";
 
 export type CommissionType = "chf" | "percent";

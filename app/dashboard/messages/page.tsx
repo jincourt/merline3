@@ -4,21 +4,37 @@ import { getUser } from "@/lib/auth";
 import { PageMotion } from "@/components/layout/PageMotion";
 import { ProfileAvatar } from "@/components/profiles/ProfileAvatar";
 import { getAgentDisplayName } from "@/lib/agent-profiles";
-import { getListingHref, sourceToIntent } from "@/lib/types";
+import { getListingHref, sourceToIntent, type ConvSource } from "@/lib/types";
+import { getProfileHref } from "@/lib/profile-reviews";
 
 type ConversationRow = {
   id: string;
   listing_id: string;
-  src: "prod" | "buy";
+  src: ConvSource;
   owner_id: string;
   peer_id: string;
   updated_at: string;
 };
 
-async function getListingTitle(
+async function getConversationTitle(
   supabase: Awaited<ReturnType<typeof createClient>>,
   conv: ConversationRow,
 ) {
+  if (conv.src === "profile") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name, username")
+      .eq("id", conv.owner_id)
+      .maybeSingle();
+
+    if (!profile) return "Profil";
+
+    return `Profil · ${getAgentDisplayName({
+      name: profile.name?.trim() ?? "",
+      username: profile.username?.trim() ?? "",
+    })}`;
+  }
+
   const table = conv.src === "prod" ? "products" : "buy_requests";
   const { data } = await supabase
     .from(table)
@@ -45,7 +61,7 @@ export default async function MessagesPage() {
   const enriched = await Promise.all(
     conversations.map(async (conv) => {
       const [title, lastMsgResult, unreadResult] = await Promise.all([
-        getListingTitle(supabase, conv),
+        getConversationTitle(supabase, conv),
         supabase
           .from("conv_msgs")
           .select("body, created_at, sender_id")
@@ -78,7 +94,10 @@ export default async function MessagesPage() {
       return {
         id: conv.id,
         title,
-        href: getListingHref(conv.listing_id, sourceToIntent(conv.src)),
+        href:
+          conv.src === "profile" && profile?.username
+            ? getProfileHref(profile.username.trim())
+            : getListingHref(conv.listing_id, sourceToIntent(conv.src)),
         otherName,
         otherProfileName: profile?.name?.trim() ?? "",
         otherUsername: profile?.username?.trim() ?? "",
