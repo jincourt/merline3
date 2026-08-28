@@ -17,6 +17,32 @@ export const DEFAULT_CATALOG_FILTERS: CatalogFilters = {
   priceMax: "",
 };
 
+export function buildCatalogHref(
+  filters?: Partial<Pick<CatalogFilters, "listingType" | "category">>,
+): string {
+  const params = new URLSearchParams();
+  if (filters?.listingType) {
+    params.set("type", filters.listingType);
+  }
+  if (filters?.category) {
+    params.set("category", filters.category);
+  }
+  const query = params.toString();
+  return query ? `/?${query}#catalogue` : "/#catalogue";
+}
+
+export function filtersFromSearchParams(
+  params: Pick<URLSearchParams, "get">,
+): Partial<CatalogFilters> {
+  const type = params.get("type");
+  const category = params.get("category") ?? "";
+
+  return {
+    listingType: type === "objet" || type === "service" ? type : null,
+    category,
+  };
+}
+
 export function toCatalogListing(
   item: Product,
   intent: CatalogListing["intent"],

@@ -74,8 +74,8 @@ export function ListingMessageForm({
     if (isInline) {
       return (
         <div className="mt-5 flex min-w-0 flex-wrap items-center gap-3">
-          {leading}
           {loginButton}
+          {leading}
         </div>
       );
     }
@@ -97,8 +97,8 @@ export function ListingMessageForm({
     if (isInline) {
       return (
         <div className="mt-5 flex min-w-0 flex-wrap items-center gap-3">
-          {leading}
           {messageButton}
+          {leading}
         </div>
       );
     }

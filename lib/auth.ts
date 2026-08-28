@@ -25,7 +25,7 @@ export async function getProfile() {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("username, phone")
+      .select("username, phone, website, address, npa, canton")
       .eq("id", user.id)
       .single();
 
@@ -39,6 +39,10 @@ export async function getProfile() {
         user.user_metadata?.name ??
         "",
       phone: profile?.phone ?? "",
+      website: profile?.website ?? "",
+      address: profile?.address ?? "",
+      npa: profile?.npa ?? "",
+      canton: profile?.canton ?? "",
     };
   } catch (error) {
     console.error("getProfile failed:", error);

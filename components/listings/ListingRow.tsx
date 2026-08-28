@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useTransition } from "react";
 import {
   deleteListing,
   updateListingStatus,
   type ListingStatus,
 } from "@/app/auth/actions";
-import { getListingEditHref } from "@/lib/types";
+import { getListingEditHref, getListingHref } from "@/lib/types";
 
 import type { CommissionType } from "@/lib/types";
 import { formatCommission } from "@/lib/types";
@@ -23,6 +24,7 @@ export type DashboardListing = {
   commission_value?: number | null;
   price?: number | null;
   is_free?: boolean;
+  photos?: string[];
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -57,6 +59,8 @@ export function ListingRow({ listing }: { listing: DashboardListing }) {
   const [pending, startTransition] = useTransition();
   const statuses = listing.intent === "sell" ? SELL_STATUSES : BUY_STATUSES;
   const editHref = getListingEditHref(listing.id, listing.intent);
+  const listingHref = getListingHref(listing.id, listing.intent);
+  const image = listing.photos?.find((photo) => photo?.startsWith("http"));
 
   function handleStatusChange(status: ListingStatus) {
     startTransition(async () => {
@@ -73,17 +77,33 @@ export function ListingRow({ listing }: { listing: DashboardListing }) {
 
   return (
     <article className="dashboard-listing-row">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-[var(--muted)]">{listing.category}</span>
+      <Link href={listingHref} className="dashboard-listing-link">
+        <div className="dashboard-listing-thumb">
+          {image ? (
+            <Image
+              src={image}
+              alt={listing.title}
+              fill
+              className="object-cover"
+              sizes="80px"
+            />
+          ) : (
+            <span className="dashboard-listing-thumb-empty">Aucune image</span>
+          )}
         </div>
-        <h3 className="mt-1 truncate text-sm font-medium text-[var(--foreground)]">
-          {listing.title}
-        </h3>
-        <p className="mt-1 text-xs text-[var(--muted)]">
-          {formatListingAmount(listing)} · {formatDate(listing.created_at)}
-        </p>
-      </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-[var(--muted)]">{listing.category}</span>
+          </div>
+          <h3 className="mt-1 truncate text-sm font-medium text-[var(--foreground)]">
+            {listing.title}
+          </h3>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            {formatListingAmount(listing)} · {formatDate(listing.created_at)}
+          </p>
+        </div>
+      </Link>
 
       <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
         <select

@@ -10,9 +10,9 @@ export function Footer({
 }) {
   if (light) {
     return (
-      <footer className="border-t border-[rgba(0,0,0,0.08)] bg-white">
+      <footer className="section-dark border-t border-[var(--border)]">
         <MotionDiv className="mx-auto max-w-[1200px] px-6 py-12 text-center">
-          <p className="text-xs text-[#71717a]">
+          <p className="text-xs text-[var(--muted-dim)]">
             © {new Date().getFullYear()} Merline
           </p>
         </MotionDiv>
@@ -22,9 +22,9 @@ export function Footer({
 
   if (indigo) {
     return (
-      <footer className="section-indigo border-t border-white/10">
+      <footer className="section-dark border-t border-[var(--border)]">
         <MotionDiv className="mx-auto max-w-[1200px] px-6 pb-8 pt-12 text-center">
-          <p className="text-xs text-white/50">
+          <p className="text-xs text-[var(--muted-dim)]">
             © {new Date().getFullYear()} Merline
           </p>
         </MotionDiv>

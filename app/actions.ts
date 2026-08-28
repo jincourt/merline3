@@ -1,6 +1,13 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  isValidNpa,
+  isValidWebsite,
+  normalizeWebsite,
+} from "@/lib/profile";
+import { isValidSwissCantonCode } from "@/lib/swiss-cantons";
 import {
   VALID_LISTING_TYPES,
   VALID_COMMISSION_TYPES,
@@ -8,6 +15,7 @@ import {
   type ListingSource,
 } from "@/lib/types";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 function isValidListingType(value: string) {
   return VALID_LISTING_TYPES.includes(value as (typeof VALID_LISTING_TYPES)[number]);
@@ -209,6 +217,10 @@ export type ActionResult = {
   message: string;
 };
 
+export type FavoriteActionResult = ActionResult & {
+  favorited?: boolean;
+};
+
 export async function submitContactRequest(
   _prev: ActionResult | null,
   formData: FormData,
@@ -285,10 +297,7 @@ export async function submitProduct(
   }
 
   revalidateListingPaths("sell");
-  return {
-    success: true,
-    message: "Votre annonce a été publiée avec succès.",
-  };
+  redirect("/dashboard/annonces");
 }
 
 export async function updateProduct(
@@ -596,5 +605,207 @@ export async function sendConvMessage(
   return {
     success: true,
     message: "Message envoyé.",
+  };
+}
+
+export async function toggleFavorite(
+  listingId: string,
+  src: ListingSource,
+): Promise<FavoriteActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      success: false,
+      message: "Connectez-vous pour enregistrer cette annonce.",
+    };
+  }
+
+  if (!isValidListingSource(src)) {
+    return {
+      success: false,
+      message: "Annonce introuvable.",
+    };
+  }
+
+  const table = src === "prod" ? "products" : "buy_requests";
+  const { data: listing } = await supabase
+    .from(table)
+    .select("id, status")
+    .eq("id", listingId)
+    .maybeSingle();
+
+  if (!listing || listing.status !== "active") {
+    return {
+      success: false,
+      message: "Annonce introuvable.",
+    };
+  }
+
+  const { data: existing } = await supabase
+    .from("favorites")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("listing_id", listingId)
+    .eq("src", src)
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await supabase.from("favorites").delete().eq("id", existing.id);
+
+    if (error) {
+      console.error("toggleFavorite delete:", error.message);
+      return {
+        success: false,
+        message: "Impossible de retirer des favoris.",
+      };
+    }
+
+    revalidatePath("/dashboard/favoris");
+    revalidatePath(`/annonce/${src}/${listingId}`);
+
+    return {
+      success: true,
+      message: "Annonce retirée des favoris.",
+      favorited: false,
+    };
+  }
+
+  const { error } = await supabase.from("favorites").insert({
+    user_id: user.id,
+    listing_id: listingId,
+    src,
+  });
+
+  if (error) {
+    console.error("toggleFavorite insert:", error.message);
+    return {
+      success: false,
+      message: "Impossible d'ajouter aux favoris.",
+    };
+  }
+
+  revalidatePath("/dashboard/favoris");
+  revalidatePath(`/annonce/${src}/${listingId}`);
+
+  return {
+    success: true,
+    message: "Annonce ajoutée aux favoris.",
+    favorited: true,
+  };
+}
+
+async function isUsernameTaken(username: string, excludeUserId: string) {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("profiles")
+    .select("id")
+    .ilike("username", username)
+    .neq("id", excludeUserId)
+    .limit(1)
+    .maybeSingle();
+
+  return !!data;
+}
+
+export async function updateProfile(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Connectez-vous pour modifier votre profil." };
+  }
+
+  const username = String(formData.get("username") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const websiteRaw = String(formData.get("website") ?? "").trim();
+  const address = String(formData.get("address") ?? "").trim();
+  const npa = String(formData.get("npa") ?? "").trim();
+  const canton = String(formData.get("canton") ?? "").trim().toUpperCase();
+
+  if (username.length < 2) {
+    return {
+      success: false,
+      message: "Le nom d'utilisateur doit contenir au moins 2 caractères.",
+    };
+  }
+
+  if (phone && phone.length < 8) {
+    return {
+      success: false,
+      message: "Le numéro de téléphone doit contenir au moins 8 caractères.",
+    };
+  }
+
+  if (!isValidWebsite(websiteRaw)) {
+    return {
+      success: false,
+      message: "L'adresse du site internet n'est pas valide.",
+    };
+  }
+
+  if (!isValidNpa(npa)) {
+    return {
+      success: false,
+      message: "Le NPA doit contenir 4 chiffres.",
+    };
+  }
+
+  if (canton && !isValidSwissCantonCode(canton)) {
+    return {
+      success: false,
+      message: "Veuillez sélectionner un canton valide.",
+    };
+  }
+
+  const taken = await isUsernameTaken(username, user.id);
+  if (taken) {
+    return {
+      success: false,
+      message: "Ce nom d'utilisateur est déjà utilisé.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      username,
+      phone: phone || null,
+      website: websiteRaw ? normalizeWebsite(websiteRaw) : null,
+      address: address || null,
+      npa: npa || null,
+      canton: canton || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("updateProfile:", error.message);
+    const migrationHint = error.message.includes("website")
+      || error.message.includes("address")
+      || error.message.includes("npa")
+      || error.message.includes("canton")
+      ? " Applique la migration Supabase profile_contact_fields."
+      : "";
+    return {
+      success: false,
+      message: `Impossible d'enregistrer le profil.${migrationHint}`,
+    };
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/dashboard/parametres");
+
+  return {
+    success: true,
+    message: "Profil enregistré.",
   };
 }

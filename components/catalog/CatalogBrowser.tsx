@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { CatalogListing } from "@/lib/types";
 import {
   DEFAULT_CATALOG_FILTERS,
   filterCatalogListings,
+  filtersFromSearchParams,
   getCatalogCategories,
   type CatalogFilters,
 } from "@/lib/catalog";
@@ -30,7 +32,11 @@ export function CatalogBrowser({
   pageSize,
   layout = "list",
 }: CatalogBrowserProps) {
-  const [filters, setFilters] = useState<CatalogFilters>(DEFAULT_CATALOG_FILTERS);
+  const searchParams = useSearchParams();
+  const [filters, setFilters] = useState<CatalogFilters>(() => ({
+    ...DEFAULT_CATALOG_FILTERS,
+    ...filtersFromSearchParams(searchParams),
+  }));
   const [page, setPage] = useState(0);
   const categories = useMemo(() => getCatalogCategories(listings), [listings]);
 

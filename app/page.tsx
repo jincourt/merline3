@@ -1,4 +1,5 @@
 import { Header } from "@/components/layout/Header";
+import { HeaderIcon, PlusIcon } from "@/components/layout/HeaderIcons";
 import { ProductCatalog } from "@/components/catalog/ProductCatalog";
 import { IndigoIntroSection } from "@/components/marketing/IndigoIntroSection";
 import { HeroConversationAnimation } from "@/components/marketing/HeroConversationAnimation";
@@ -12,12 +13,17 @@ export default function Home() {
         <IndigoIntroSection
           id="annonceurs"
           top
-          title="Vous avez un objet ou un service à vendre ?"
+          title="Vendez rapidement grâce à nos agents"
           description="Publiez votre annonce en indiquant la commission. Les agents vous contactent lorsqu'ils ont un client intéressé."
           cta={{
             href: "/vendre",
             label: "Publier une annonce",
             className: "btn-vendre-submit btn-vendre-submit-lg",
+            icon: (
+              <HeaderIcon className="h-5 w-5">
+                <PlusIcon />
+              </HeaderIcon>
+            ),
           }}
           aside={<HeroConversationAnimation />}
         />

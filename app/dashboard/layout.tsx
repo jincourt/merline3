@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
+import { Header } from "@/components/layout/Header";
+import { SiteContainer } from "@/components/layout/SiteContainer";
 import { getSignupStatus, getUser, setupPath } from "@/lib/auth";
 
 export default async function DashboardLayout({
@@ -20,11 +21,11 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="dashboard-app min-h-full">
-      <div className="dashboard-shell">
-        <DashboardSidebar />
-        <main className="dashboard-main">{children}</main>
-      </div>
-    </div>
+    <>
+      <Header indigo />
+      <main className="page-form min-h-[calc(100dvh-4.5rem)]">
+        <SiteContainer className="py-10 md:py-14">{children}</SiteContainer>
+      </main>
+    </>
   );
 }

@@ -1,16 +1,18 @@
-import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SiteContainer } from "@/components/layout/SiteContainer";
 import { MotionDiv } from "@/components/ui/motion";
+import { CatalogBreadcrumb } from "@/components/catalog/CatalogBreadcrumb";
 import { ListingDescription } from "@/components/listings/ListingDescription";
+import { ListingFavoriteButton } from "@/components/listings/ListingFavoriteButton";
 import { ListingMessageForm } from "@/components/listings/ListingMessageForm";
 import { fetchPublicListing, formatListingPrice } from "@/lib/catalog";
+import { isListingFavorited } from "@/lib/favorites";
 import { getUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { getListingTypeLabel, sourceToIntent, type ListingSource } from "@/lib/types";
+import { sourceToIntent, type ListingSource } from "@/lib/types";
 
 function isListingSource(value: string): value is ListingSource {
   return value === "prod" || value === "buy";
@@ -37,9 +39,12 @@ export default async function AnnoncePage({
     notFound();
   }
 
+  const isFavorited = user
+    ? await isListingFavorited(supabase, user.id, id, src)
+    : false;
+
   const image = listing.photos?.find((photo) => photo?.startsWith("http"));
   const intent = sourceToIntent(src);
-  const typeLabel = getListingTypeLabel(listing.listing_type);
   const isOwner = Boolean(user && listing.user_id && user.id === listing.user_id);
   const loginHref = `/login?next=${encodeURIComponent(`/annonce/${src}/${id}`)}`;
   const priceLabel = formatListingPrice(listing);
@@ -51,12 +56,10 @@ export default async function AnnoncePage({
       <main className="page-form flex-1">
         <SiteContainer className="pb-24 pt-10 md:pb-32 md:pt-14">
           <MotionDiv>
-            <Link
-              href="/#catalogue"
-              className="text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
-            >
-              ← Retour au catalogue
-            </Link>
+            <CatalogBreadcrumb
+              listingType={listing.listing_type}
+              category={listing.category}
+            />
           </MotionDiv>
 
           <div className="mt-6 grid gap-6 md:grid-cols-2 md:gap-8 md:items-start">
@@ -82,12 +85,16 @@ export default async function AnnoncePage({
             </MotionDiv>
 
             <MotionDiv delay={0.12}>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="catalog-badge">{typeLabel}</span>
-                <span className="text-xs text-[var(--muted-dim)]">{listing.category}</span>
+              <div className="flex items-start justify-between gap-4">
+                <h1 className="text-2xl font-medium tracking-tight">{listing.title}</h1>
+                <ListingFavoriteButton
+                  listingId={listing.id}
+                  src={src}
+                  initialFavorited={isFavorited}
+                  isLoggedIn={Boolean(user)}
+                  loginHref={loginHref}
+                />
               </div>
-
-              <h1 className="mt-3 text-2xl font-medium tracking-tight">{listing.title}</h1>
               <p className="mt-3 text-sm text-[var(--muted)]">{listing.address}</p>
 
               <ListingMessageForm
