@@ -7,6 +7,7 @@ import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import { SWISS_CANTONS } from "@/lib/swiss-cantons";
 import type { UserProfile } from "@/lib/profile";
 import {
+  isValidProfileType,
   PROFILE_TYPE_LABELS,
   PROFILE_TYPES,
   type ProfileType,
@@ -67,7 +68,9 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
               label="Type de profil"
               labelSpacing="md"
               value={profileType}
-              onChange={setProfileType}
+              onChange={(value) => {
+                if (isValidProfileType(value)) setProfileType(value);
+              }}
               options={profileTypeOptions}
               placeholder="Choisir un type"
             />
