@@ -6,7 +6,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { signOut } from "@/app/auth/actions";
 import { HeaderIcon, MenuIcon } from "./HeaderIcons";
-import { accountMenuLinks } from "./header-menu-links";
+import { getAccountMenuLinks } from "./header-menu-links";
 
 type MenuPosition = {
   top: number;
@@ -95,6 +95,8 @@ export function HeaderMobileMenu({
       ? "header-icon-btn header-icon-btn-light"
       : "header-icon-btn";
 
+  const menuLinks = getAccountMenuLinks(username);
+
   const menu =
     open && mounted ? (
       <>
@@ -116,8 +118,11 @@ export function HeaderMobileMenu({
         >
           <p className="header-mobile-menu-user">{displayName}</p>
           <div className="header-user-menu-links">
-            {accountMenuLinks.map((item) => {
-              const active = pathname.startsWith(item.href);
+            {menuLinks.map((item) => {
+              const active =
+                item.href.startsWith("/profil/")
+                  ? pathname === item.href
+                  : pathname.startsWith(item.href);
               const Icon = item.icon;
 
               return (

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { ProfileType } from "@/lib/profile-type";
 import type { PublicProfile } from "@/lib/agent-profiles";
+import { getProfileReviewSummariesForProfiles } from "@/lib/profile-reviews";
 
 export type { PublicProfile } from "@/lib/agent-profiles";
 export { getAgentDisplayName, filterAgents } from "@/lib/agent-profiles";
@@ -10,7 +11,7 @@ export async function getCommunityProfiles(): Promise<PublicProfile[]> {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, username, name, profile_type, canton, npa")
+    .select("id, username, name, profile_type, canton, npa, avatar_url")
     .not("profile_type", "is", null)
     .not("username", "is", null)
     .order("username", { ascending: true });
@@ -29,10 +30,28 @@ export async function getCommunityProfiles(): Promise<PublicProfile[]> {
       profileType: row.profile_type as ProfileType,
       canton: row.canton?.trim() ?? "",
       npa: row.npa?.trim() ?? "",
+      avatarUrl: row.avatar_url?.trim() ?? "",
     }));
 }
 
 export async function getAgentProfiles(): Promise<PublicProfile[]> {
   const profiles = await getCommunityProfiles();
-  return profiles.filter((profile) => profile.profileType === "agent");
+  const agents = profiles.filter((profile) => profile.profileType === "agent");
+
+  if (agents.length === 0) return [];
+
+  const supabase = await createClient();
+  const reviewSummaries = await getProfileReviewSummariesForProfiles(
+    supabase,
+    agents.map((agent) => agent.id),
+  );
+
+  return agents.map((agent) => {
+    const summary = reviewSummaries.get(agent.id);
+    return {
+      ...agent,
+      averageRating: summary?.averageRating ?? null,
+      reviewCount: summary?.count ?? 0,
+    };
+  });
 }

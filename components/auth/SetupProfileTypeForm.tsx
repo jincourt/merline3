@@ -34,7 +34,7 @@ export function SetupProfileTypeForm({ returnPath }: SetupProfileTypeFormProps) 
           Choisissez votre profil
         </h2>
         <p className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
-          Étape 2 sur 2
+          Étape 2 sur 3
         </p>
       </div>
 

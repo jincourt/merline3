@@ -1,11 +1,15 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { checkUsernameAvailability } from "@/app/auth/actions";
 import { updateProfile, type ActionResult } from "@/app/actions";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
+import { ProfileLogoUpload } from "@/components/settings/ProfileLogoUpload";
 import { SWISS_CANTONS } from "@/lib/swiss-cantons";
 import type { UserProfile } from "@/lib/profile";
+import type { BankAccount } from "@/lib/profile-bank";
+import { hasBankAccount } from "@/lib/profile-bank";
 import {
   isValidProfileType,
   PROFILE_TYPE_LABELS,
@@ -30,9 +34,15 @@ const profileTypeOptions = PROFILE_TYPES.map((type) => ({
 
 type ProfileSettingsFormProps = {
   profile: UserProfile;
+  bankAccount: BankAccount;
+  userId: string;
 };
 
-export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
+export function ProfileSettingsForm({
+  profile,
+  bankAccount,
+  userId,
+}: ProfileSettingsFormProps) {
   const [state, action, pending] = useActionState(updateProfile, initialState);
   const [usernameError, setUsernameError] = useState("");
   const [checkingUsername, setCheckingUsername] = useState(false);
@@ -40,6 +50,14 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
   const [profileType, setProfileType] = useState<ProfileType>(
     profile.profileType ?? "annonceur",
   );
+  const [bankOpen, setBankOpen] = useState(hasBankAccount(bankAccount));
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (profileType !== "agent" && textareaRef.current) {
+      textareaRef.current.value = "";
+    }
+  }, [profileType]);
 
   async function handleUsernameBlur(event: React.FocusEvent<HTMLInputElement>) {
     const value = event.target.value.trim();
@@ -75,6 +93,13 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
               placeholder="Choisir un type"
             />
             <input type="hidden" name="profile_type" value={profileType} />
+
+            <ProfileLogoUpload
+              userId={userId}
+              displayName={profile.name}
+              username={profile.username}
+              initialUrl={profile.avatarUrl}
+            />
 
             <div>
               <label htmlFor="profile-name" className="field-label">
@@ -149,6 +174,24 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
                 className="field-input mt-2"
               />
             </div>
+
+            {profileType === "agent" ? (
+              <div>
+                <label htmlFor="profile-description" className="field-label">
+                  Description
+                </label>
+                <textarea
+                  ref={textareaRef}
+                  id="profile-description"
+                  name="description"
+                  rows={5}
+                  maxLength={2000}
+                  defaultValue={profile.description}
+                  placeholder="Présentez votre expérience et votre réseau…"
+                  className="field-input mt-2 min-h-[7rem] resize-y"
+                />
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -197,6 +240,91 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
                 placeholder="Sélectionner un canton"
               />
               <input type="hidden" name="canton" value={canton} />
+            </div>
+
+            <div className="dashboard-bank-card">
+              <button
+                type="button"
+                className="dashboard-bank-card-trigger"
+                aria-expanded={bankOpen}
+                onClick={() => setBankOpen((value) => !value)}
+              >
+                <span className="dashboard-bank-card-title">
+                  {hasBankAccount(bankAccount)
+                    ? "Compte bancaire"
+                    : "Ajouter un compte bancaire"}
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 transition-transform ${
+                    bankOpen ? "rotate-180" : ""
+                  }`}
+                  aria-hidden
+                />
+              </button>
+
+              <div
+                className={`dashboard-bank-card-body ${
+                  bankOpen ? "" : "hidden"
+                }`}
+              >
+                <div>
+                  <label htmlFor="bank-account-name" className="field-label">
+                    Nom du compte
+                  </label>
+                  <input
+                    id="bank-account-name"
+                    name="bank_account_name"
+                    type="text"
+                    autoComplete="name"
+                    defaultValue={bankAccount.accountName}
+                    className="field-input mt-2"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="bank-iban" className="field-label">
+                    IBAN
+                  </label>
+                  <input
+                    id="bank-iban"
+                    name="bank_iban"
+                    type="text"
+                    autoComplete="off"
+                    placeholder="CH93 0076 2011 6238 5295 7"
+                    defaultValue={bankAccount.iban}
+                    className="field-input mt-2"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="bank-bic" className="field-label">
+                    BIC/SWIFT
+                  </label>
+                  <input
+                    id="bank-bic"
+                    name="bank_bic"
+                    type="text"
+                    autoComplete="off"
+                    placeholder="POFICHBEXXX"
+                    defaultValue={bankAccount.bic}
+                    className="field-input mt-2"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="bank-name" className="field-label">
+                    Banque
+                  </label>
+                  <input
+                    id="bank-name"
+                    name="bank_name"
+                    type="text"
+                    autoComplete="organization"
+                    defaultValue={bankAccount.bankName}
+                    className="field-input mt-2"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

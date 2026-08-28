@@ -4,8 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import type { CatalogListing } from "@/lib/types";
 import { formatListingPrice } from "@/lib/catalog";
+import { getAgentDisplayName } from "@/lib/agent-profiles";
 import { getListingHref } from "@/lib/types";
 import { MotionArticle } from "@/components/ui/motion";
+import { ProfileReviewStars } from "@/components/profiles/ProfileReviewForm";
+import { ProfileAvatar } from "@/components/profiles/ProfileAvatar";
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat("fr-CH", {
@@ -20,11 +23,13 @@ function ListingImage({
   title,
   commission,
   sizes,
+  showCommissionBadge = false,
 }: {
   image?: string;
   title: string;
-  commission: string;
+  commission?: string;
   sizes: string;
+  showCommissionBadge?: boolean;
 }) {
   return (
     <div className="relative aspect-square overflow-hidden bg-[var(--surface-elevated)]">
@@ -41,7 +46,46 @@ function ListingImage({
           <span className="text-xs text-[var(--muted-dim)]">Aucune image</span>
         </div>
       )}
-      <span className="catalog-commission-badge">{commission}</span>
+      {showCommissionBadge && commission ? (
+        <span className="catalog-commission-badge">{commission}</span>
+      ) : null}
+    </div>
+  );
+}
+
+function CatalogCardOwner({
+  name,
+  username,
+  avatarUrl,
+  averageRating,
+  reviewCount,
+}: {
+  name: string;
+  username: string;
+  avatarUrl?: string;
+  averageRating: number | null;
+  reviewCount: number;
+}) {
+  const displayName = getAgentDisplayName({ name, username });
+  if (!displayName) return null;
+
+  return (
+    <div className="catalog-card-owner">
+      <ProfileAvatar
+        name={name}
+        username={username}
+        avatarUrl={avatarUrl}
+        size="sm"
+      />
+      <div className="catalog-card-owner-meta">
+        <p className="catalog-card-owner-name">{displayName}</p>
+        <ProfileReviewStars
+          rating={averageRating}
+          count={reviewCount}
+          singleStar
+          className="catalog-card-owner-rating"
+        />
+      </div>
     </div>
   );
 }
@@ -66,18 +110,26 @@ export function CatalogCard({
           <ListingImage
             image={image}
             title={listing.title}
-            commission={commission}
             sizes="(max-width: 1024px) 50vw, 33vw"
           />
 
-          <div className="flex flex-1 flex-col p-4">
-            <h3 className="line-clamp-2 text-sm font-medium tracking-tight text-[var(--foreground)]">
-              {listing.title}
-            </h3>
+          <div className="catalog-card-body">
+            <h3 className="catalog-card-title">{listing.title}</h3>
 
-            <p className="mt-2 line-clamp-1 text-xs text-[var(--muted-dim)]">
-              {listing.category} · {listing.address}
+            <p className="catalog-card-category">{listing.category}</p>
+
+            <p className="catalog-card-commission">
+              <span className="catalog-card-commission-label">Commission:</span>
+              <span className="catalog-card-commission-value">{commission}</span>
             </p>
+
+            <CatalogCardOwner
+              name={listing.ownerName ?? ""}
+              username={listing.ownerUsername ?? ""}
+              avatarUrl={listing.ownerAvatarUrl}
+              averageRating={listing.ownerAverageRating ?? null}
+              reviewCount={listing.ownerReviewCount ?? 0}
+            />
           </div>
         </Link>
       </MotionArticle>
@@ -92,6 +144,7 @@ export function CatalogCard({
           title={listing.title}
           commission={commission}
           sizes="(max-width: 768px) 100vw, 160px"
+          showCommissionBadge
         />
 
         <div className="flex flex-col p-6 md:p-8">

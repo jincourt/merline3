@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { getUserProfile } from "@/lib/profile";
+import { getUserBankAccount } from "@/lib/profile-bank";
 import { ProfileSettingsForm } from "@/components/settings/ProfileSettingsForm";
 import { PageMotion } from "@/components/layout/PageMotion";
 
@@ -9,7 +10,10 @@ export default async function ParametresPage() {
   if (!user) return null;
 
   const supabase = await createClient();
-  const profile = await getUserProfile(supabase, user.id);
+  const [profile, bankAccount] = await Promise.all([
+    getUserProfile(supabase, user.id),
+    getUserBankAccount(supabase, user.id),
+  ]);
 
   if (!profile) {
     return (
@@ -28,7 +32,7 @@ export default async function ParametresPage() {
     <PageMotion className="dashboard-page">
       <h1 className="dashboard-page-title">Paramètres</h1>
 
-      <ProfileSettingsForm profile={profile} />
+      <ProfileSettingsForm profile={profile} bankAccount={bankAccount} userId={user.id} />
     </PageMotion>
   );
 }

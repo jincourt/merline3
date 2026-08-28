@@ -43,11 +43,9 @@ export function ListingMessageForm({
   if (isOwner) {
     if (isInline) {
       return (
-        <div className="mt-5 min-w-0">
-          {leading ? (
-            <div className="flex flex-wrap items-center gap-3">{leading}</div>
-          ) : null}
-          <p className="mt-3 text-xs text-[var(--muted)]">
+        <div className="listing-message-inline min-w-0">
+          {leading ? <div className="listing-message-leading">{leading}</div> : null}
+          <p className="text-xs text-[var(--muted)]">
             C&apos;est votre annonce. Les messages arriveront dans votre espace.
           </p>
         </div>
@@ -73,9 +71,9 @@ export function ListingMessageForm({
 
     if (isInline) {
       return (
-        <div className="mt-5 flex min-w-0 flex-wrap items-center gap-3">
+        <div className="listing-message-inline min-w-0">
           {loginButton}
-          {leading}
+          {leading ? <div className="listing-message-leading">{leading}</div> : null}
         </div>
       );
     }
@@ -96,9 +94,9 @@ export function ListingMessageForm({
 
     if (isInline) {
       return (
-        <div className="mt-5 flex min-w-0 flex-wrap items-center gap-3">
+        <div className="listing-message-inline min-w-0">
           {messageButton}
-          {leading}
+          {leading ? <div className="listing-message-leading">{leading}</div> : null}
         </div>
       );
     }
@@ -109,7 +107,7 @@ export function ListingMessageForm({
   return (
     <form
       action={action}
-      className={`min-w-0 space-y-3${isInline ? " mt-5 w-full" : " mt-6"}`}
+      className={`min-w-0 space-y-3${isInline ? " listing-message-inline w-full" : " mt-6"}`}
     >
       <input type="hidden" name="listing_id" value={listingId} />
       <input type="hidden" name="src" value={src} />

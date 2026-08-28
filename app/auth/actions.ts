@@ -14,6 +14,7 @@ import {
   getSignupStatus,
   incompleteSetupPath,
   sanitizeNextPath,
+  setupAgentPath,
   setupTypePath,
 } from "@/lib/auth";
 import { isValidProfileType } from "@/lib/profile-type";
@@ -318,6 +319,75 @@ export async function setupProfileType(
 
   revalidatePath("/dashboard/parametres");
   revalidatePath("/");
+
+  const destination =
+    profileType === "agent"
+      ? setupAgentPath(next)
+      : sanitizeNextPath(next);
+
+  return {
+    success: true,
+    message: "",
+    redirectTo: destination,
+  };
+}
+
+export async function setupAgentDescription(
+  _prev: AuthResult | null,
+  formData: FormData,
+): Promise<AuthResult> {
+  const description = String(formData.get("description") ?? "").trim();
+  const next = String(formData.get("next") ?? "");
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Non connecté." };
+  }
+
+  const signupStatus = await getSignupStatus(user.id);
+
+  if (
+    !signupStatus.hasProfileName ||
+    !signupStatus.hasAcceptedTerms ||
+    !signupStatus.hasProfileType ||
+    !signupStatus.isAgent
+  ) {
+    return {
+      success: false,
+      message: "Terminez d'abord les étapes précédentes.",
+    };
+  }
+
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      description: description || null,
+      agent_setup_completed: true,
+      updated_at: now,
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("setupAgentDescription failed:", error);
+    const migrationHint =
+      error.message.includes("description") ||
+      error.message.includes("agent_setup_completed")
+        ? " Applique la migration Supabase récente."
+        : "";
+    return {
+      success: false,
+      message: `Impossible d'enregistrer la description.${migrationHint}`,
+    };
+  }
+
+  revalidatePath("/dashboard/parametres");
+  revalidatePath("/");
+  revalidatePath("/agents");
 
   return {
     success: true,

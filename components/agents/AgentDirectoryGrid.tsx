@@ -1,7 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { MotionDiv } from "@/components/ui/motion";
+import { ProfileAvatar } from "@/components/profiles/ProfileAvatar";
+import { ProfileReviewStars } from "@/components/profiles/ProfileReviewForm";
 import { getAgentDisplayName, type PublicProfile } from "@/lib/agent-profiles";
+import { getProfileHref } from "@/lib/profile-reviews";
 
 type AgentDirectoryGridProps = {
   agents: PublicProfile[];
@@ -29,12 +33,24 @@ export function AgentDirectoryGrid({
       {agents.map((agent, index) => {
         const displayName = getAgentDisplayName(agent);
         const content = (
-          <article className="agent-directory-item">
-            <div className="agent-directory-avatar" aria-hidden>
-              {displayName.charAt(0).toUpperCase()}
-            </div>
-            <p className="agent-directory-name">{displayName}</p>
-          </article>
+          <Link href={getProfileHref(agent.username)} className="agent-directory-link">
+            <article className="agent-directory-item">
+              <ProfileAvatar
+                name={agent.name}
+                username={agent.username}
+                avatarUrl={agent.avatarUrl}
+                size="lg"
+                className="agent-directory-avatar-slot"
+              />
+              <p className="agent-directory-name">{displayName}</p>
+              <ProfileReviewStars
+                rating={agent.averageRating ?? null}
+                count={agent.reviewCount ?? 0}
+                className="agent-directory-rating"
+                singleStar
+              />
+            </article>
+          </Link>
         );
 
         return (

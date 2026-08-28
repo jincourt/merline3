@@ -3,10 +3,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
+  isValidAvatarUrl,
   isValidNpa,
   isValidWebsite,
   normalizeWebsite,
 } from "@/lib/profile";
+import {
+  hasBankAccount,
+  isValidBic,
+  isValidIban,
+} from "@/lib/profile-bank";
+import { getProfileHref } from "@/lib/profile-reviews";
 import { isValidProfileType } from "@/lib/profile-type";
 import { isValidSwissCantonCode } from "@/lib/swiss-cantons";
 import {
@@ -733,6 +740,12 @@ export async function updateProfile(
   const npa = String(formData.get("npa") ?? "").trim();
   const canton = String(formData.get("canton") ?? "").trim().toUpperCase();
   const profileTypeRaw = String(formData.get("profile_type") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const bankAccountName = String(formData.get("bank_account_name") ?? "").trim();
+  const bankIban = String(formData.get("bank_iban") ?? "").trim();
+  const bankBic = String(formData.get("bank_bic") ?? "").trim();
+  const bankName = String(formData.get("bank_name") ?? "").trim();
+  const avatarUrlRaw = String(formData.get("avatar_url") ?? "").trim();
 
   if (!isValidProfileType(profileTypeRaw)) {
     return {
@@ -783,6 +796,57 @@ export async function updateProfile(
     };
   }
 
+  if (description.length > 2000) {
+    return {
+      success: false,
+      message: "La description ne peut pas dépasser 2000 caractères.",
+    };
+  }
+
+  if (!isValidIban(bankIban)) {
+    return {
+      success: false,
+      message: "L'IBAN n'est pas valide.",
+    };
+  }
+
+  if (!isValidBic(bankBic)) {
+    return {
+      success: false,
+      message: "Le BIC/SWIFT n'est pas valide.",
+    };
+  }
+
+  if (!isValidAvatarUrl(avatarUrlRaw)) {
+    return {
+      success: false,
+      message: "L'URL de la photo de profil n'est pas valide.",
+    };
+  }
+
+  const bankPayload = {
+    account_name: bankAccountName || null,
+    iban: bankIban || null,
+    bic: bankBic || null,
+    bank_name: bankName || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (
+    hasBankAccount({
+      accountName: bankAccountName,
+      iban: bankIban,
+      bic: bankBic,
+      bankName,
+    }) &&
+    (!bankAccountName || !bankIban)
+  ) {
+    return {
+      success: false,
+      message: "Indiquez au minimum le nom du compte et l'IBAN.",
+    };
+  }
+
   const taken = await isUsernameTaken(username, user.id);
   if (taken) {
     return {
@@ -802,6 +866,9 @@ export async function updateProfile(
       npa: npa || null,
       canton: canton || null,
       profile_type: profileTypeRaw,
+      description:
+        profileTypeRaw === "agent" ? description || null : null,
+      avatar_url: avatarUrlRaw || null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
@@ -814,6 +881,8 @@ export async function updateProfile(
       || error.message.includes("canton")
       || error.message.includes("profile_type")
       || error.message.includes("name")
+      || error.message.includes("description")
+      || error.message.includes("avatar_url")
       ? " Applique les migrations Supabase récentes."
       : "";
     return {
@@ -822,11 +891,111 @@ export async function updateProfile(
     };
   }
 
+  if (
+    hasBankAccount({
+      accountName: bankAccountName,
+      iban: bankIban,
+      bic: bankBic,
+      bankName,
+    })
+  ) {
+    const { error: bankError } = await supabase
+      .from("profile_bank_accounts")
+      .upsert({
+        profile_id: user.id,
+        ...bankPayload,
+      });
+
+    if (bankError) {
+      console.error("updateProfile bank:", bankError.message);
+      return {
+        success: false,
+        message: "Profil enregistré, mais impossible d'enregistrer le compte bancaire.",
+      };
+    }
+  } else {
+    await supabase.from("profile_bank_accounts").delete().eq("profile_id", user.id);
+  }
+
   revalidatePath("/", "layout");
   revalidatePath("/dashboard/parametres");
+  revalidatePath("/agents");
 
   return {
     success: true,
     message: "Profil enregistré.",
   };
+}
+
+export async function submitProfileReview(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Connectez-vous pour laisser un avis." };
+  }
+
+  const profileId = String(formData.get("profile_id") ?? "").trim();
+  const ratingRaw = Number(formData.get("rating"));
+  const comment = String(formData.get("comment") ?? "").trim();
+  const listingId = String(formData.get("listing_id") ?? "").trim();
+  const listingSrc = String(formData.get("listing_src") ?? "").trim();
+  const username = String(formData.get("username") ?? "").trim();
+
+  if (!profileId) {
+    return { success: false, message: "Profil introuvable." };
+  }
+
+  if (profileId === user.id) {
+    return { success: false, message: "Vous ne pouvez pas vous évaluer vous-même." };
+  }
+
+  if (!Number.isInteger(ratingRaw) || ratingRaw < 1 || ratingRaw > 5) {
+    return { success: false, message: "Choisissez une note entre 1 et 5." };
+  }
+
+  if (comment.length > 1000) {
+    return { success: false, message: "Le commentaire est trop long." };
+  }
+
+  const payload = {
+    profile_id: profileId,
+    reviewer_id: user.id,
+    rating: ratingRaw,
+    comment,
+    listing_id: listingId || null,
+    listing_src:
+      listingSrc === "prod" || listingSrc === "buy" ? listingSrc : null,
+  };
+
+  const { error } = await supabase.from("profile_reviews").upsert(payload, {
+    onConflict: "profile_id,reviewer_id",
+  });
+
+  if (error) {
+    console.error("submitProfileReview:", error.message);
+    const migrationHint = error.message.includes("profile_reviews")
+      ? " Applique la migration Supabase récente."
+      : "";
+    return {
+      success: false,
+      message: `Impossible d'enregistrer l'avis.${migrationHint}`,
+    };
+  }
+
+  if (username) {
+    revalidatePath(getProfileHref(username));
+  }
+  revalidatePath("/agents");
+
+  if (listingId && (listingSrc === "prod" || listingSrc === "buy")) {
+    revalidatePath(`/annonce/${listingSrc}/${listingId}`);
+  }
+
+  return { success: true, message: "Avis enregistré." };
 }

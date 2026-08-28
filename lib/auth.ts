@@ -56,7 +56,7 @@ export async function getSignupStatus(userId: string) {
     const supabase = await createClient();
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("username, name, terms_accepted_at, profile_type")
+    .select("username, name, terms_accepted_at, profile_type, agent_setup_completed")
     .eq("id", userId)
     .maybeSingle();
 
@@ -68,6 +68,8 @@ export async function getSignupStatus(userId: string) {
     const displayName = profile?.name?.trim() || null;
     const hasAcceptedTerms = !!profile?.terms_accepted_at;
     const hasProfileType = !!profile?.profile_type;
+    const isAgent = profile?.profile_type === "agent";
+    const hasAgentSetup = !isAgent || !!profile?.agent_setup_completed;
 
     return {
       profileName,
@@ -75,7 +77,9 @@ export async function getSignupStatus(userId: string) {
       hasProfileName: !!profileName,
       hasAcceptedTerms,
       hasProfileType,
-      isComplete: !!profileName && hasAcceptedTerms && hasProfileType,
+      isAgent,
+      hasAgentSetup,
+      isComplete: !!profileName && hasAcceptedTerms && hasProfileType && hasAgentSetup,
     };
   } catch (error) {
     console.error("getSignupStatus failed:", error);
@@ -85,6 +89,8 @@ export async function getSignupStatus(userId: string) {
       hasProfileName: false,
       hasAcceptedTerms: false,
       hasProfileType: false,
+      isAgent: false,
+      hasAgentSetup: false,
       isComplete: false,
     };
   }
@@ -117,12 +123,21 @@ export function setupTypePath(next?: string | null) {
     : `/login/setup/type?next=${encodeURIComponent(safeNext)}`;
 }
 
+export function setupAgentPath(next?: string | null) {
+  const safeNext = sanitizeNextPath(next);
+  return safeNext === "/"
+    ? "/login/setup/agent"
+    : `/login/setup/agent?next=${encodeURIComponent(safeNext)}`;
+}
+
 export function incompleteSetupPath(
   next?: string | null,
   status?: {
     hasProfileName: boolean;
     hasAcceptedTerms: boolean;
     hasProfileType: boolean;
+    isAgent?: boolean;
+    hasAgentSetup?: boolean;
   },
 ) {
   if (
@@ -131,6 +146,16 @@ export function incompleteSetupPath(
     !status?.hasProfileType
   ) {
     return setupTypePath(next);
+  }
+
+  if (
+    status?.hasProfileName &&
+    status?.hasAcceptedTerms &&
+    status?.hasProfileType &&
+    status?.isAgent &&
+    !status?.hasAgentSetup
+  ) {
+    return setupAgentPath(next);
   }
 
   return setupPath(next);

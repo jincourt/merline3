@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { PageMotion } from "@/components/layout/PageMotion";
+import { ProfileAvatar } from "@/components/profiles/ProfileAvatar";
+import { getAgentDisplayName } from "@/lib/agent-profiles";
 import { getListingHref, sourceToIntent } from "@/lib/types";
 
 type ConversationRow = {
@@ -62,15 +64,25 @@ export default async function MessagesPage() {
       const otherUserId = conv.owner_id === user.id ? conv.peer_id : conv.owner_id;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("username")
+        .select("username, name, avatar_url")
         .eq("id", otherUserId)
         .maybeSingle();
+
+      const otherName = profile
+        ? getAgentDisplayName({
+            name: profile.name?.trim() ?? "",
+            username: profile.username?.trim() ?? "",
+          })
+        : "Utilisateur";
 
       return {
         id: conv.id,
         title,
         href: getListingHref(conv.listing_id, sourceToIntent(conv.src)),
-        otherName: profile?.username?.trim() || "Utilisateur",
+        otherName,
+        otherProfileName: profile?.name?.trim() ?? "",
+        otherUsername: profile?.username?.trim() ?? "",
+        otherAvatarUrl: profile?.avatar_url?.trim() ?? "",
         lastBody: lastMsgResult.data?.body ?? "",
         lastAt: lastMsgResult.data?.created_at ?? conv.updated_at,
         unread: unreadResult.count ?? 0,
@@ -97,28 +109,34 @@ export default async function MessagesPage() {
                   conv.unread > 0 ? "dashboard-message-unread" : ""
                 }`}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-start gap-2.5">
-                    <span className="dashboard-message-dot mt-1.5" aria-hidden />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-[var(--foreground)]">
-                        {conv.title}
-                      </p>
-                      <p className="text-xs text-[var(--muted)]">{conv.otherName}</p>
+                <div className="dashboard-message-row">
+                  <ProfileAvatar
+                    name={conv.otherProfileName}
+                    username={conv.otherUsername}
+                    avatarUrl={conv.otherAvatarUrl}
+                    size="sm"
+                    className={
+                      conv.unread > 0 ? "dashboard-message-avatar-unread" : ""
+                    }
+                  />
+                  <div className="dashboard-message-content">
+                    <div className="dashboard-message-top">
+                      <div className="min-w-0">
+                        <p className="dashboard-message-title">{conv.title}</p>
+                        <p className="dashboard-message-peer">{conv.otherName}</p>
+                      </div>
+                      <time className="dashboard-message-time">
+                        {new Intl.DateTimeFormat("fr-CH", {
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }).format(new Date(conv.lastAt))}
+                      </time>
                     </div>
+                    <p className="dashboard-message-preview">{conv.lastBody}</p>
                   </div>
-                  <time className="shrink-0 text-xs text-[var(--muted-dim)]">
-                    {new Intl.DateTimeFormat("fr-CH", {
-                      day: "numeric",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }).format(new Date(conv.lastAt))}
-                  </time>
                 </div>
-                <p className="mt-2 line-clamp-2 pl-[1.125rem] text-sm text-[var(--muted)]">
-                  {conv.lastBody}
-                </p>
               </Link>
             </li>
           ))}

@@ -6,16 +6,21 @@ function getSignupState(profile: {
   username: string | null;
   terms_accepted_at: string | null;
   profile_type: string | null;
+  agent_setup_completed: boolean | null;
 } | null) {
   const hasProfileName = !!profile?.username?.trim();
   const hasAcceptedTerms = !!profile?.terms_accepted_at;
   const hasProfileType = !!profile?.profile_type;
+  const isAgent = profile?.profile_type === "agent";
+  const hasAgentSetup = !isAgent || !!profile?.agent_setup_completed;
 
   return {
     hasProfileName,
     hasAcceptedTerms,
     hasProfileType,
-    isComplete: hasProfileName && hasAcceptedTerms && hasProfileType,
+    isAgent,
+    hasAgentSetup,
+    isComplete: hasProfileName && hasAcceptedTerms && hasProfileType && hasAgentSetup,
   };
 }
 
@@ -29,12 +34,28 @@ function setupTypePath(next: string | null) {
     : "/login/setup/type";
 }
 
+function setupAgentPath(next: string | null) {
+  return next
+    ? `/login/setup/agent?next=${encodeURIComponent(next)}`
+    : "/login/setup/agent";
+}
+
 function incompleteSetupPath(
   next: string | null,
   status: ReturnType<typeof getSignupState>,
 ) {
   if (status.hasProfileName && status.hasAcceptedTerms && !status.hasProfileType) {
     return setupTypePath(next);
+  }
+
+  if (
+    status.hasProfileName &&
+    status.hasAcceptedTerms &&
+    status.hasProfileType &&
+    status.isAgent &&
+    !status.hasAgentSetup
+  ) {
+    return setupAgentPath(next);
   }
 
   return setupPath(next);
@@ -94,6 +115,7 @@ export async function updateSession(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
     const isSetupPage = pathname === "/login/setup";
     const isSetupTypePage = pathname === "/login/setup/type";
+    const isSetupAgentPage = pathname === "/login/setup/agent";
 
     if (pathname === "/connexion") {
       const url = request.nextUrl.clone();
@@ -108,7 +130,7 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    if ((isSetupPage || isSetupTypePage) && !user) {
+    if ((isSetupPage || isSetupTypePage || isSetupAgentPage) && !user) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       return NextResponse.redirect(url);
@@ -117,7 +139,7 @@ export async function updateSession(request: NextRequest) {
     if (user) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("username, terms_accepted_at, profile_type")
+        .select("username, terms_accepted_at, profile_type, agent_setup_completed")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -144,14 +166,7 @@ export async function updateSession(request: NextRequest) {
         );
       }
 
-      if (isSetupPage && signup.isComplete) {
-        const url = request.nextUrl.clone();
-        url.pathname = next ?? "/";
-        url.search = "";
-        return NextResponse.redirect(url);
-      }
-
-      if (isSetupTypePage && signup.isComplete) {
+      if ((isSetupPage || isSetupTypePage || isSetupAgentPage) && signup.isComplete) {
         const url = request.nextUrl.clone();
         url.pathname = next ?? "/";
         url.search = "";
@@ -180,6 +195,34 @@ export async function updateSession(request: NextRequest) {
       ) {
         const url = request.nextUrl.clone();
         url.pathname = "/login/setup";
+        if (next) {
+          url.searchParams.set("next", next);
+        } else {
+          url.search = "";
+        }
+        return NextResponse.redirect(url);
+      }
+
+      if (
+        isSetupAgentPage &&
+        (!signup.hasProfileName ||
+          !signup.hasAcceptedTerms ||
+          !signup.hasProfileType ||
+          !signup.isAgent)
+      ) {
+        return redirectToPath(request, incompleteSetupPath(next, signup));
+      }
+
+      if (
+        isSetupTypePage &&
+        signup.hasProfileName &&
+        signup.hasAcceptedTerms &&
+        signup.hasProfileType &&
+        signup.isAgent &&
+        !signup.hasAgentSetup
+      ) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/login/setup/agent";
         if (next) {
           url.searchParams.set("next", next);
         } else {

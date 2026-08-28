@@ -742,6 +742,15 @@ body {
   color: var(--foreground);
 }
 
+.agent-directory-rating {
+  margin-top: 0.375rem;
+  justify-content: center;
+}
+
+.agent-directory-rating .profile-review-summary-text {
+  font-size: 0.75rem;
+}
+
 @media (min-width: 768px) {
   .agent-directory-name {
     margin-top: 1rem;
@@ -1348,6 +1357,95 @@ textarea.field-input {
   white-space: nowrap;
 }
 
+.catalog-card-commission {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+}
+
+.catalog-card-commission-label {
+  color: var(--muted-dim);
+}
+
+.catalog-card-commission-value {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.catalog-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 1rem;
+}
+
+.catalog-card-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.catalog-card-category {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--muted-dim);
+}
+
+.catalog-card-owner {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: auto;
+  padding-top: 0.625rem;
+}
+
+.catalog-card-owner-meta {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.125rem;
+}
+
+.catalog-card-owner-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--foreground);
+}
+
+.catalog-card-owner-rating.profile-review-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.catalog-card-owner-rating .profile-review-summary-stars svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.catalog-card-owner-rating .profile-review-summary-text {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  color: var(--muted-dim);
+}
+
 .field-input.rounded-full {
   border-radius: 0.375rem;
 }
@@ -1881,16 +1979,72 @@ textarea.field-input {
   background: var(--surface-hover);
 }
 
-.dashboard-message-unread .dashboard-message-dot {
-  background: var(--indigo);
+.dashboard-message-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
 }
 
-.dashboard-message-dot {
-  height: 0.4375rem;
-  width: 0.4375rem;
+.dashboard-message-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.dashboard-message-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.dashboard-message-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+
+.dashboard-message-unread .dashboard-message-title {
+  font-weight: 600;
+}
+
+.dashboard-message-peer {
+  margin-top: 0.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.dashboard-message-time {
   flex-shrink: 0;
-  border-radius: 9999px;
-  background: transparent;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--muted-dim);
+}
+
+.dashboard-message-preview {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.dashboard-message-unread .dashboard-message-preview {
+  color: var(--foreground);
+}
+
+.dashboard-message-avatar-unread {
+  box-shadow: 0 0 0 2px var(--indigo);
 }
 
 .dashboard-conv-shell {
@@ -1952,6 +2106,17 @@ textarea.field-input {
   font-size: 0.875rem;
   line-height: 1.4;
   color: var(--muted);
+}
+
+.dashboard-conv-peer-link {
+  font-weight: 500;
+  color: var(--indigo);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.dashboard-conv-peer-link:hover {
+  color: var(--indigo-hover);
 }
 
 @media (min-width: 768px) {
@@ -2021,37 +2186,102 @@ textarea.field-input {
   flex-shrink: 0;
   border-top: 1px solid var(--border);
   background: var(--background);
-  padding: 0.75rem 0 calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.625rem 0.875rem calc(1rem + env(safe-area-inset-bottom, 0px));
 }
 
-.dashboard-conv-input {
+.dashboard-conv-compose-field {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.5rem;
+  padding: 0.375rem 0.375rem 0.375rem 0.75rem;
   border: 1px solid var(--border);
-  border-radius: 0.375rem;
-  background: var(--surface-elevated);
-  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--surface);
   transition: border-color 0.15s;
 }
 
-.dashboard-conv-input:focus-within {
+.dashboard-conv-compose-field:focus-within {
   border-color: var(--border-strong);
+}
+
+.dashboard-conv-share {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.dashboard-conv-compose-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.dashboard-conv-action-btn,
+.dashboard-conv-send-inline {
+  display: flex;
+  height: 1.875rem;
+  width: 1.875rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.dashboard-conv-action-btn {
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.dashboard-conv-action-btn:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+
+.dashboard-conv-share-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.375rem);
+  z-index: 20;
+  min-width: 15rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--background);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-conv-share-item {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border: none;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dashboard-conv-share-item:hover {
+  background: var(--surface-hover);
 }
 
 .dashboard-conv-textarea {
   flex: 1;
   min-width: 0;
-  min-height: 1.5rem;
-  max-height: 8rem;
-  resize: none;
+  min-height: 1.375rem;
+  max-height: 7.5rem;
+  padding: 0.1875rem 0;
   border: none;
   background: transparent;
-  padding: 0.375rem 0;
+  resize: none;
+  overflow-y: auto;
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.375rem;
   color: var(--foreground);
-  field-sizing: content;
 }
 
 .dashboard-conv-textarea::placeholder {
@@ -2062,33 +2292,28 @@ textarea.field-input {
   outline: none;
 }
 
+.dashboard-conv-input-error {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--error);
+}
+
 .dashboard-conv-send {
   display: flex;
-  height: 2rem;
-  width: 2rem;
-  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 9999px;
-  background: #ececec;
-  color: #171717;
+  background: var(--indigo);
+  color: #ffffff;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, opacity 0.15s;
 }
 
-.dashboard-conv-send svg {
-  height: 0.875rem;
-  width: 0.875rem;
-}
-
-.dashboard-conv-send:hover:not(:disabled) {
-  background: #ffffff;
+.dashboard-conv-send-inline:hover:not(:disabled) {
+  background: var(--indigo-hover);
 }
 
 .dashboard-conv-send:disabled {
-  background: #2f2f2f;
-  color: #6e6e6e;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -2691,4 +2916,367 @@ textarea.field-input {
   outline: none;
   border-color: var(--border-strong);
   box-shadow: 0 0 0 3px var(--indigo-soft);
+}
+
+.dashboard-bank-card {
+  margin-top: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface-elevated);
+}
+
+.dashboard-bank-card-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dashboard-bank-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  padding: 1rem;
+}
+
+.agent-directory-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.agent-directory-link:hover {
+  opacity: 0.85;
+}
+
+.public-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.public-profile-name {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.public-profile-meta {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.public-profile-section {
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  padding: 1.25rem;
+}
+
+.profile-review-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-review-summary-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.profile-review-summary-text {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.profile-review-form-wrap {
+  margin-bottom: 1rem;
+}
+
+.profile-review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-top: 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface-elevated);
+  padding: 1rem;
+}
+
+.profile-review-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.profile-reviews-section {
+  margin-top: 1rem;
+}
+
+.profile-reviews-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.profile-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-top: 1rem;
+}
+
+.profile-review-item {
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface-elevated);
+  padding: 0.875rem 1rem;
+}
+
+.profile-review-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.profile-review-author {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.profile-review-date {
+  font-size: 0.75rem;
+  color: var(--muted-dim);
+}
+
+.profile-review-item-stars {
+  display: flex;
+  gap: 0.125rem;
+  margin-top: 0.375rem;
+}
+
+.profile-review-comment {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+.listing-owner-preview {
+  margin-top: 0;
+}
+
+.listing-contact-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-top: 1.25rem;
+}
+
+.listing-message-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.listing-message-leading {
+  display: contents;
+}
+
+.listing-reviews-section {
+  display: flex;
+  max-width: 40rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  padding: 1.25rem;
+}
+
+.listing-reviews-section .profile-reviews-section {
+  margin-top: 0;
+}
+
+.listing-reviews-section .profile-review-form-wrap {
+  margin-bottom: 0;
+}
+
+.listing-owner-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.listing-owner-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.listing-owner-meta {
+  min-width: 0;
+}
+
+.listing-owner-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.5rem;
+}
+
+.listing-owner-rating.profile-review-summary {
+  gap: 0.25rem;
+}
+
+.listing-owner-rating .profile-review-summary-text {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.listing-owner-row:hover .listing-owner-name {
+  color: var(--indigo-hover);
+}
+
+.listing-owner-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--indigo);
+  transition: color 0.15s;
+}
+
+.profile-avatar {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--indigo-soft);
+  color: var(--indigo);
+}
+
+.profile-avatar-sm {
+  width: 2rem;
+  height: 2rem;
+}
+
+.profile-avatar-md {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.profile-avatar-lg,
+.public-profile-avatar-slot,
+.agent-directory-avatar-slot {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+@media (min-width: 768px) {
+  .profile-avatar-lg,
+  .public-profile-avatar-slot,
+  .agent-directory-avatar-slot {
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+}
+
+.profile-avatar-initial {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.profile-avatar-sm .profile-avatar-initial {
+  font-size: 0.875rem;
+}
+
+.profile-avatar-md .profile-avatar-initial {
+  font-size: 1rem;
+}
+
+.profile-avatar-lg .profile-avatar-initial,
+.public-profile-avatar-slot .profile-avatar-initial,
+.agent-directory-avatar-slot .profile-avatar-initial {
+  font-size: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .profile-avatar-lg .profile-avatar-initial,
+  .public-profile-avatar-slot .profile-avatar-initial,
+  .agent-directory-avatar-slot .profile-avatar-initial {
+    font-size: 1.75rem;
+  }
+}
+
+.profile-logo-upload {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-logo-upload-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.375rem;
+}
+
+.listing-owner-section {
+  display: flex;
+  max-width: 40rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  padding: 1.25rem;
+}
+
+.listing-owner-section .section-subtitle {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+.listing-owner-section .profile-review-form-wrap {
+  margin-bottom: 0;
+}
+
+.profile-reviews-section-stacked {
+  margin-top: 0.5rem;
+}
+
+.profile-reviews-header-stacked {
+  margin-bottom: 0.25rem;
+}
+
+.profile-reviews-section-stacked .profile-reviews-list {
+  margin-top: 0.75rem;
 }

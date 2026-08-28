@@ -56,7 +56,7 @@ export function SetupAccountForm({
           Terminer l&apos;inscription
         </h2>
         <p className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
-          Étape 1 sur 2
+          Étape 1 sur 3
         </p>
       </div>
 

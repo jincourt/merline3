@@ -101,6 +101,11 @@ export type CatalogListing = {
   address: string;
   photos: string[];
   created_at: string;
+  ownerName?: string;
+  ownerUsername?: string;
+  ownerAvatarUrl?: string;
+  ownerAverageRating?: number | null;
+  ownerReviewCount?: number;
 };
 
 export function formatCommission(

@@ -9,6 +9,8 @@ export type UserProfile = {
   npa: string;
   canton: string;
   profileType: ProfileType | null;
+  description: string;
+  avatarUrl: string;
 };
 
 export async function getUserProfile(
@@ -17,7 +19,7 @@ export async function getUserProfile(
 ): Promise<UserProfile | null> {
   const { data } = await supabase
     .from("profiles")
-    .select("name, username, phone, website, address, npa, canton, profile_type")
+    .select("name, username, phone, website, address, npa, canton, profile_type, description, avatar_url")
     .eq("id", userId)
     .maybeSingle();
 
@@ -32,7 +34,21 @@ export async function getUserProfile(
     npa: data.npa?.trim() ?? "",
     canton: data.canton?.trim() ?? "",
     profileType: (data.profile_type as ProfileType | null) ?? null,
+    description: data.description?.trim() ?? "",
+    avatarUrl: data.avatar_url?.trim() ?? "",
   };
+}
+
+export function isValidAvatarUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 export function normalizeWebsite(value: string): string {

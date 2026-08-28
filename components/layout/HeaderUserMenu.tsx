@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import { signOut } from "@/app/auth/actions";
 import { ChevronDown } from "lucide-react";
 import { HeaderIcon } from "./HeaderIcons";
-import { accountMenuLinks } from "./header-menu-links";
+import { getAccountMenuLinks } from "./header-menu-links";
 
 type MenuPosition = {
   top: number;
@@ -88,6 +88,8 @@ export function HeaderUserMenu({
       ? "text-[#0a0a0a] hover:text-[#52525b]"
       : "text-[var(--foreground)] hover:text-[var(--muted)]";
 
+  const menuLinks = getAccountMenuLinks(username);
+
   const menu =
     open && mounted ? (
       <div
@@ -97,8 +99,11 @@ export function HeaderUserMenu({
         style={{ top: menuPosition.top, right: menuPosition.right }}
       >
         <div className="header-user-menu-links">
-          {accountMenuLinks.map((item) => {
-            const active = pathname.startsWith(item.href);
+          {menuLinks.map((item) => {
+            const active =
+              item.href.startsWith("/profil/")
+                ? pathname === item.href
+                : pathname.startsWith(item.href);
             const Icon = item.icon;
 
             return (

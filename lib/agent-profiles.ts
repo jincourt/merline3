@@ -7,6 +7,9 @@ export type PublicProfile = {
   profileType: ProfileType;
   canton: string;
   npa: string;
+  avatarUrl?: string;
+  averageRating?: number | null;
+  reviewCount?: number;
 };
 
 export function getAgentDisplayName(

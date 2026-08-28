@@ -5,7 +5,10 @@ import { getUser } from "@/lib/auth";
 import { PageMotion } from "@/components/layout/PageMotion";
 import { ConvMessages } from "@/components/messages/ConvMessages";
 import { ConvReplyForm } from "@/components/messages/ConvReplyForm";
+import { getUserBankAccount } from "@/lib/profile-bank";
+import { getUserProfile } from "@/lib/profile";
 import { getListingHref, sourceToIntent } from "@/lib/types";
+import { getProfileHref } from "@/lib/profile-reviews";
 
 export default async function ConversationPage({
   params,
@@ -31,7 +34,8 @@ export default async function ConversationPage({
   const table = conv.src === "prod" ? "products" : "buy_requests";
   const otherUserId = conv.owner_id === user.id ? conv.peer_id : conv.owner_id;
 
-  const [{ data: listing }, { data: profile }, { data: messages }] = await Promise.all([
+  const [{ data: listing }, { data: profile }, { data: messages }, userProfile, bankAccount] =
+    await Promise.all([
     supabase.from(table).select("title").eq("id", conv.listing_id).maybeSingle(),
     supabase.from("profiles").select("username").eq("id", otherUserId).maybeSingle(),
     supabase
@@ -39,6 +43,8 @@ export default async function ConversationPage({
       .select("id, sender_id, body, created_at, read_at")
       .eq("conv_id", conv.id)
       .order("created_at", { ascending: true }),
+    getUserProfile(supabase, user.id),
+    getUserBankAccount(supabase, user.id),
   ]);
 
   await supabase
@@ -49,7 +55,8 @@ export default async function ConversationPage({
     .is("read_at", null);
 
   const listingTitle = listing?.title ?? "Annonce";
-  const otherName = profile?.username?.trim() || "Utilisateur";
+  const otherUsername = profile?.username?.trim() ?? "";
+  const otherName = otherUsername || "Utilisateur";
 
   return (
     <PageMotion className="dashboard-page dashboard-conv-page">
@@ -64,7 +71,16 @@ export default async function ConversationPage({
         <div className="dashboard-conv-header-main">
           <div className="min-w-0 flex-1">
             <h1 className="dashboard-conv-title">{listingTitle}</h1>
-            <p className="dashboard-conv-subtitle">Avec {otherName}</p>
+            <p className="dashboard-conv-subtitle">
+              Avec{" "}
+              {otherUsername ? (
+                <Link href={getProfileHref(otherUsername)} className="dashboard-conv-peer-link">
+                  {otherName}
+                </Link>
+              ) : (
+                otherName
+              )}
+            </p>
           </div>
           <Link
             href={getListingHref(conv.listing_id, sourceToIntent(conv.src))}
@@ -108,7 +124,11 @@ export default async function ConversationPage({
         })}
       </ConvMessages>
 
-      <ConvReplyForm convId={conv.id} />
+      <ConvReplyForm
+        convId={conv.id}
+        phone={userProfile?.phone ?? ""}
+        bankAccount={bankAccount}
+      />
     </PageMotion>
   );
 }
