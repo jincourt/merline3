@@ -6,7 +6,11 @@ import { HeaderIcon, MessagesIcon, PlusIcon, UserIcon } from "./HeaderIcons";
 import { HeaderMobileMenu } from "./HeaderMobileMenu";
 import { HeaderUserMenu } from "./HeaderUserMenu";
 
-const dashboardNav = [{ href: "/dashboard/messages", label: "Messages", icon: MessagesIcon }] as const;
+const messagesNav = { href: "/dashboard/messages", label: "Messages", icon: MessagesIcon } as const;
+
+function getMessagesHref(loggedIn: boolean) {
+  return loggedIn ? messagesNav.href : `/login?next=${encodeURIComponent(messagesNav.href)}`;
+}
 
 function getIconButtonClass(indigo: boolean, light: boolean, active = false) {
   const base = "header-icon-btn";
@@ -56,30 +60,24 @@ export function HeaderNav({
       ? "header-icon-btn header-icon-btn-light header-icon-btn-publish-primary"
       : "header-icon-btn header-icon-btn-publish-primary";
 
+  const messagesActive = pathname.startsWith(messagesNav.href);
+  const MessagesIconComponent = messagesNav.icon;
+  const messagesHref = getMessagesHref(loggedIn);
+
   return (
     <div className="flex min-w-0 flex-1 items-center justify-end gap-2 md:gap-6">
       <div className="hidden min-w-0 items-center justify-end gap-5 md:flex md:gap-6">
-        {loggedIn ? (
-          <nav className="flex items-center gap-5 md:gap-6" aria-label="Navigation du compte">
-            {dashboardNav.map((item) => {
-              const active = pathname.startsWith(item.href);
-              const Icon = item.icon;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`header-nav-link ${active ? activeClass : linkClass}`}
-                >
-                  <HeaderIcon>
-                    <Icon />
-                  </HeaderIcon>
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-        ) : null}
+        <nav className="flex items-center gap-5 md:gap-6" aria-label="Navigation du compte">
+          <Link
+            href={messagesHref}
+            className={`header-nav-link ${messagesActive ? activeClass : linkClass}`}
+          >
+            <HeaderIcon>
+              <MessagesIconComponent />
+            </HeaderIcon>
+            {messagesNav.label}
+          </Link>
+        </nav>
 
         <Link href="/vendre" className={publishButtonClass}>
           <HeaderIcon className="h-4 w-4">
@@ -90,26 +88,16 @@ export function HeaderNav({
       </div>
 
       <div className="flex items-center gap-2 md:hidden">
-        {loggedIn
-          ? dashboardNav.map((item) => {
-              const active = pathname.startsWith(item.href);
-              const Icon = item.icon;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={getIconButtonClass(indigo, light, active)}
-                  aria-label={item.label}
-                  title={item.label}
-                >
-                  <HeaderIcon className="h-5 w-5">
-                    <Icon />
-                  </HeaderIcon>
-                </Link>
-              );
-            })
-          : null}
+        <Link
+          href={messagesHref}
+          className={getIconButtonClass(indigo, light, messagesActive)}
+          aria-label={messagesNav.label}
+          title={messagesNav.label}
+        >
+          <HeaderIcon className="h-5 w-5">
+            <MessagesIconComponent />
+          </HeaderIcon>
+        </Link>
 
         <Link
           href="/vendre"
@@ -129,8 +117,8 @@ export function HeaderNav({
             <Link
               href="/login"
               className={getIconButtonClass(indigo, light)}
-              aria-label="Se connecter"
-              title="Se connecter"
+              aria-label="Mon compte"
+              title="Mon compte"
             >
               <HeaderIcon className="h-5 w-5">
                 <UserIcon />
@@ -149,7 +137,7 @@ export function HeaderNav({
           href="/login"
           className={`hidden shrink-0 whitespace-nowrap text-base md:inline ${linkClass}`}
         >
-          Se connecter
+          Mon compte
         </Link>
       ) : null}
     </div>

@@ -2,16 +2,37 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import {
   deleteListing,
   updateListingStatus,
   type ListingStatus,
 } from "@/app/auth/actions";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import { getListingEditHref, getListingHref } from "@/lib/types";
 
 import type { CommissionType } from "@/lib/types";
 import { formatCommission } from "@/lib/types";
+
+function TrashIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      className="h-4 w-4"
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+      />
+    </svg>
+  );
+}
 
 export type DashboardListing = {
   id: string;
@@ -57,7 +78,12 @@ function formatDate(iso: string) {
 
 export function ListingRow({ listing }: { listing: DashboardListing }) {
   const [pending, startTransition] = useTransition();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const statuses = listing.intent === "sell" ? SELL_STATUSES : BUY_STATUSES;
+  const statusOptions = statuses.map((status) => ({
+    value: status,
+    label: STATUS_LABELS[status],
+  }));
   const editHref = getListingEditHref(listing.id, listing.intent);
   const listingHref = getListingHref(listing.id, listing.intent);
   const image = listing.photos?.find((photo) => photo?.startsWith("http"));
@@ -68,15 +94,16 @@ export function ListingRow({ listing }: { listing: DashboardListing }) {
     });
   }
 
-  function handleDelete() {
-    if (!confirm("Supprimer cette annonce ?")) return;
+  function handleDeleteConfirm() {
     startTransition(async () => {
       await deleteListing(listing.id, listing.intent);
+      setDeleteDialogOpen(false);
     });
   }
 
   return (
-    <article className="dashboard-listing-row">
+    <>
+      <article className="dashboard-listing-row">
       <Link href={listingHref} className="dashboard-listing-link">
         <div className="dashboard-listing-thumb">
           {image ? (
@@ -105,37 +132,50 @@ export function ListingRow({ listing }: { listing: DashboardListing }) {
         </div>
       </Link>
 
-      <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
-        <select
+      <div className="dashboard-listing-actions">
+        <SelectDropdown
+          id={`listing-status-${listing.id}`}
           value={listing.status}
-          onChange={(event) =>
-            handleStatusChange(event.target.value as ListingStatus)
-          }
+          onChange={(value) => handleStatusChange(value as ListingStatus)}
+          options={statusOptions}
+          placeholder="Statut"
+          size="compact"
           disabled={pending}
-          className="dashboard-select"
-          aria-label="Statut de l'annonce"
-        >
-          {statuses.map((status) => (
-            <option key={status} value={status}>
-              {STATUS_LABELS[status]}
-            </option>
-          ))}
-        </select>
+        />
 
         <div className="flex gap-2">
           <Link href={editHref} className="dashboard-action-btn dashboard-edit-btn">
             Modifier
           </Link>
+          <Link href={listingHref} className="dashboard-action-btn dashboard-edit-btn">
+            Ouvrir
+          </Link>
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => setDeleteDialogOpen(true)}
             disabled={pending}
-            className="dashboard-action-btn dashboard-delete-btn"
+            className="dashboard-action-btn dashboard-delete-btn dashboard-delete-btn-icon"
+            aria-label="Supprimer l'annonce"
+            title="Supprimer"
           >
-            Supprimer
+            <TrashIcon />
           </button>
         </div>
       </div>
-    </article>
+      </article>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Supprimer cette annonce ?"
+        description={`« ${listing.title} » sera définitivement supprimée. Cette action est irréversible.`}
+        confirmLabel="Supprimer"
+        cancelLabel="Annuler"
+        pending={pending}
+        pendingLabel="Suppression…"
+        destructive
+      />
+    </>
   );
 }

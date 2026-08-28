@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export type SelectDropdownOption = {
   value: string;
@@ -17,17 +18,19 @@ type SelectDropdownProps = {
   className?: string;
   labelClassName?: string;
   labelSpacing?: "sm" | "md" | "lg";
+  disabled?: boolean;
+  size?: "default" | "compact";
 };
 
-function ChevronIcon({ open }: { open: boolean }) {
+function ChevronIcon({ open, compact = false }: { open: boolean; compact?: boolean }) {
   return (
     <svg
       aria-hidden="true"
       viewBox="0 0 20 20"
       fill="none"
-      className={`h-4 w-4 shrink-0 text-[var(--muted)] transition-transform duration-150 ${
-        open ? "rotate-180" : ""
-      }`}
+      className={`shrink-0 text-[var(--muted)] transition-transform duration-150 select-dropdown-chevron ${
+        compact ? "h-3.5 w-3.5" : "h-4 w-4"
+      } ${open ? "rotate-180" : ""}`}
     >
       <path
         d="M5 7.5L10 12.5L15 7.5"
@@ -50,16 +53,24 @@ export function SelectDropdown({
   className = "",
   labelClassName = "field-label",
   labelSpacing,
+  disabled = false,
+  size = "default",
 }: SelectDropdownProps) {
   const generatedId = useId();
   const triggerId = id ?? generatedId;
   const listboxId = `${triggerId}-listbox`;
   const containerRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [mobile, setMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const selected = options.find((option) => option.value === value);
   const displayLabel = selected?.label ?? placeholder;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 639px)");
@@ -77,9 +88,14 @@ export function SelectDropdown({
     if (!open) return;
 
     function onPointerDown(event: MouseEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) {
-        setOpen(false);
+      const target = event.target as Node;
+      if (
+        containerRef.current?.contains(target) ||
+        dialogRef.current?.contains(target)
+      ) {
+        return;
       }
+      setOpen(false);
     }
 
     function onKeyDown(event: KeyboardEvent) {
@@ -157,8 +173,49 @@ export function SelectDropdown({
         ? "mt-3"
         : "mt-2";
 
+  const mobileDialog =
+    open && mobile && mounted ? (
+      <div
+        className="dialog-overlay"
+        role="presentation"
+        onClick={() => setOpen(false)}
+      >
+        <div
+          ref={dialogRef}
+          className="select-dropdown-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`${triggerId}-dialog-title`}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="select-dropdown-dialog-header">
+            <p
+              id={`${triggerId}-dialog-title`}
+              className="text-sm font-medium text-[var(--foreground)]"
+            >
+              {label ?? placeholder}
+            </p>
+            <button
+              type="button"
+              className="text-[var(--muted)] hover:text-[var(--foreground)]"
+              aria-label="Fermer"
+              onClick={() => setOpen(false)}
+            >
+              ✕
+            </button>
+          </div>
+          {optionList}
+        </div>
+      </div>
+    ) : null;
+
   return (
-    <div ref={containerRef} className={`select-dropdown ${className}`}>
+    <div
+      ref={containerRef}
+      className={`select-dropdown ${size === "compact" ? "select-dropdown-compact" : ""} ${
+        open ? "select-dropdown-open" : ""
+      } ${className}`.trim()}
+    >
       {label ? (
         <label htmlFor={triggerId} className={labelClassName}>
           {label}
@@ -170,53 +227,26 @@ export function SelectDropdown({
         type="button"
         className={`select-dropdown-trigger ${label ? triggerSpacing : ""} ${
           !selected ? "select-dropdown-trigger-placeholder" : ""
-        }`}
+        } ${disabled ? "select-dropdown-trigger-disabled" : ""}`.trim()}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listboxId}
-        onClick={() => setOpen((current) => !current)}
+        aria-label={label ?? placeholder}
+        disabled={disabled}
+        onClick={() => {
+          if (disabled) return;
+          setOpen((current) => !current);
+        }}
       >
         <span className="truncate">{displayLabel}</span>
-        <ChevronIcon open={open} />
+        <ChevronIcon open={open} compact={size === "compact"} />
       </button>
 
       {open && !mobile ? (
         <div className="select-dropdown-panel">{optionList}</div>
       ) : null}
 
-      {open && mobile ? (
-        <div
-          className="dialog-overlay"
-          role="presentation"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="select-dropdown-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={`${triggerId}-dialog-title`}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="select-dropdown-dialog-header">
-              <p
-                id={`${triggerId}-dialog-title`}
-                className="text-sm font-medium text-[var(--foreground)]"
-              >
-                {label ?? placeholder}
-              </p>
-              <button
-                type="button"
-                className="text-[var(--muted)] hover:text-[var(--foreground)]"
-                aria-label="Fermer"
-                onClick={() => setOpen(false)}
-              >
-                ✕
-              </button>
-            </div>
-            {optionList}
-          </div>
-        </div>
-      ) : null}
+      {mobileDialog ? createPortal(mobileDialog, document.body) : null}
     </div>
   );
 }

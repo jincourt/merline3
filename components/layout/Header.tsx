@@ -41,7 +41,7 @@ export async function Header({
             unoptimized
           />
           <span
-            className={`text-sm font-semibold tracking-tight ${
+            className={`text-lg font-semibold tracking-tight ${
               indigo
                 ? "text-white"
                 : light || transparent

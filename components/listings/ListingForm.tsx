@@ -729,7 +729,7 @@ export function ListingForm({
           <button
             type="submit"
             form={FORM_ID}
-            className="btn-vendre-submit"
+            className="btn-vendre-submit btn-vendre-submit-lg"
             disabled={pending}
           >
             {submitLabel}
