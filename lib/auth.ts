@@ -25,7 +25,7 @@ export async function getProfile() {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("username, phone, website, address, npa, canton")
+      .select("username, phone, website, address, npa, canton, profile_type")
       .eq("id", user.id)
       .single();
 
@@ -43,6 +43,7 @@ export async function getProfile() {
       address: profile?.address ?? "",
       npa: profile?.npa ?? "",
       canton: profile?.canton ?? "",
+      profileType: profile?.profile_type ?? null,
     };
   } catch (error) {
     console.error("getProfile failed:", error);
@@ -55,7 +56,7 @@ export async function getSignupStatus(userId: string) {
     const supabase = await createClient();
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("username, terms_accepted_at")
+    .select("username, name, terms_accepted_at, profile_type")
     .eq("id", userId)
     .maybeSingle();
 
@@ -64,20 +65,26 @@ export async function getSignupStatus(userId: string) {
   }
 
     const profileName = profile?.username?.trim() || null;
+    const displayName = profile?.name?.trim() || null;
     const hasAcceptedTerms = !!profile?.terms_accepted_at;
+    const hasProfileType = !!profile?.profile_type;
 
     return {
       profileName,
+      displayName,
       hasProfileName: !!profileName,
       hasAcceptedTerms,
-      isComplete: !!profileName && hasAcceptedTerms,
+      hasProfileType,
+      isComplete: !!profileName && hasAcceptedTerms && hasProfileType,
     };
   } catch (error) {
     console.error("getSignupStatus failed:", error);
     return {
       profileName: null,
+      displayName: null,
       hasProfileName: false,
       hasAcceptedTerms: false,
+      hasProfileType: false,
       isComplete: false,
     };
   }
@@ -101,6 +108,32 @@ export function setupPath(next?: string | null) {
   return safeNext === "/"
     ? "/login/setup"
     : `/login/setup?next=${encodeURIComponent(safeNext)}`;
+}
+
+export function setupTypePath(next?: string | null) {
+  const safeNext = sanitizeNextPath(next);
+  return safeNext === "/"
+    ? "/login/setup/type"
+    : `/login/setup/type?next=${encodeURIComponent(safeNext)}`;
+}
+
+export function incompleteSetupPath(
+  next?: string | null,
+  status?: {
+    hasProfileName: boolean;
+    hasAcceptedTerms: boolean;
+    hasProfileType: boolean;
+  },
+) {
+  if (
+    status?.hasProfileName &&
+    status?.hasAcceptedTerms &&
+    !status?.hasProfileType
+  ) {
+    return setupTypePath(next);
+  }
+
+  return setupPath(next);
 }
 
 export async function authUserExistsByEmail(email: string) {
@@ -141,5 +174,5 @@ export async function resolvePostAuthRedirect(next?: string | null) {
     return destination;
   }
 
-  return setupPath(next);
+  return incompleteSetupPath(next, signupStatus);
 }

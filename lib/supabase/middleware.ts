@@ -2,11 +2,55 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 
-function isSignupComplete(profile: {
+function getSignupState(profile: {
   username: string | null;
   terms_accepted_at: string | null;
+  profile_type: string | null;
 } | null) {
-  return !!profile?.username?.trim() && !!profile?.terms_accepted_at;
+  const hasProfileName = !!profile?.username?.trim();
+  const hasAcceptedTerms = !!profile?.terms_accepted_at;
+  const hasProfileType = !!profile?.profile_type;
+
+  return {
+    hasProfileName,
+    hasAcceptedTerms,
+    hasProfileType,
+    isComplete: hasProfileName && hasAcceptedTerms && hasProfileType,
+  };
+}
+
+function setupPath(next: string | null) {
+  return next ? `/login/setup?next=${encodeURIComponent(next)}` : "/login/setup";
+}
+
+function setupTypePath(next: string | null) {
+  return next
+    ? `/login/setup/type?next=${encodeURIComponent(next)}`
+    : "/login/setup/type";
+}
+
+function incompleteSetupPath(
+  next: string | null,
+  status: ReturnType<typeof getSignupState>,
+) {
+  if (status.hasProfileName && status.hasAcceptedTerms && !status.hasProfileType) {
+    return setupTypePath(next);
+  }
+
+  return setupPath(next);
+}
+
+function resolveNextParam(request: NextRequest) {
+  const next = request.nextUrl.searchParams.get("next");
+  return next?.startsWith("/") && !next.startsWith("/login") ? next : null;
+}
+
+function redirectToPath(request: NextRequest, path: string) {
+  const url = request.nextUrl.clone();
+  const target = new URL(path, request.url);
+  url.pathname = target.pathname;
+  url.search = target.search;
+  return NextResponse.redirect(url);
 }
 
 export async function updateSession(request: NextRequest) {
@@ -48,6 +92,8 @@ export async function updateSession(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     const pathname = request.nextUrl.pathname;
+    const isSetupPage = pathname === "/login/setup";
+    const isSetupTypePage = pathname === "/login/setup/type";
 
     if (pathname === "/connexion") {
       const url = request.nextUrl.clone();
@@ -62,7 +108,7 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    if (pathname === "/login/setup" && !user) {
+    if ((isSetupPage || isSetupTypePage) && !user) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       return NextResponse.redirect(url);
@@ -71,43 +117,74 @@ export async function updateSession(request: NextRequest) {
     if (user) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("username, terms_accepted_at")
+        .select("username, terms_accepted_at, profile_type")
         .eq("id", user.id)
         .maybeSingle();
 
-      const signupComplete = isSignupComplete(profile);
+      const signup = getSignupState(profile);
+      const next = resolveNextParam(request);
 
-      if (pathname === "/login" && signupComplete) {
+      if (pathname === "/login" && signup.isComplete) {
         const url = request.nextUrl.clone();
         url.pathname = "/";
         return NextResponse.redirect(url);
       }
 
-      if (pathname === "/login" && !signupComplete) {
+      if (pathname === "/login" && !signup.isComplete) {
+        return redirectToPath(
+          request,
+          incompleteSetupPath(next, signup),
+        );
+      }
+
+      if (!signup.isComplete && pathname.startsWith("/dashboard")) {
+        return redirectToPath(
+          request,
+          incompleteSetupPath(pathname, signup),
+        );
+      }
+
+      if (isSetupPage && signup.isComplete) {
         const url = request.nextUrl.clone();
-        url.pathname = "/login/setup";
-        const next = request.nextUrl.searchParams.get("next");
-        if (next?.startsWith("/") && !next.startsWith("/login")) {
+        url.pathname = next ?? "/";
+        url.search = "";
+        return NextResponse.redirect(url);
+      }
+
+      if (isSetupTypePage && signup.isComplete) {
+        const url = request.nextUrl.clone();
+        url.pathname = next ?? "/";
+        url.search = "";
+        return NextResponse.redirect(url);
+      }
+
+      if (
+        isSetupPage &&
+        signup.hasProfileName &&
+        signup.hasAcceptedTerms &&
+        !signup.hasProfileType
+      ) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/login/setup/type";
+        if (next) {
           url.searchParams.set("next", next);
         } else {
-          url.searchParams.delete("next");
+          url.search = "";
         }
         return NextResponse.redirect(url);
       }
 
-      if (!signupComplete && pathname.startsWith("/dashboard")) {
+      if (
+        isSetupTypePage &&
+        (!signup.hasProfileName || !signup.hasAcceptedTerms)
+      ) {
         const url = request.nextUrl.clone();
         url.pathname = "/login/setup";
-        url.searchParams.set("next", pathname);
-        return NextResponse.redirect(url);
-      }
-
-      if (pathname === "/login/setup" && signupComplete) {
-        const url = request.nextUrl.clone();
-        const next = request.nextUrl.searchParams.get("next");
-        url.pathname =
-          next?.startsWith("/") && !next.startsWith("/login") ? next : "/";
-        url.searchParams.delete("next");
+        if (next) {
+          url.searchParams.set("next", next);
+        } else {
+          url.search = "";
+        }
         return NextResponse.redirect(url);
       }
     }

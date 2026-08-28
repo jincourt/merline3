@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { PageMotion } from "@/components/layout/PageMotion";
+import { ConvMessages } from "@/components/messages/ConvMessages";
 import { ConvReplyForm } from "@/components/messages/ConvReplyForm";
 import { getListingHref, sourceToIntent } from "@/lib/types";
 
@@ -52,30 +53,29 @@ export default async function ConversationPage({
 
   return (
     <PageMotion className="dashboard-page dashboard-conv-page">
-      <div className="dashboard-conv-header">
+      <header className="dashboard-conv-header">
         <Link
           href="/dashboard/messages"
-          className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+          className="dashboard-conv-back text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
         >
           ← Retour aux messages
         </Link>
 
-        <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="dashboard-page-title">{listingTitle}</h1>
-            <p className="dashboard-page-desc">Avec {otherName}</p>
+        <div className="dashboard-conv-header-main">
+          <div className="min-w-0 flex-1">
+            <h1 className="dashboard-conv-title">{listingTitle}</h1>
+            <p className="dashboard-conv-subtitle">Avec {otherName}</p>
           </div>
           <Link
             href={getListingHref(conv.listing_id, sourceToIntent(conv.src))}
-            className="btn-ghost text-sm"
+            className="dashboard-conv-listing-link btn-ghost shrink-0 text-sm"
           >
             Voir l&apos;annonce
           </Link>
         </div>
-        <div className="dashboard-conv-header-divider" aria-hidden />
-      </div>
+      </header>
 
-      <div className="dashboard-conv-messages space-y-2">
+      <ConvMessages>
         {(messages ?? []).map((message) => {
           const mine = message.sender_id === user.id;
 
@@ -106,7 +106,7 @@ export default async function ConversationPage({
             </div>
           );
         })}
-      </div>
+      </ConvMessages>
 
       <ConvReplyForm convId={conv.id} />
     </PageMotion>

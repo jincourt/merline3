@@ -3,6 +3,7 @@ import { HeaderIcon, PlusIcon } from "@/components/layout/HeaderIcons";
 import { ProductCatalog } from "@/components/catalog/ProductCatalog";
 import { IndigoIntroSection } from "@/components/marketing/IndigoIntroSection";
 import { HeroConversationAnimation } from "@/components/marketing/HeroConversationAnimation";
+import { AudienceSection } from "@/components/marketing/AudienceSection";
 import { Footer } from "@/components/layout/Footer";
 
 export default function Home() {
@@ -28,6 +29,7 @@ export default function Home() {
           aside={<HeroConversationAnimation />}
         />
         <ProductCatalog />
+        <AudienceSection />
         <IndigoIntroSection
           id="agents"
           center
@@ -38,6 +40,11 @@ export default function Home() {
             href: "/guide",
             label: "Découvrir le guide",
             className: "btn-vendre-submit btn-vendre-submit-lg",
+          }}
+          secondaryCta={{
+            href: "/agents",
+            label: "Voir les agents",
+            className: "btn-ghost btn-ghost-lg",
           }}
         />
       </main>

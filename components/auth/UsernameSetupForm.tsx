@@ -13,9 +13,11 @@ const initialState: AuthResult = { success: false, message: "" };
 
 export function UsernameSetupForm({
   returnPath = "/",
+  defaultName = "",
   defaultUsername = "",
 }: {
   returnPath?: string;
+  defaultName?: string;
   defaultUsername?: string;
 }) {
   const router = useRouter();
@@ -49,6 +51,22 @@ export function UsernameSetupForm({
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="next" value={returnPath} />
+
+      <div>
+        <input
+          id="name"
+          name="name"
+          type="text"
+          required
+          minLength={2}
+          maxLength={80}
+          autoComplete="name"
+          aria-label="Votre nom"
+          placeholder="Votre nom"
+          defaultValue={defaultName}
+          className="field-input"
+        />
+      </div>
 
       <div>
         <input

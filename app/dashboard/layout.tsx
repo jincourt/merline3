@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { SiteContainer } from "@/components/layout/SiteContainer";
-import { getSignupStatus, getUser, setupPath } from "@/lib/auth";
+import { getSignupStatus, getUser, incompleteSetupPath } from "@/lib/auth";
 
 export default async function DashboardLayout({
   children,
@@ -17,7 +17,7 @@ export default async function DashboardLayout({
   const signupStatus = await getSignupStatus(user.id);
 
   if (!signupStatus.isComplete) {
-    redirect(setupPath("/dashboard"));
+    redirect(incompleteSetupPath("/dashboard", signupStatus));
   }
 
   return (

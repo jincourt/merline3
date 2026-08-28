@@ -1,67 +1,95 @@
+import Image from "next/image";
 import Link from "next/link";
+import { getUser } from "@/lib/auth";
 import { MotionDiv } from "@/components/ui/motion";
+import {
+  footerAccountLinks,
+  footerGuestLinks,
+  footerLegalLinks,
+  footerPlatformLinks,
+  type FooterLink,
+} from "./footer-links";
 
-export function Footer({
+function FooterLinkList({ links }: { links: FooterLink[] }) {
+  return (
+    <ul className="site-footer-links">
+      {links.map((link) => (
+        <li key={link.href}>
+          <Link href={link.href} className="site-footer-link">
+            {link.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function FooterColumn({
+  title,
+  links,
+}: {
+  title: string;
+  links: FooterLink[];
+}) {
+  return (
+    <div className="site-footer-column">
+      <p className="site-footer-heading">{title}</p>
+      <FooterLinkList links={links} />
+    </div>
+  );
+}
+
+export async function Footer({
   light = false,
   indigo = false,
 }: {
   light?: boolean;
   indigo?: boolean;
 }) {
-  if (light) {
-    return (
-      <footer className="section-dark border-t border-[var(--border)]">
-        <MotionDiv className="mx-auto max-w-[1200px] px-6 py-12 text-center">
-          <p className="text-xs text-[var(--muted-dim)]">
-            © {new Date().getFullYear()} Merline
-          </p>
-        </MotionDiv>
-      </footer>
-    );
-  }
-
-  if (indigo) {
-    return (
-      <footer className="section-dark border-t border-[var(--border)]">
-        <MotionDiv className="mx-auto max-w-[1200px] px-6 pb-8 pt-12 text-center">
-          <p className="text-xs text-[var(--muted-dim)]">
-            © {new Date().getFullYear()} Merline
-          </p>
-        </MotionDiv>
-      </footer>
-    );
-  }
+  const user = await getUser();
+  const accountLinks = user ? footerAccountLinks : footerGuestLinks;
+  const footerClass = [
+    "site-footer",
+    light ? "site-footer-on-light" : "",
+    indigo ? "site-footer-after-indigo" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <footer className="section-dark border-t border-[var(--border)]">
-      <MotionDiv className="mx-auto max-w-[1200px] px-6 py-16">
-        <div className="grid gap-12 md:grid-cols-[1fr_auto]">
-          <div>
-            <p className="text-sm font-semibold text-[var(--foreground)]">Merline</p>
-            <p className="mt-4 max-w-sm text-sm text-[var(--muted)]">
-              Trouvez vos partenaires sur le web et entraidez-vous dans la vente.
+    <footer className={footerClass}>
+      <MotionDiv className="site-footer-inner">
+        <div className="site-footer-grid">
+          <div className="site-footer-brand">
+            <Link href="/" className="site-footer-logo">
+              <Image
+                src="/merline.gif"
+                alt=""
+                width={32}
+                height={32}
+                className="h-8 w-8 object-contain"
+                unoptimized
+                aria-hidden
+              />
+              <span>Merline</span>
+            </Link>
+            <p className="site-footer-tagline">
+              Merline connecte annonceurs et agents autour d&apos;une commission
+              transparente.
             </p>
           </div>
-       
 
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-[var(--muted-dim)]">
-              Menu
-            </p>
-            <ul className="mt-4 space-y-2 text-sm text-[var(--muted)]">
-              <li>
-                <Link href="/vendre" className="hover:text-[var(--foreground)]">
-                  Vendre
-                </Link>
-              </li>
-            </ul>
-          </div>
+          <FooterColumn title="Plateforme" links={footerPlatformLinks} />
+          <FooterColumn title={user ? "Mon compte" : "Compte"} links={accountLinks} />
+          <FooterColumn title="Légal" links={footerLegalLinks} />
         </div>
 
-        <div className="mt-12 h-px bg-[var(--border)]" />
-        <p className="mt-8 text-xs text-[var(--muted-dim)]">
-          © {new Date().getFullYear()} Merline
-        </p>
+        <div className="site-footer-bottom">
+          <p className="site-footer-copy">
+            © {new Date().getFullYear()} Merline. Tous droits réservés.
+          </p>
+          <p className="site-footer-note">Plateforme suisse de mise en relation.</p>
+        </div>
       </MotionDiv>
     </footer>
   );

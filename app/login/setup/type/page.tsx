@@ -2,15 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SiteCard } from "@/components/layout/SiteCard";
-import { SetupAccountForm } from "@/components/auth/SetupAccountForm";
+import { SetupProfileTypeForm } from "@/components/auth/SetupProfileTypeForm";
 import {
   getSignupStatus,
   getUser,
   sanitizeNextPath,
-  setupTypePath,
+  setupPath,
 } from "@/lib/auth";
 
-export default async function LoginSetupPage({
+export default async function LoginSetupTypePage({
   searchParams,
 }: {
   searchParams: Promise<{ next?: string }>;
@@ -29,8 +29,8 @@ export default async function LoginSetupPage({
     redirect(returnPath);
   }
 
-  if (signupStatus.hasProfileName && signupStatus.hasAcceptedTerms) {
-    redirect(setupTypePath(returnPath === "/" ? null : returnPath));
+  if (!signupStatus.hasProfileName || !signupStatus.hasAcceptedTerms) {
+    redirect(setupPath(returnPath === "/" ? null : returnPath));
   }
 
   return (
@@ -54,16 +54,7 @@ export default async function LoginSetupPage({
           </div>
 
           <div className="mt-8">
-            <SetupAccountForm
-              returnPath={returnPath}
-              defaultName={
-                signupStatus.displayName ??
-                user.user_metadata?.name ??
-                user.user_metadata?.full_name ??
-                ""
-              }
-              defaultUsername={signupStatus.profileName ?? ""}
-            />
+            <SetupProfileTypeForm returnPath={returnPath} />
           </div>
         </SiteCard>
       </div>

@@ -1,10 +1,14 @@
+import type { ProfileType } from "@/lib/profile-type";
+
 export type UserProfile = {
+  name: string;
   username: string;
   phone: string;
   website: string;
   address: string;
   npa: string;
   canton: string;
+  profileType: ProfileType | null;
 };
 
 export async function getUserProfile(
@@ -13,19 +17,21 @@ export async function getUserProfile(
 ): Promise<UserProfile | null> {
   const { data } = await supabase
     .from("profiles")
-    .select("username, phone, website, address, npa, canton")
+    .select("name, username, phone, website, address, npa, canton, profile_type")
     .eq("id", userId)
     .maybeSingle();
 
   if (!data) return null;
 
   return {
+    name: data.name?.trim() ?? "",
     username: data.username?.trim() ?? "",
     phone: data.phone?.trim() ?? "",
     website: data.website?.trim() ?? "",
     address: data.address?.trim() ?? "",
     npa: data.npa?.trim() ?? "",
     canton: data.canton?.trim() ?? "",
+    profileType: (data.profile_type as ProfileType | null) ?? null,
   };
 }
 

@@ -7,6 +7,7 @@ import {
   isValidWebsite,
   normalizeWebsite,
 } from "@/lib/profile";
+import { isValidProfileType } from "@/lib/profile-type";
 import { isValidSwissCantonCode } from "@/lib/swiss-cantons";
 import {
   VALID_LISTING_TYPES,
@@ -724,12 +725,28 @@ export async function updateProfile(
     return { success: false, message: "Connectez-vous pour modifier votre profil." };
   }
 
+  const name = String(formData.get("name") ?? "").trim();
   const username = String(formData.get("username") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const websiteRaw = String(formData.get("website") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim();
   const npa = String(formData.get("npa") ?? "").trim();
   const canton = String(formData.get("canton") ?? "").trim().toUpperCase();
+  const profileTypeRaw = String(formData.get("profile_type") ?? "").trim();
+
+  if (!isValidProfileType(profileTypeRaw)) {
+    return {
+      success: false,
+      message: "Choisissez un type de profil valide.",
+    };
+  }
+
+  if (name.length < 2) {
+    return {
+      success: false,
+      message: "Votre nom doit contenir au moins 2 caractères.",
+    };
+  }
 
   if (username.length < 2) {
     return {
@@ -777,12 +794,14 @@ export async function updateProfile(
   const { error } = await supabase
     .from("profiles")
     .update({
+      name,
       username,
       phone: phone || null,
       website: websiteRaw ? normalizeWebsite(websiteRaw) : null,
       address: address || null,
       npa: npa || null,
       canton: canton || null,
+      profile_type: profileTypeRaw,
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
@@ -793,7 +812,9 @@ export async function updateProfile(
       || error.message.includes("address")
       || error.message.includes("npa")
       || error.message.includes("canton")
-      ? " Applique la migration Supabase profile_contact_fields."
+      || error.message.includes("profile_type")
+      || error.message.includes("name")
+      ? " Applique les migrations Supabase récentes."
       : "";
     return {
       success: false,

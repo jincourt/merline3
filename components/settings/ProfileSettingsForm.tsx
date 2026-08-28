@@ -6,6 +6,11 @@ import { updateProfile, type ActionResult } from "@/app/actions";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import { SWISS_CANTONS } from "@/lib/swiss-cantons";
 import type { UserProfile } from "@/lib/profile";
+import {
+  PROFILE_TYPE_LABELS,
+  PROFILE_TYPES,
+  type ProfileType,
+} from "@/lib/profile-type";
 
 const initialState: ActionResult = { success: false, message: "" };
 
@@ -17,6 +22,11 @@ const cantonOptions = [
   })),
 ];
 
+const profileTypeOptions = PROFILE_TYPES.map((type) => ({
+  value: type,
+  label: PROFILE_TYPE_LABELS[type],
+}));
+
 type ProfileSettingsFormProps = {
   profile: UserProfile;
 };
@@ -26,6 +36,9 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
   const [usernameError, setUsernameError] = useState("");
   const [checkingUsername, setCheckingUsername] = useState(false);
   const [canton, setCanton] = useState(profile.canton);
+  const [profileType, setProfileType] = useState<ProfileType>(
+    profile.profileType ?? "annonceur",
+  );
 
   async function handleUsernameBlur(event: React.FocusEvent<HTMLInputElement>) {
     const value = event.target.value.trim();
@@ -49,6 +62,34 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
       <div className="dashboard-settings-grid">
         <div className="dashboard-settings-card">
           <div className="dashboard-settings-col">
+            <SelectDropdown
+              id="profile-type"
+              label="Type de profil"
+              labelSpacing="md"
+              value={profileType}
+              onChange={setProfileType}
+              options={profileTypeOptions}
+              placeholder="Choisir un type"
+            />
+            <input type="hidden" name="profile_type" value={profileType} />
+
+            <div>
+              <label htmlFor="profile-name" className="field-label">
+                Votre nom
+              </label>
+              <input
+                id="profile-name"
+                name="name"
+                type="text"
+                required
+                minLength={2}
+                maxLength={80}
+                autoComplete="name"
+                defaultValue={profile.name}
+                className="field-input mt-2"
+              />
+            </div>
+
             <div>
               <label htmlFor="profile-username" className="field-label">
                 Nom d&apos;utilisateur

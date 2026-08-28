@@ -4,8 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
   getSignupStatus,
+  incompleteSetupPath,
   sanitizeNextPath,
-  setupPath,
 } from "@/lib/auth";
 import {
   decodeGoogleOAuthState,
@@ -86,7 +86,7 @@ export async function GET(request: Request) {
     const signupStatus = await getSignupStatus(user.id);
     const destination = signupStatus.isComplete
       ? sanitizeNextPath(next)
-      : setupPath(next);
+      : incompleteSetupPath(next, signupStatus);
 
     return NextResponse.redirect(`${origin}${destination}`);
   } catch (error) {

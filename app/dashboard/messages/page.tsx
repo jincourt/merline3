@@ -81,7 +81,7 @@ export default async function MessagesPage() {
   return (
     <PageMotion className="dashboard-page">
       <h1 className="dashboard-page-title">Messages</h1>
-      <p className="dashboard-page-desc">Vos conversations liées aux annonces.</p>
+     
 
       {!enriched.length ? (
         <div className="dashboard-empty">

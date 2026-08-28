@@ -5,16 +5,19 @@ import {
   type TypewriterStat,
 } from "./TypewriterStatsColumn";
 
+type CtaButton = {
+  href: string;
+  label: string;
+  className?: string;
+  icon?: React.ReactNode;
+};
+
 type IndigoIntroSectionProps = {
   id: string;
   title: string;
   description: string;
-  cta?: {
-    href: string;
-    label: string;
-    className?: string;
-    icon?: React.ReactNode;
-  };
+  cta?: CtaButton;
+  secondaryCta?: CtaButton;
   stats?: readonly TypewriterStat[];
   aside?: React.ReactNode;
   top?: boolean;
@@ -27,6 +30,7 @@ export function IndigoIntroSection({
   title,
   description,
   cta,
+  secondaryCta,
   stats,
   aside,
   top = false,
@@ -43,15 +47,30 @@ export function IndigoIntroSection({
       <p className="mt-4 max-w-xl text-base leading-relaxed text-white/85 md:text-lg md:leading-relaxed">
         {description}
       </p>
-      {cta ? (
-        <div className="mt-6">
-          <Link
-            href={cta.href}
-            className={`inline-flex items-center gap-2.5 ${cta.className ?? "btn-on-indigo"}`}
-          >
-            {cta.icon}
-            {cta.label}
-          </Link>
+      {cta || secondaryCta ? (
+        <div
+          className={`mt-6 flex flex-wrap items-center gap-3 ${
+            center ? "justify-center" : ""
+          }`}
+        >
+          {cta ? (
+            <Link
+              href={cta.href}
+              className={`inline-flex items-center gap-2.5 ${cta.className ?? "btn-on-indigo"}`}
+            >
+              {cta.icon}
+              {cta.label}
+            </Link>
+          ) : null}
+          {secondaryCta ? (
+            <Link
+              href={secondaryCta.href}
+              className={`inline-flex items-center gap-2.5 ${secondaryCta.className ?? "btn-on-indigo-ghost"}`}
+            >
+              {secondaryCta.icon}
+              {secondaryCta.label}
+            </Link>
+          ) : null}
         </div>
       ) : null}
     </div>

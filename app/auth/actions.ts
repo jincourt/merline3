@@ -12,9 +12,11 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
   getSignupStatus,
+  incompleteSetupPath,
   sanitizeNextPath,
-  setupPath,
+  setupTypePath,
 } from "@/lib/auth";
+import { isValidProfileType } from "@/lib/profile-type";
 
 export type AuthResult = {
   success: boolean;
@@ -164,7 +166,7 @@ export async function verifyEmailCode(
     redirect(sanitizeNextPath(next));
   }
 
-  redirect(setupPath(next));
+  redirect(incompleteSetupPath(next, signupStatus));
 }
 
 export async function signInWithGoogle(formData: FormData) {
@@ -184,6 +186,7 @@ export async function setupUsername(
   formData: FormData,
 ): Promise<AuthResult> {
   const username = String(formData.get("username") ?? "").trim();
+  const name = String(formData.get("name") ?? "").trim();
   const next = String(formData.get("next") ?? "");
   const acceptTerms = formData.get("accept_terms") === "on";
 
@@ -191,6 +194,13 @@ export async function setupUsername(
     return {
       success: false,
       message: "Tu dois accepter les Termes & Conditions et la Politique de confidentialité.",
+    };
+  }
+
+  if (name.length < 2) {
+    return {
+      success: false,
+      message: "Indiquez votre nom (au moins 2 caractères).",
     };
   }
 
@@ -223,6 +233,7 @@ export async function setupUsername(
     {
       id: user.id,
       username,
+      name,
       terms_accepted_at: now,
       updated_at: now,
     },
@@ -246,7 +257,67 @@ export async function setupUsername(
     };
   }
 
-  revalidatePath("/", "layout");
+  return {
+    success: true,
+    message: "",
+    redirectTo: setupTypePath(sanitizeNextPath(next)),
+  };
+}
+
+export async function setupProfileType(
+  _prev: AuthResult | null,
+  formData: FormData,
+): Promise<AuthResult> {
+  const profileType = String(formData.get("profile_type") ?? "").trim();
+  const next = String(formData.get("next") ?? "");
+
+  if (!isValidProfileType(profileType)) {
+    return {
+      success: false,
+      message: "Choisissez un type de profil : Annonceur ou Agent.",
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Non connecté." };
+  }
+
+  const signupStatus = await getSignupStatus(user.id);
+
+  if (!signupStatus.hasProfileName || !signupStatus.hasAcceptedTerms) {
+    return {
+      success: false,
+      message: "Terminez d'abord la première étape de l'inscription.",
+    };
+  }
+
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      profile_type: profileType,
+      updated_at: now,
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("setupProfileType failed:", error);
+    const migrationHint = error.message.includes("profile_type")
+      ? " Applique la migration Supabase profile_type."
+      : "";
+    return {
+      success: false,
+      message: `Impossible d'enregistrer le type de profil.${migrationHint}`,
+    };
+  }
+
+  revalidatePath("/dashboard/parametres");
+  revalidatePath("/");
 
   return {
     success: true,
