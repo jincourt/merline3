@@ -1,15 +1,8 @@
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { buildCatalogHref } from "@/lib/catalog";
 import type { ListingType } from "@/lib/types";
 import { getListingTypeLabel } from "@/lib/types";
-
-function ChevronIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <path strokeLinecap="round" strokeLinejoin="round" d="m9 6 6 6-6 6" />
-    </svg>
-  );
-}
 
 type CatalogBreadcrumbProps = {
   listingType: ListingType;
@@ -26,7 +19,7 @@ export function CatalogBreadcrumb({ listingType, category }: CatalogBreadcrumbPr
       </Link>
 
       <span className="catalog-breadcrumb-separator" aria-hidden>
-        <ChevronIcon />
+        <ChevronRight className="h-4 w-4" strokeWidth={1.75} aria-hidden />
       </span>
 
       <Link
@@ -39,7 +32,7 @@ export function CatalogBreadcrumb({ listingType, category }: CatalogBreadcrumbPr
       {category ? (
         <>
           <span className="catalog-breadcrumb-separator" aria-hidden>
-            <ChevronIcon />
+            <ChevronRight className="h-4 w-4" strokeWidth={1.75} aria-hidden />
           </span>
           <Link
             href={buildCatalogHref({ listingType, category })}

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Check, ChevronDown } from "lucide-react";
 
 export type SelectDropdownOption = {
   value: string;
@@ -24,22 +25,13 @@ type SelectDropdownProps = {
 
 function ChevronIcon({ open, compact = false }: { open: boolean; compact?: boolean }) {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 20 20"
-      fill="none"
+    <ChevronDown
+      aria-hidden
       className={`shrink-0 text-[var(--muted)] transition-transform duration-150 select-dropdown-chevron ${
         compact ? "h-3.5 w-3.5" : "h-4 w-4"
       } ${open ? "rotate-180" : ""}`}
-    >
-      <path
-        d="M5 7.5L10 12.5L15 7.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+      strokeWidth={1.5}
+    />
   );
 }
 
@@ -144,20 +136,11 @@ export function SelectDropdown({
             >
               <span>{option.label}</span>
               {isSelected ? (
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 20 20"
-                  fill="none"
+                <Check
+                  aria-hidden
                   className="h-4 w-4 shrink-0 text-[var(--indigo)]"
-                >
-                  <path
-                    d="M5 10L8.5 13.5L15 7"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                  strokeWidth={1.5}
+                />
               ) : null}
             </button>
           </li>

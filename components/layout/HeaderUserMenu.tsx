@@ -5,23 +5,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { signOut } from "@/app/auth/actions";
+import { ChevronDown } from "lucide-react";
 import { HeaderIcon } from "./HeaderIcons";
 import { accountMenuLinks } from "./header-menu-links";
-
-function ChevronDownIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      className={className}
-      aria-hidden
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="m5 8 5 5 5-5" />
-    </svg>
-  );
-}
 
 type MenuPosition = {
   top: number;
@@ -154,8 +140,10 @@ export function HeaderUserMenu({
         title={username || undefined}
       >
         <span className="truncate">{displayName}</span>
-        <ChevronDownIcon
+        <ChevronDown
           className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+          strokeWidth={1.75}
+          aria-hidden
         />
       </button>
 

@@ -1,27 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Heart } from "lucide-react";
 import { toggleFavorite } from "@/app/actions";
 import type { ListingSource } from "@/lib/types";
-
-function HeartIcon({ filled }: { filled: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill={filled ? "currentColor" : "none"}
-      stroke="currentColor"
-      strokeWidth="1.75"
-      aria-hidden
-      className="h-6 w-6"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 21s-7-4.35-9.33-8.09C1.06 10.09 2.04 6.5 5.5 5.5c1.97-.58 4.03.24 5.17 1.89.47.67 1.19.67 1.66 0C13.46 5.74 15.53 4.92 17.5 5.5c3.46 1 4.44 4.59 2.83 7.41C19 16.65 12 21 12 21z"
-      />
-    </svg>
-  );
-}
 
 type ListingFavoriteButtonProps = {
   listingId: string;
@@ -64,7 +46,12 @@ export function ListingFavoriteButton({
       aria-label={isFavorited ? "Retirer des favoris" : "Ajouter aux favoris"}
       disabled={pending}
     >
-      <HeartIcon filled={isFavorited} />
+      <Heart
+        className="h-6 w-6"
+        fill={isFavorited ? "currentColor" : "none"}
+        strokeWidth={1.75}
+        aria-hidden
+      />
     </button>
   );
 }

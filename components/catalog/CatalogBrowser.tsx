@@ -83,7 +83,7 @@ export function CatalogBrowser({
         {showSearch ? (
           <div className="catalog-search">
             <label htmlFor="catalog-search" className="section-title">
-              Rechercher une commission
+              Rechercher une mission
             </label>
             <input
               id="catalog-search"

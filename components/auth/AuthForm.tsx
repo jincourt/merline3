@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Globe, Mail } from "lucide-react";
 import {
   sendEmailCode,
   verifyEmailCode,
@@ -9,27 +10,6 @@ import {
 } from "@/app/auth/actions";
 
 const initialState = { success: false, message: "" };
-
-function EmailIcon() {
-  return (
-    <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path
-        d="M16 14H0V2H16V14ZM12 6H10V8H6V6H4V8H6V10H10V8H12V6H14V4H12V6ZM2 6H4V4H2V6Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
-function GoogleIcon() {
-  return (
-    <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path
-        d="M14 2H16V4H4V12H12V10H8V6H16V14H14V16H2V14H0V2H2V0H14V2Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
 
 export function AuthForm({
   inline = false,
@@ -73,7 +53,7 @@ export function AuthForm({
           <form action={signInWithGoogle}>
             <input type="hidden" name="next" value={returnPath} />
             <button type="submit" className="btn-form btn-ghost w-full gap-2">
-              <GoogleIcon />
+              <Globe className="h-4 w-4" aria-hidden />
               Continuer avec Google
             </button>
           </form>
@@ -83,7 +63,7 @@ export function AuthForm({
             className="btn-form btn-ghost w-full gap-2"
             onClick={() => setEmailOpen(true)}
           >
-            <EmailIcon />
+            <Mail className="h-4 w-4" aria-hidden />
             Continuer avec un email
           </button>
         </>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useTransition } from "react";
+import { Trash2 } from "lucide-react";
 import {
   deleteListing,
   updateListingStatus,
@@ -14,25 +15,6 @@ import { getListingEditHref, getListingHref } from "@/lib/types";
 
 import type { CommissionType } from "@/lib/types";
 import { formatCommission } from "@/lib/types";
-
-function TrashIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      className="h-4 w-4"
-      aria-hidden
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
-      />
-    </svg>
-  );
-}
 
 export type DashboardListing = {
   id: string;
@@ -158,7 +140,7 @@ export function ListingRow({ listing }: { listing: DashboardListing }) {
             aria-label="Supprimer l'annonce"
             title="Supprimer"
           >
-            <TrashIcon />
+            <Trash2 className="h-4 w-4" strokeWidth={1.75} aria-hidden />
           </button>
         </div>
       </div>

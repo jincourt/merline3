@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { MessageCircle, Star } from "lucide-react";
 
 type Message = {
   id: number;
@@ -99,36 +100,22 @@ const panelMotion = {
 
 function MessageIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
-    <svg
+    <MessageCircle
       className={`text-white/80 ${className}`}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      strokeWidth={1.75}
       aria-hidden
-    >
-      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-    </svg>
+    />
   );
 }
 
 function StarIcon({ filled }: { filled: boolean }) {
   return (
-    <svg
+    <Star
       className={`h-7 w-7 md:h-8 md:w-8 ${filled ? "text-white" : "text-white/30"}`}
-      viewBox="0 0 20 20"
+      fill={filled ? "currentColor" : "transparent"}
+      strokeWidth={1.25}
       aria-hidden
-    >
-      <path
-        d="M10 1.5L12.472 7.236L18.66 8.028L14.33 12.264L15.416 18.42L10 15.618L4.584 18.42L5.67 12.264L1.34 8.028L7.528 7.236L10 1.5Z"
-        fill={filled ? "currentColor" : "transparent"}
-        stroke="currentColor"
-        strokeWidth="1.25"
-        strokeLinejoin="round"
-      />
-    </svg>
+    />
   );
 }
 
