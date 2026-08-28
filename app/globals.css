@@ -1504,6 +1504,18 @@ textarea.field-input {
   flex: 1;
 }
 
+@media (max-width: 639px) {
+  .dashboard-listings-filters {
+    flex-direction: column;
+  }
+
+  .dashboard-listings-filter {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+}
+
 @media (min-width: 768px) {
   .dashboard-listings-toolbar {
     flex-direction: row;
@@ -1854,11 +1866,53 @@ textarea.field-input {
   gap: 0.5rem;
 }
 
+.dashboard-listing-action-btns {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+@media (max-width: 639px) {
+  .dashboard-listing-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .dashboard-listing-link {
+    width: 100%;
+  }
+
+  .dashboard-listing-actions {
+    width: 100%;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .dashboard-listing-actions .select-dropdown-compact {
+    flex-shrink: 1;
+    width: 100%;
+  }
+
+  .dashboard-listing-actions .select-dropdown-compact .select-dropdown-trigger {
+    width: 100%;
+  }
+
+  .dashboard-listing-action-btns .dashboard-edit-btn {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 @media (min-width: 640px) {
   .dashboard-listing-actions {
     flex-direction: row;
     align-items: center;
     gap: 0.5rem;
+  }
+
+  .dashboard-listing-action-btns {
+    width: auto;
   }
 }
 
@@ -2994,6 +3048,32 @@ textarea.field-input {
   border-radius: 0.375rem;
   background: var(--surface);
   padding: 1rem;
+}
+
+@media (max-width: 639px) {
+  .public-profile-top {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "main"
+      "actions"
+      "form";
+    gap: 1rem;
+  }
+
+  .profile-message-header-wrap {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .profile-message-header-wrap .btn-form {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .profile-message-header-form {
+    max-width: none;
+    margin-left: 0;
+  }
 }
 
 .public-profile-section-title {

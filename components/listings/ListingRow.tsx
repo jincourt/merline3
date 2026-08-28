@@ -125,7 +125,7 @@ export function ListingRow({ listing }: { listing: DashboardListing }) {
           disabled={pending}
         />
 
-        <div className="flex gap-2">
+        <div className="dashboard-listing-action-btns">
           <Link href={editHref} className="dashboard-action-btn dashboard-edit-btn">
             Modifier
           </Link>
