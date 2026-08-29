@@ -157,7 +157,17 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     console.error("analytics_overview failed:", overviewResult.error.message);
   }
 
-  let listingsRaw = listingsResult.data ?? [];
+  type ListingRaw = {
+    id: unknown;
+    title: unknown;
+    category: unknown;
+    status: unknown;
+    session_views?: unknown;
+    created_at: unknown;
+    user_id: unknown;
+  };
+
+  let listingsRaw: ListingRaw[] = listingsResult.data ?? [];
   if (listingsResult.error) {
     const fallback = await admin
       .from("products")
