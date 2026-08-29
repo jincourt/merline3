@@ -2,7 +2,13 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { submitProduct, submitBuyRequest, updateProduct, updateBuyRequest } from "@/app/actions";
+import {
+  submitProduct,
+  submitBuyRequest,
+  updateProduct,
+  updateBuyRequest,
+  type ActionResult,
+} from "@/app/actions";
 import { AuthDialog } from "@/components/auth/AuthDialog";
 import {
   clearFormDraft,
@@ -31,7 +37,7 @@ const FORM_ID = "listing-form";
 const FORM_CARD_CLASS =
   "section-light overflow-hidden rounded-md bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.18)] md:p-8";
 
-const initialState = { success: false, message: "" };
+const initialState: ActionResult = { success: false, message: "" };
 
 export type FormMode = "sell" | "buy";
 
