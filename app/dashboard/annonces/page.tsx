@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
-import {
-  DashboardListingsPanel,
-} from "@/components/listings/DashboardListingsPanel";
+import { DashboardListingsPanel } from "@/components/listings/DashboardListingsPanel";
+import { CheckoutFeedbackBanner } from "@/components/listings/CheckoutFeedbackBanner";
 import type { DashboardListing } from "@/components/listings/ListingRow";
 import { PageMotion } from "@/components/layout/PageMotion";
+import { Suspense } from "react";
 
 export default async function AnnoncesPage() {
   const user = await getUser();
@@ -26,6 +26,9 @@ export default async function AnnoncesPage() {
   return (
     <PageMotion className="dashboard-page">
       <h1 className="dashboard-page-title">Mes annonces</h1>
+      <Suspense fallback={null}>
+        <CheckoutFeedbackBanner />
+      </Suspense>
       <DashboardListingsPanel listings={listings} />
     </PageMotion>
   );

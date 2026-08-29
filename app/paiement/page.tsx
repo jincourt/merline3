@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PageMotion } from "@/components/layout/PageMotion";
-import { CheckoutButton } from "@/components/marketing/CheckoutButton";
 import { getUser } from "@/lib/auth";
 import { isPlanId, PLANS, type PlanId } from "@/lib/plans";
 
@@ -16,7 +15,7 @@ export default async function PaiementPage({
   const user = await getUser();
 
   if (!planParam || !isPlanId(planParam)) {
-    redirect("/");
+    redirect("/tarifs");
   }
 
   if (!user) {
@@ -31,10 +30,10 @@ export default async function PaiementPage({
       <main className="border-b border-[var(--border)]">
         <PageMotion className="mx-auto max-w-[520px] px-6 py-10 md:py-14">
           <Link
-            href="/"
+            href="/tarifs"
             className="btn-link text-[var(--muted)] hover:text-[var(--foreground)]"
           >
-            Retour à l&apos;accueil
+            Retour aux tarifs
           </Link>
 
           <div className="mt-6 border border-[var(--border)] bg-[var(--surface)] p-6">
@@ -45,7 +44,7 @@ export default async function PaiementPage({
             <p className="mt-2 text-sm text-[var(--muted)]">{plan.description}</p>
 
             <div className="mt-5 flex items-baseline gap-1">
-              <span className="text-3xl font-medium">CHF {plan.price}</span>
+              <span className="text-3xl font-medium">CHF {plan.price}.-</span>
               <span className="text-sm text-[var(--muted)]">{plan.period}</span>
             </div>
 
@@ -53,11 +52,14 @@ export default async function PaiementPage({
               Compte : {user.email}
             </p>
 
-            <CheckoutButton
-              planId={plan.id}
-              label="Payer avec Stripe"
-              className="btn-form btn-primary mt-6 w-full"
-            />
+            <p className="mt-4 text-sm text-[var(--muted)]">
+              Pour payer un forfait, publiez d&apos;abord une annonce — le paiement se
+              fait à la fin du parcours.
+            </p>
+
+            <Link href="/vendre" className="btn-form btn-primary mt-6 block w-full text-center">
+              Publier une annonce
+            </Link>
           </div>
         </PageMotion>
       </main>

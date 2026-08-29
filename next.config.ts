@@ -10,6 +10,20 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/paiement/success",
+        destination: "/api/checkout/complete",
+        permanent: false,
+      },
+      {
+        source: "/vendre/paiement/success",
+        destination: "/api/checkout/complete",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

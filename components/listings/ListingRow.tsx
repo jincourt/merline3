@@ -31,6 +31,8 @@ export type DashboardListing = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
+  draft: "Brouillon",
+  pending_payment: "Paiement en attente",
   active: "Active",
   paused: "En pause",
   sold: "Vendue",
@@ -83,9 +85,49 @@ export function ListingRow({ listing }: { listing: DashboardListing }) {
     });
   }
 
+  const isIncomplete =
+    listing.intent === "sell" &&
+    (listing.status === "draft" || listing.status === "pending_payment");
+  const finalizeHref =
+    listing.status === "pending_payment"
+      ? `/vendre/paiement?listing=${listing.id}`
+      : `/vendre/plan?listing=${listing.id}`;
+
   return (
     <>
       <article className="dashboard-listing-row">
+      {isIncomplete ? (
+        <div className="dashboard-listing-link">
+          <div className="dashboard-listing-thumb">
+            {image ? (
+              <Image
+                src={image}
+                alt={listing.title}
+                fill
+                className="object-cover"
+                sizes="80px"
+              />
+            ) : (
+              <span className="dashboard-listing-thumb-empty">Aucune image</span>
+            )}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-[var(--muted)]">{listing.category}</span>
+              <span className="text-xs font-medium text-[var(--indigo)]">
+                {STATUS_LABELS[listing.status]}
+              </span>
+            </div>
+            <h3 className="mt-1 truncate text-sm font-medium text-[var(--foreground)]">
+              {listing.title}
+            </h3>
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              {formatListingAmount(listing)} · {formatDate(listing.created_at)}
+            </p>
+          </div>
+        </div>
+      ) : (
       <Link href={listingHref} className="dashboard-listing-link">
         <div className="dashboard-listing-thumb">
           {image ? (
@@ -113,8 +155,27 @@ export function ListingRow({ listing }: { listing: DashboardListing }) {
           </p>
         </div>
       </Link>
+      )}
 
       <div className="dashboard-listing-actions">
+        {isIncomplete ? (
+          <div className="dashboard-listing-action-btns">
+            <Link href={finalizeHref} className="dashboard-action-btn dashboard-edit-btn">
+              Finaliser
+            </Link>
+            <button
+              type="button"
+              onClick={() => setDeleteDialogOpen(true)}
+              disabled={pending}
+              className="dashboard-action-btn dashboard-delete-btn dashboard-delete-btn-icon"
+              aria-label="Supprimer l'annonce"
+              title="Supprimer"
+            >
+              <Trash2 className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+            </button>
+          </div>
+        ) : (
+        <>
         <SelectDropdown
           id={`listing-status-${listing.id}`}
           value={listing.status}
@@ -143,6 +204,8 @@ export function ListingRow({ listing }: { listing: DashboardListing }) {
             <Trash2 className="h-4 w-4" strokeWidth={1.75} aria-hidden />
           </button>
         </div>
+        </>
+        )}
       </div>
       </article>
 

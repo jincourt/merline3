@@ -17,6 +17,12 @@ import { getProfileHref } from "@/lib/profile-reviews";
 import { isValidProfileType } from "@/lib/profile-type";
 import { isValidSwissCantonCode } from "@/lib/swiss-cantons";
 import {
+  isBoostPackId,
+  isPlanId,
+  type BoostPackId,
+  type PlanId,
+} from "@/lib/plans";
+import {
   VALID_LISTING_TYPES,
   VALID_COMMISSION_TYPES,
   type CommissionType,
@@ -223,6 +229,8 @@ function revalidateListingPaths(mode: "sell" | "buy", listingId?: string) {
 export type ActionResult = {
   success: boolean;
   message: string;
+  listingId?: string;
+  redirectTo?: string;
 };
 
 export type FavoriteActionResult = ActionResult & {
@@ -288,24 +296,112 @@ export async function submitProduct(
     return { success: false, message: parsed.message };
   }
 
-  const { error } = await supabase.from("products").insert({
-    user_id: user.id,
-    ...listingPayload(parsed.data, "sell"),
-  });
+  const { data: inserted, error } = await supabase
+    .from("products")
+    .insert({
+      user_id: user.id,
+      status: "draft",
+      ...listingPayload(parsed.data, "sell"),
+    })
+    .select("id")
+    .single();
 
-  if (error) {
-    console.error("submitProduct:", error.message);
+  if (error || !inserted) {
+    console.error("submitProduct:", error?.message);
     return {
       success: false,
       message:
-        error.code === "23514"
+        error?.code === "23514"
           ? "Vérifiez le titre (2 caractères min.) et la description (10 caractères min.)."
-          : "Impossible de publier l'annonce. Réessayez.",
+          : "Impossible d'enregistrer l'annonce. Réessayez.",
     };
   }
 
   revalidateListingPaths("sell");
-  redirect("/dashboard/annonces");
+  return {
+    success: true,
+    message: "Annonce enregistrée.",
+    listingId: inserted.id,
+  };
+}
+
+export async function saveListingCheckout(
+  listingId: string,
+  planId: string,
+  boostId: string | null,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Connectez-vous pour continuer." };
+  }
+
+  if (!isPlanId(planId)) {
+    return { success: false, message: "Choisissez un forfait valide." };
+  }
+
+  if (boostId && !isBoostPackId(boostId)) {
+    return { success: false, message: "Option publicitaire invalide." };
+  }
+
+  const { data: listing } = await supabase
+    .from("products")
+    .select("id, status, user_id")
+    .eq("id", listingId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!listing) {
+    return { success: false, message: "Annonce introuvable." };
+  }
+
+  if (listing.status !== "draft" && listing.status !== "pending_payment") {
+    return { success: false, message: "Cette annonce ne peut plus être modifiée." };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("merline_pro_active")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const hasActivePro = profile?.merline_pro_active === true;
+  const skipPayment =
+    hasActivePro && planId === "abonnement" && !boostId;
+
+  const { error } = await supabase
+    .from("products")
+    .update({
+      checkout_plan: planId,
+      checkout_boost: boostId,
+      status: skipPayment ? "active" : "pending_payment",
+    })
+    .eq("id", listingId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("saveListingCheckout:", error.message);
+    return { success: false, message: "Impossible d'enregistrer votre choix." };
+  }
+
+  revalidateListingPaths("sell", listingId);
+
+  if (skipPayment) {
+    return {
+      success: true,
+      message: "Annonce publiée.",
+      redirectTo: "/dashboard/annonces?published=1",
+    };
+  }
+
+  return {
+    success: true,
+    message: "Choix enregistré.",
+    redirectTo: `/vendre/paiement?listing=${listingId}`,
+  };
 }
 
 export async function updateProduct(

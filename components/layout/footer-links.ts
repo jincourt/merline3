@@ -4,10 +4,8 @@ export type FooterLink = {
 };
 
 export const footerPlatformLinks: FooterLink[] = [
-  { href: "/", label: "Accueil" },
-  { href: "/#catalogue", label: "Catalogue" },
-  { href: "/vendre", label: "Publier une annonce" },
-  { href: "/guide", label: "Guide agent" },
+  { href: "/tarifs", label: "Merline Pro" },
+  { href: "/tarifs#publicite", label: "Publicité" },
   { href: "/agents", label: "Nos agents" },
 ];
 

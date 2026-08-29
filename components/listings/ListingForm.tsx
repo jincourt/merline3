@@ -317,6 +317,13 @@ export function ListingForm({
     }
   }, [isEditing, state.success, router]);
 
+  useEffect(() => {
+    if (mode === "sell" && !isEditing && state.success && state.listingId) {
+      clearFormDraft(mode);
+      router.push(`/vendre/plan?listing=${state.listingId}`);
+    }
+  }, [mode, isEditing, state.success, state.listingId, router]);
+
   async function handlePhotoUpload(files: FileList | null) {
     if (!files?.length) return;
 
@@ -404,10 +411,6 @@ export function ListingForm({
       event.preventDefault();
       openAuthDialog();
       return;
-    }
-
-    if (!isEditing) {
-      clearFormDraft(mode);
     }
   }
 
