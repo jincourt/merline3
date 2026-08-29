@@ -405,8 +405,8 @@ export function ListingForm({
       if (!price || Number.isNaN(salePrice) || salePrice < 0) {
         setFormError(
           commissionType === "percent"
-            ? copy.salePriceAverageError
-            : copy.salePriceError,
+            ? MODE_COPY.sell.salePriceAverageError
+            : MODE_COPY.sell.salePriceError,
         );
         return false;
       }
