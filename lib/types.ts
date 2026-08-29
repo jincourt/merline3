@@ -27,6 +27,8 @@ export type BuyRequest = ListingFields & {
   created_at: string;
   price: number | null;
   is_free: boolean;
+  session_views?: number;
+  favorite_count?: number;
 };
 
 export type Product = ListingFields & {
@@ -36,6 +38,8 @@ export type Product = ListingFields & {
   created_at: string;
   commission_type: CommissionType;
   commission_value: number;
+  session_views?: number;
+  favorite_count?: number;
 };
 
 export const LISTING_TYPES = [
@@ -108,6 +112,8 @@ export type CatalogListing = {
   ownerAvatarUrl?: string;
   ownerAverageRating?: number | null;
   ownerReviewCount?: number;
+  session_views?: number;
+  favorite_count?: number;
 };
 
 export function formatCommission(

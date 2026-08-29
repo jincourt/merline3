@@ -61,6 +61,8 @@ export function toCatalogListing(
     address: item.address,
     photos: item.photos,
     created_at: item.created_at,
+    session_views: item.session_views ?? 0,
+    favorite_count: item.favorite_count ?? 0,
   };
 }
 
@@ -79,6 +81,8 @@ export function buyRequestToCatalogListing(item: BuyRequest): CatalogListing {
     address: item.address,
     photos: item.photos,
     created_at: item.created_at,
+    session_views: item.session_views ?? 0,
+    favorite_count: item.favorite_count ?? 0,
   };
 }
 
@@ -171,41 +175,60 @@ export async function fetchPublicListing(
   id: string,
 ): Promise<PublicListing | null> {
   if (src === "prod") {
-    const { data } = await supabase
+    const primary = await supabase
       .from("products")
       .select(
-        "id, listing_type, category, title, description, commission_type, commission_value, address, photos, email, user_id, created_at, status",
+        "id, listing_type, category, title, description, commission_type, commission_value, address, photos, email, user_id, created_at, status, session_views, favorite_count",
       )
       .eq("id", id)
       .eq("status", "active")
       .maybeSingle();
 
-    if (!data) return null;
+    const listing =
+      primary.data ??
+      (primary.error
+        ? (
+            await supabase
+              .from("products")
+              .select(
+                "id, listing_type, category, title, description, commission_type, commission_value, address, photos, email, user_id, created_at, status",
+              )
+              .eq("id", id)
+              .eq("status", "active")
+              .maybeSingle()
+          ).data
+        : null);
+
+    if (!listing) return null;
 
     return {
-      id: data.id,
+      id: listing.id,
       src,
       intent: sourceToIntent(src),
-      listing_type: data.listing_type,
-      category: data.category,
-      title: data.title,
-      description: data.description,
-      commission_type: data.commission_type,
-      commission_value: data.commission_value,
+      listing_type: listing.listing_type,
+      category: listing.category,
+      title: listing.title,
+      description: listing.description,
+      commission_type: listing.commission_type,
+      commission_value: listing.commission_value,
       price: null,
       is_free: false,
-      address: data.address,
-      photos: data.photos ?? [],
-      email: data.email,
-      user_id: data.user_id,
-      created_at: data.created_at,
+      address: listing.address,
+      photos: listing.photos ?? [],
+      email: listing.email,
+      user_id: listing.user_id,
+      created_at: listing.created_at,
+      session_views:
+        "session_views" in listing ? Number(listing.session_views ?? 0) || 0 : 0,
+      favorite_count:
+        "favorite_count" in listing ? Number(listing.favorite_count ?? 0) || 0 : 0,
     };
   }
 
   const { data } = await supabase
     .from("buy_requests")
     .select(
-      "id, listing_type, category, title, description, price, is_free, address, photos, email, user_id, created_at, status",
+      "id, listing_type, category, title, description, price, is_free, address, photos, email, user_id, created_at, status, session_views, favorite_count",
     )
     .eq("id", id)
     .eq("status", "active")
@@ -230,5 +253,7 @@ export async function fetchPublicListing(
     email: data.email,
     user_id: data.user_id,
     created_at: data.created_at,
+    session_views: data.session_views ?? 0,
+    favorite_count: data.favorite_count ?? 0,
   };
 }

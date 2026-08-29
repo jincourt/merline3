@@ -235,6 +235,7 @@ export type ActionResult = {
 
 export type FavoriteActionResult = ActionResult & {
   favorited?: boolean;
+  favoriteCount?: number;
 };
 
 export async function submitContactRequest(
@@ -846,6 +847,16 @@ export async function toggleFavorite(
   }
 
   const table = src === "prod" ? "products" : "buy_requests";
+
+  async function readFavoriteCount() {
+    const { data } = await supabase
+      .from(table)
+      .select("favorite_count")
+      .eq("id", listingId)
+      .maybeSingle();
+    return Number(data?.favorite_count ?? 0) || 0;
+  }
+
   const { data: listing } = await supabase
     .from(table)
     .select("id, status")
@@ -880,11 +891,13 @@ export async function toggleFavorite(
 
     revalidatePath("/dashboard/favoris");
     revalidatePath(`/annonce/${src}/${listingId}`);
+    revalidatePath("/");
 
     return {
       success: true,
       message: "Annonce retirée des favoris.",
       favorited: false,
+      favoriteCount: await readFavoriteCount(),
     };
   }
 
@@ -904,11 +917,13 @@ export async function toggleFavorite(
 
   revalidatePath("/dashboard/favoris");
   revalidatePath(`/annonce/${src}/${listingId}`);
+  revalidatePath("/");
 
   return {
     success: true,
     message: "Annonce ajoutée aux favoris.",
     favorited: true,
+    favoriteCount: await readFavoriteCount(),
   };
 }
 

@@ -6,7 +6,7 @@ import { SiteContainer } from "@/components/layout/SiteContainer";
 import { MotionDiv } from "@/components/ui/motion";
 import { CatalogBreadcrumb } from "@/components/catalog/CatalogBreadcrumb";
 import { ListingDescription } from "@/components/listings/ListingDescription";
-import { ListingFavoriteButton } from "@/components/listings/ListingFavoriteButton";
+import { ListingPageHeader } from "@/components/listings/ListingPageHeader";
 import { ListingMessageForm } from "@/components/listings/ListingMessageForm";
 import { ListingOwnerPreview } from "@/components/profiles/ListingOwnerPreview";
 import { ProfileReviewForm } from "@/components/profiles/ProfileReviewForm";
@@ -119,16 +119,16 @@ export default async function AnnoncePage({
             </MotionDiv>
 
             <MotionDiv delay={0.12}>
-              <div className="flex items-start justify-between gap-4">
-                <h1 className="text-2xl font-medium tracking-tight">{listing.title}</h1>
-                <ListingFavoriteButton
-                  listingId={listing.id}
-                  src={src}
-                  initialFavorited={isFavorited}
-                  isLoggedIn={Boolean(user)}
-                  loginHref={loginHref}
-                />
-              </div>
+              <ListingPageHeader
+                title={listing.title}
+                sessionViews={listing.session_views}
+                initialFavoriteCount={listing.favorite_count}
+                listingId={listing.id}
+                src={src}
+                initialFavorited={isFavorited}
+                isLoggedIn={Boolean(user)}
+                loginHref={loginHref}
+              />
               <p className="mt-3 text-sm text-[var(--muted)]">{listing.address}</p>
 
               <div className="listing-contact-block">

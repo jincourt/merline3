@@ -47,7 +47,7 @@ export async function fetchFavoriteListings(
       ? supabase
           .from("products")
           .select(
-            "id, listing_type, category, title, description, commission_type, commission_value, address, photos, created_at, status",
+            "id, listing_type, category, title, description, commission_type, commission_value, address, photos, created_at, status, session_views, favorite_count",
           )
           .in("id", prodIds)
           .eq("status", "active")
@@ -56,7 +56,7 @@ export async function fetchFavoriteListings(
       ? supabase
           .from("buy_requests")
           .select(
-            "id, listing_type, category, title, description, price, is_free, address, photos, created_at, status",
+            "id, listing_type, category, title, description, price, is_free, address, photos, created_at, status, session_views, favorite_count",
           )
           .in("id", buyIds)
           .eq("status", "active")
@@ -90,6 +90,8 @@ export async function fetchFavoriteListings(
           address: product.address,
           photos: product.photos ?? [],
           created_at: product.created_at,
+          session_views: product.session_views ?? 0,
+          favorite_count: product.favorite_count ?? 0,
         } satisfies CatalogListing,
       ];
     }
@@ -112,6 +114,8 @@ export async function fetchFavoriteListings(
         address: buyRequest.address,
         photos: buyRequest.photos ?? [],
         created_at: buyRequest.created_at,
+        session_views: buyRequest.session_views ?? 0,
+        favorite_count: buyRequest.favorite_count ?? 0,
       } satisfies CatalogListing,
     ];
   });

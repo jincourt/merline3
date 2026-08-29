@@ -9,6 +9,7 @@ import { getListingHref } from "@/lib/types";
 import { MotionArticle } from "@/components/ui/motion";
 import { ProfileReviewStars } from "@/components/profiles/ProfileReviewForm";
 import { ProfileAvatar } from "@/components/profiles/ProfileAvatar";
+import { ListingEngagementStats } from "@/components/analytics/ListingEngagementStats";
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat("fr-CH", {
@@ -116,7 +117,13 @@ export function CatalogCard({
           <div className="catalog-card-body">
             <h3 className="catalog-card-title">{listing.title}</h3>
 
-            <p className="catalog-card-category">{listing.category}</p>
+            <div className="catalog-card-meta">
+              <p className="catalog-card-category">{listing.category}</p>
+              <ListingEngagementStats
+                views={listing.session_views}
+                favorites={listing.favorite_count}
+              />
+            </div>
 
             <p className="catalog-card-commission">
               <span className="catalog-card-commission-label">Commission:</span>
@@ -155,9 +162,15 @@ export function CatalogCard({
               </h3>
               <p className="mt-1 text-xs text-[var(--muted-dim)]">{listing.category}</p>
             </div>
-            <span className="font-mono text-xs text-[var(--muted-dim)]">
-              {formatDate(listing.created_at)}
-            </span>
+            <div className="flex flex-col items-end gap-1">
+              <span className="font-mono text-xs text-[var(--muted-dim)]">
+                {formatDate(listing.created_at)}
+              </span>
+              <ListingEngagementStats
+                views={listing.session_views}
+                favorites={listing.favorite_count}
+              />
+            </div>
           </div>
 
           <h4 className="mt-5 text-sm font-medium text-[var(--foreground)]">
