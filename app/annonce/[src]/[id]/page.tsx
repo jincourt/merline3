@@ -8,6 +8,7 @@ import { CatalogBreadcrumb } from "@/components/catalog/CatalogBreadcrumb";
 import { ListingDescription } from "@/components/listings/ListingDescription";
 import { ListingPageHeader } from "@/components/listings/ListingPageHeader";
 import { ListingMessageForm } from "@/components/listings/ListingMessageForm";
+import { ProfileContactDialog } from "@/components/profiles/ProfileContactDialog";
 import { ListingOwnerPreview } from "@/components/profiles/ListingOwnerPreview";
 import { ProfileReviewForm } from "@/components/profiles/ProfileReviewForm";
 import { ProfileReviewsSection } from "@/components/profiles/ProfileReviewsSection";
@@ -21,6 +22,8 @@ import {
   getUserReviewForProfile,
   type ProfileReviewSummary,
 } from "@/lib/profile-reviews";
+import { getAgentDisplayName } from "@/lib/agent-profiles";
+import { getVisibleContactInfo } from "@/lib/profile-contact";
 import { sourceToIntent, type ListingSource } from "@/lib/types";
 
 function isListingSource(value: string): value is ListingSource {
@@ -87,6 +90,12 @@ export default async function AnnoncePage({
   const canReviewOwner = Boolean(
     ownerProfile && user && user.id !== ownerProfile.id,
   );
+  const ownerContact = ownerProfile
+    ? getVisibleContactInfo(ownerProfile, { includeAnnonceurDescription: true })
+    : null;
+  const ownerDisplayName = ownerProfile
+    ? getAgentDisplayName(ownerProfile)
+    : "";
 
   return (
     <>
@@ -153,6 +162,14 @@ export default async function AnnoncePage({
                   isLoggedIn={Boolean(user)}
                   loginHref={loginHref}
                   variant="inline"
+                  trailing={
+                    src === "prod" && ownerContact ? (
+                      <ProfileContactDialog
+                        ownerName={ownerDisplayName}
+                        contact={ownerContact}
+                      />
+                    ) : null
+                  }
                   leading={
                     <>
                       <span className="btn-ghost pointer-events-none shrink-0 gap-2 px-5">

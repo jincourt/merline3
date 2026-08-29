@@ -6,6 +6,10 @@ import { checkUsernameAvailability } from "@/app/auth/actions";
 import { updateProfile, type ActionResult } from "@/app/actions";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import { ProfileLogoUpload } from "@/components/settings/ProfileLogoUpload";
+import {
+  ContactDisplayToggle,
+  SettingsContactRow,
+} from "@/components/settings/ContactDisplayToggle";
 import { SWISS_CANTONS } from "@/lib/swiss-cantons";
 import type { UserProfile } from "@/lib/profile";
 import type { BankAccount } from "@/lib/profile-bank";
@@ -36,12 +40,14 @@ type ProfileSettingsFormProps = {
   profile: UserProfile;
   bankAccount: BankAccount;
   userId: string;
+  authEmail: string;
 };
 
 export function ProfileSettingsForm({
   profile,
   bankAccount,
   userId,
+  authEmail,
 }: ProfileSettingsFormProps) {
   const [state, action, pending] = useActionState(updateProfile, initialState);
   const [usernameError, setUsernameError] = useState("");
@@ -50,14 +56,14 @@ export function ProfileSettingsForm({
   const [profileType, setProfileType] = useState<ProfileType>(
     profile.profileType ?? "annonceur",
   );
-  const [bankOpen, setBankOpen] = useState(hasBankAccount(bankAccount));
+  const [bankOpen, setBankOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (profileType !== "agent" && textareaRef.current) {
-      textareaRef.current.value = "";
+      textareaRef.current.value = profile.description;
     }
-  }, [profileType]);
+  }, [profileType, profile.description]);
 
   async function handleUsernameBlur(event: React.FocusEvent<HTMLInputElement>) {
     const value = event.target.value.trim();
@@ -75,6 +81,7 @@ export function ProfileSettingsForm({
   }
 
   const submitDisabled = pending || checkingUsername || !!usernameError;
+  const displayEmail = authEmail.trim() || profile.contactEmail.trim();
 
   return (
     <form action={action} className="dashboard-settings-form">
@@ -145,35 +152,43 @@ export function ProfileSettingsForm({
               ) : null}
             </div>
 
-            <div>
-              <label htmlFor="profile-phone" className="field-label">
-                Numéro de téléphone
-              </label>
-              <input
-                id="profile-phone"
-                name="phone"
-                type="tel"
-                autoComplete="tel"
-                placeholder="+41 79 000 00 00"
-                defaultValue={profile.phone}
-                className="field-input mt-2"
-              />
-            </div>
+            <SettingsContactRow
+              id="profile-email"
+              label="Email"
+              name="contact_email_display"
+              type="email"
+              defaultValue={displayEmail}
+              readOnly
+              showName="show_email"
+              defaultShown={profile.showEmail}
+              showDisabled={!displayEmail}
+            />
 
-            <div>
-              <label htmlFor="profile-website" className="field-label">
-                Site internet
-              </label>
-              <input
-                id="profile-website"
-                name="website"
-                type="url"
-                autoComplete="url"
-                placeholder="https://example.ch"
-                defaultValue={profile.website}
-                className="field-input mt-2"
-              />
-            </div>
+            <SettingsContactRow
+              id="profile-phone"
+              label="Numéro de téléphone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              placeholder="+41 79 000 00 00"
+              defaultValue={profile.phone}
+              showName="show_phone"
+              defaultShown={profile.showPhone}
+              showDisabled={!profile.phone.trim()}
+            />
+
+            <SettingsContactRow
+              id="profile-website"
+              label="Site internet"
+              name="website"
+              type="url"
+              autoComplete="url"
+              placeholder="https://example.ch"
+              defaultValue={profile.website}
+              showName="show_website"
+              defaultShown={profile.showWebsite}
+              showDisabled={!profile.website.trim()}
+            />
 
             {profileType === "agent" ? (
               <div>
@@ -191,24 +206,50 @@ export function ProfileSettingsForm({
                   className="field-input mt-2 min-h-[7rem] resize-y"
                 />
               </div>
-            ) : null}
+            ) : (
+              <div>
+                <label htmlFor="profile-description-annonceur" className="field-label">
+                  Description
+                  <span className="ml-1 font-normal normal-case tracking-normal text-[var(--muted-dim)]">
+                    (optionnel)
+                  </span>
+                </label>
+                <textarea
+                  ref={textareaRef}
+                  id="profile-description-annonceur"
+                  name="description"
+                  rows={4}
+                  maxLength={2000}
+                  defaultValue={profile.description}
+                  placeholder="Présentez-vous brièvement aux agents intéressés…"
+                  className="field-input mt-2 min-h-[6rem] resize-y"
+                />
+              </div>
+            )}
           </div>
         </div>
 
         <div className="dashboard-settings-card">
           <div className="dashboard-settings-col">
-            <div>
-              <label htmlFor="profile-address" className="field-label">
-                Adresse
-              </label>
-              <input
-                id="profile-address"
-                name="address"
-                type="text"
-                autoComplete="street-address"
-                placeholder="Rue et numéro"
-                defaultValue={profile.address}
-                className="field-input mt-2"
+            <div className="settings-contact-row">
+              <div className="settings-contact-field">
+                <label htmlFor="profile-address" className="field-label">
+                  Adresse
+                </label>
+                <input
+                  id="profile-address"
+                  name="address"
+                  type="text"
+                  autoComplete="street-address"
+                  placeholder="Rue et numéro"
+                  defaultValue={profile.address}
+                  className="field-input mt-2"
+                />
+              </div>
+              <ContactDisplayToggle
+                name="show_address"
+                defaultChecked={profile.showAddress}
+                disabled={!profile.address.trim()}
               />
             </div>
 
@@ -255,7 +296,7 @@ export function ProfileSettingsForm({
                     : "Ajouter un compte bancaire"}
                 </span>
                 <ChevronDown
-                  className={`h-4 w-4 shrink-0 transition-transform ${
+                  className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
                     bankOpen ? "rotate-180" : ""
                   }`}
                   aria-hidden
@@ -263,66 +304,68 @@ export function ProfileSettingsForm({
               </button>
 
               <div
-                className={`dashboard-bank-card-body ${
-                  bankOpen ? "" : "hidden"
+                className={`dashboard-bank-card-panel ${
+                  bankOpen ? "dashboard-bank-card-panel-open" : ""
                 }`}
               >
-                <div>
-                  <label htmlFor="bank-account-name" className="field-label">
-                    Nom du compte
-                  </label>
-                  <input
-                    id="bank-account-name"
-                    name="bank_account_name"
-                    type="text"
-                    autoComplete="name"
-                    defaultValue={bankAccount.accountName}
-                    className="field-input mt-2"
-                  />
-                </div>
+                <div className="dashboard-bank-card-body">
+                  <div>
+                    <label htmlFor="bank-account-name" className="field-label">
+                      Nom du compte
+                    </label>
+                    <input
+                      id="bank-account-name"
+                      name="bank_account_name"
+                      type="text"
+                      autoComplete="name"
+                      defaultValue={bankAccount.accountName}
+                      className="field-input mt-2"
+                    />
+                  </div>
 
-                <div>
-                  <label htmlFor="bank-iban" className="field-label">
-                    IBAN
-                  </label>
-                  <input
-                    id="bank-iban"
-                    name="bank_iban"
-                    type="text"
-                    autoComplete="off"
-                    placeholder="CH93 0076 2011 6238 5295 7"
-                    defaultValue={bankAccount.iban}
-                    className="field-input mt-2"
-                  />
-                </div>
+                  <div>
+                    <label htmlFor="bank-iban" className="field-label">
+                      IBAN
+                    </label>
+                    <input
+                      id="bank-iban"
+                      name="bank_iban"
+                      type="text"
+                      autoComplete="off"
+                      placeholder="CH93 0076 2011 6238 5295 7"
+                      defaultValue={bankAccount.iban}
+                      className="field-input mt-2"
+                    />
+                  </div>
 
-                <div>
-                  <label htmlFor="bank-bic" className="field-label">
-                    BIC/SWIFT
-                  </label>
-                  <input
-                    id="bank-bic"
-                    name="bank_bic"
-                    type="text"
-                    autoComplete="off"
-                    placeholder="POFICHBEXXX"
-                    defaultValue={bankAccount.bic}
-                    className="field-input mt-2"
-                  />
-                </div>
+                  <div>
+                    <label htmlFor="bank-bic" className="field-label">
+                      BIC/SWIFT
+                    </label>
+                    <input
+                      id="bank-bic"
+                      name="bank_bic"
+                      type="text"
+                      autoComplete="off"
+                      placeholder="POFICHBEXXX"
+                      defaultValue={bankAccount.bic}
+                      className="field-input mt-2"
+                    />
+                  </div>
 
-                <div>
-                  <label htmlFor="bank-name" className="field-label">
-                    Banque
-                  </label>
-                  <input
-                    id="bank-name"
-                    name="bank_name"
-                    type="text"
-                    autoComplete="organization"
-                    defaultValue={bankAccount.bankName}
-                    className="field-input mt-2"
-                  />
+                  <div>
+                    <label htmlFor="bank-name" className="field-label">
+                      Banque
+                    </label>
+                    <input
+                      id="bank-name"
+                      name="bank_name"
+                      type="text"
+                      autoComplete="organization"
+                      defaultValue={bankAccount.bankName}
+                      className="field-input mt-2"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

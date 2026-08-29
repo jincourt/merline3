@@ -977,6 +977,10 @@ export async function updateProfile(
   const canton = String(formData.get("canton") ?? "").trim().toUpperCase();
   const profileTypeRaw = String(formData.get("profile_type") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
+  const showEmail = String(formData.get("show_email") ?? "") === "1";
+  const showPhone = String(formData.get("show_phone") ?? "") === "1";
+  const showWebsite = String(formData.get("show_website") ?? "") === "1";
+  const showAddress = String(formData.get("show_address") ?? "") === "1";
   const bankAccountName = String(formData.get("bank_account_name") ?? "").trim();
   const bankIban = String(formData.get("bank_iban") ?? "").trim();
   const bankBic = String(formData.get("bank_bic") ?? "").trim();
@@ -1096,15 +1100,19 @@ export async function updateProfile(
     .update({
       name,
       username,
+      contact_email: user.email?.trim() || null,
       phone: phone || null,
       website: websiteRaw ? normalizeWebsite(websiteRaw) : null,
       address: address || null,
       npa: npa || null,
       canton: canton || null,
       profile_type: profileTypeRaw,
-      description:
-        profileTypeRaw === "agent" ? description || null : null,
+      description: description || null,
       avatar_url: avatarUrlRaw || null,
+      show_email: showEmail && Boolean(user.email?.trim()),
+      show_phone: showPhone && Boolean(phone),
+      show_website: showWebsite && Boolean(websiteRaw),
+      show_address: showAddress && Boolean(address),
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
@@ -1119,6 +1127,8 @@ export async function updateProfile(
       || error.message.includes("name")
       || error.message.includes("description")
       || error.message.includes("avatar_url")
+      || error.message.includes("contact_email")
+      || error.message.includes("show_")
       ? " Applique les migrations Supabase récentes."
       : "";
     return {
@@ -1156,6 +1166,7 @@ export async function updateProfile(
   revalidatePath("/", "layout");
   revalidatePath("/dashboard/parametres");
   revalidatePath("/agents");
+  revalidatePath(`/profil/${encodeURIComponent(username)}`);
 
   return {
     success: true,

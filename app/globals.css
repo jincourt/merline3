@@ -3096,8 +3096,164 @@ textarea.field-input {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  border-top: 1px solid var(--border);
   padding: 1rem;
+}
+
+.dashboard-bank-card-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease;
+}
+
+.dashboard-bank-card-panel-open {
+  grid-template-rows: 1fr;
+}
+
+.dashboard-bank-card-panel > .dashboard-bank-card-body {
+  overflow: hidden;
+  border-top: 1px solid transparent;
+}
+
+.dashboard-bank-card-panel-open > .dashboard-bank-card-body {
+  border-top-color: var(--border);
+}
+
+.settings-contact-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.settings-contact-field {
+  min-width: 0;
+}
+
+.settings-contact-readonly {
+  background: var(--surface-elevated);
+  color: var(--muted);
+  cursor: default;
+}
+
+.settings-display-toggle {
+  padding-bottom: 0.125rem;
+}
+
+.settings-display-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 5.5rem;
+  height: 2.75rem;
+  padding-inline: 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.settings-display-toggle-btn:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+
+.settings-display-toggle-btn-active {
+  border-color: var(--indigo);
+  background: var(--indigo-soft);
+  color: var(--indigo);
+}
+
+.settings-display-toggle-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.profile-contact-info {
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--surface);
+  padding: 1.25rem;
+}
+
+.profile-contact-info:empty {
+  display: none;
+}
+
+.profile-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-top: 0.875rem;
+}
+
+.profile-contact-row {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.profile-contact-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--muted-dim);
+}
+
+.profile-contact-value {
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--foreground);
+}
+
+.profile-contact-link {
+  color: var(--indigo);
+  text-decoration: none;
+  word-break: break-word;
+}
+
+.profile-contact-link:hover {
+  text-decoration: underline;
+}
+
+.profile-contact-description {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.profile-contact-description-text {
+  margin-top: 0.375rem;
+  white-space: pre-wrap;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.profile-contact-info-dialog {
+  margin-top: 1rem;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.profile-contact-info-dialog .public-profile-section-title {
+  display: none;
+}
+
+.profile-contact-info-dialog .profile-contact-list {
+  margin-top: 0;
+}
+
+.profile-contact-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.25rem;
 }
 
 .agent-directory-link {

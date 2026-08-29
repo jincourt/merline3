@@ -175,45 +175,37 @@ export type PublicProfilePage = {
   description: string;
   website: string;
   avatarUrl: string;
+  contactEmail: string;
+  phone: string;
+  address: string;
+  showEmail: boolean;
+  showPhone: boolean;
+  showWebsite: boolean;
+  showAddress: boolean;
 };
 
-export async function getProfileByUserId(
-  supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>,
-  userId: string,
-): Promise<PublicProfilePage | null> {
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, username, name, profile_type, canton, npa, description, website, avatar_url")
-    .eq("id", userId)
-    .maybeSingle();
+const publicProfileSelect =
+  "id, username, name, profile_type, canton, npa, description, website, avatar_url, contact_email, phone, address, show_email, show_phone, show_website, show_address";
 
-  if (!data?.username?.trim()) return null;
-
-  return {
-    id: data.id,
-    username: data.username.trim(),
-    name: data.name?.trim() ?? "",
-    profileType: (data.profile_type as ProfileType) ?? "annonceur",
-    canton: data.canton?.trim() ?? "",
-    npa: data.npa?.trim() ?? "",
-    description: data.description?.trim() ?? "",
-    website: data.website?.trim() ?? "",
-    avatarUrl: data.avatar_url?.trim() ?? "",
-  };
-}
-
-export async function getPublicProfileByUsername(
-  supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>,
-  username: string,
-): Promise<PublicProfilePage | null> {
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, username, name, profile_type, canton, npa, description, website, avatar_url")
-    .ilike("username", username.trim())
-    .not("profile_type", "is", null)
-    .maybeSingle();
-
-  if (!data?.username?.trim() || !data.profile_type) return null;
+function mapPublicProfile(data: {
+  id: string;
+  username: string | null;
+  name: string | null;
+  profile_type: string | null;
+  canton: string | null;
+  npa: string | null;
+  description: string | null;
+  website: string | null;
+  avatar_url: string | null;
+  contact_email: string | null;
+  phone: string | null;
+  address: string | null;
+  show_email: boolean | null;
+  show_phone: boolean | null;
+  show_website: boolean | null;
+  show_address: boolean | null;
+}): PublicProfilePage | null {
+  if (!data.username?.trim() || !data.profile_type) return null;
 
   return {
     id: data.id,
@@ -225,7 +217,41 @@ export async function getPublicProfileByUsername(
     description: data.description?.trim() ?? "",
     website: data.website?.trim() ?? "",
     avatarUrl: data.avatar_url?.trim() ?? "",
+    contactEmail: data.contact_email?.trim() ?? "",
+    phone: data.phone?.trim() ?? "",
+    address: data.address?.trim() ?? "",
+    showEmail: Boolean(data.show_email),
+    showPhone: Boolean(data.show_phone),
+    showWebsite: Boolean(data.show_website),
+    showAddress: Boolean(data.show_address),
   };
+}
+
+export async function getProfileByUserId(
+  supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>,
+  userId: string,
+): Promise<PublicProfilePage | null> {
+  const { data } = await supabase
+    .from("profiles")
+    .select(publicProfileSelect)
+    .eq("id", userId)
+    .maybeSingle();
+
+  return data ? mapPublicProfile(data) : null;
+}
+
+export async function getPublicProfileByUsername(
+  supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>,
+  username: string,
+): Promise<PublicProfilePage | null> {
+  const { data } = await supabase
+    .from("profiles")
+    .select(publicProfileSelect)
+    .ilike("username", username.trim())
+    .not("profile_type", "is", null)
+    .maybeSingle();
+
+  return data ? mapPublicProfile(data) : null;
 }
 
 export function getProfileHref(username: string) {

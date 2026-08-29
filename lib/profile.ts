@@ -3,6 +3,7 @@ import type { ProfileType } from "@/lib/profile-type";
 export type UserProfile = {
   name: string;
   username: string;
+  contactEmail: string;
   phone: string;
   website: string;
   address: string;
@@ -11,6 +12,10 @@ export type UserProfile = {
   profileType: ProfileType | null;
   description: string;
   avatarUrl: string;
+  showEmail: boolean;
+  showPhone: boolean;
+  showWebsite: boolean;
+  showAddress: boolean;
 };
 
 export async function getUserProfile(
@@ -19,7 +24,7 @@ export async function getUserProfile(
 ): Promise<UserProfile | null> {
   const { data } = await supabase
     .from("profiles")
-    .select("name, username, phone, website, address, npa, canton, profile_type, description, avatar_url")
+    .select("name, username, contact_email, phone, website, address, npa, canton, profile_type, description, avatar_url, show_email, show_phone, show_website, show_address")
     .eq("id", userId)
     .maybeSingle();
 
@@ -28,6 +33,7 @@ export async function getUserProfile(
   return {
     name: data.name?.trim() ?? "",
     username: data.username?.trim() ?? "",
+    contactEmail: data.contact_email?.trim() ?? "",
     phone: data.phone?.trim() ?? "",
     website: data.website?.trim() ?? "",
     address: data.address?.trim() ?? "",
@@ -36,6 +42,10 @@ export async function getUserProfile(
     profileType: (data.profile_type as ProfileType | null) ?? null,
     description: data.description?.trim() ?? "",
     avatarUrl: data.avatar_url?.trim() ?? "",
+    showEmail: Boolean(data.show_email),
+    showPhone: Boolean(data.show_phone),
+    showWebsite: Boolean(data.show_website),
+    showAddress: Boolean(data.show_address),
   };
 }
 

@@ -5,6 +5,7 @@ import { SiteContainer } from "@/components/layout/SiteContainer";
 import { MotionDiv } from "@/components/ui/motion";
 import { CatalogCard } from "@/components/catalog/CatalogCard";
 import { ProfileAvatar } from "@/components/profiles/ProfileAvatar";
+import { ProfileContactInfo } from "@/components/profiles/ProfileContactInfo";
 import { ProfileMessageForm } from "@/components/profiles/ProfileMessageForm";
 import { ProfileReviewForm, ProfileReviewStars } from "@/components/profiles/ProfileReviewForm";
 import { ProfileReviewsSection } from "@/components/profiles/ProfileReviewsSection";
@@ -18,6 +19,7 @@ import {
   getPublicProfileByUsername,
   getUserReviewForProfile,
 } from "@/lib/profile-reviews";
+import { getVisibleContactInfo, hasVisibleContactInfo } from "@/lib/profile-contact";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PublicProfilePage({
@@ -48,6 +50,7 @@ export default async function PublicProfilePage({
 
   const displayName = getAgentDisplayName(profile);
   const location = [profile.npa, profile.canton].filter(Boolean).join(" ");
+  const visibleContact = getVisibleContactInfo(profile);
   const canReview = Boolean(currentUser && currentUser.id !== profile.id);
   const isOwner = Boolean(currentUser && currentUser.id === profile.id);
   const loginHref = `/login?next=${encodeURIComponent(getProfileHref(profile.username))}`;
@@ -100,17 +103,13 @@ export default async function PublicProfilePage({
                 <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[var(--muted)]">
                   {profile.description || "Aucune description pour le moment."}
                 </p>
-                {profile.website ? (
-                  <a
-                    href={profile.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-block text-sm text-[var(--indigo)] hover:underline"
-                  >
-                    {profile.website}
-                  </a>
-                ) : null}
               </section>
+            </MotionDiv>
+          ) : null}
+
+          {hasVisibleContactInfo(visibleContact) ? (
+            <MotionDiv delay={0.08} className="mt-8">
+              <ProfileContactInfo contact={visibleContact} />
             </MotionDiv>
           ) : null}
 

@@ -18,6 +18,7 @@ type ListingMessageFormProps = {
   loginHref: string;
   variant?: "default" | "inline";
   leading?: React.ReactNode;
+  trailing?: React.ReactNode;
 };
 
 export function ListingMessageForm({
@@ -28,6 +29,7 @@ export function ListingMessageForm({
   loginHref,
   variant = "default",
   leading,
+  trailing,
 }: ListingMessageFormProps) {
   const isInline = variant === "inline";
   const router = useRouter();
@@ -45,6 +47,7 @@ export function ListingMessageForm({
       return (
         <div className="listing-message-inline min-w-0">
           {leading ? <div className="listing-message-leading">{leading}</div> : null}
+          {trailing}
           <p className="text-xs text-[var(--muted)]">
             C&apos;est votre annonce. Les messages arriveront dans votre espace.
           </p>
@@ -74,6 +77,7 @@ export function ListingMessageForm({
         <div className="listing-message-inline min-w-0">
           {loginButton}
           {leading ? <div className="listing-message-leading">{leading}</div> : null}
+          {trailing}
         </div>
       );
     }
@@ -97,6 +101,7 @@ export function ListingMessageForm({
         <div className="listing-message-inline min-w-0">
           {messageButton}
           {leading ? <div className="listing-message-leading">{leading}</div> : null}
+          {trailing}
         </div>
       );
     }

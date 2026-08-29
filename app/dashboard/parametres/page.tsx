@@ -32,7 +32,12 @@ export default async function ParametresPage() {
     <PageMotion className="dashboard-page">
       <h1 className="dashboard-page-title">Paramètres</h1>
 
-      <ProfileSettingsForm profile={profile} bankAccount={bankAccount} userId={user.id} />
+      <ProfileSettingsForm
+        profile={profile}
+        bankAccount={bankAccount}
+        userId={user.id}
+        authEmail={user.email ?? ""}
+      />
     </PageMotion>
   );
 }
