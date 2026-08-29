@@ -12,21 +12,20 @@ export function ContactDisplayToggle({
   disabled?: boolean;
 }) {
   const [shown, setShown] = useState(defaultChecked);
+  const checkboxId = `${name}-toggle`;
 
   return (
     <div className="settings-display-toggle">
       <input type="hidden" name={name} value={shown ? "1" : "0"} />
-      <button
-        type="button"
-        className={`settings-display-toggle-btn ${
-          shown ? "settings-display-toggle-btn-active" : ""
-        }`}
-        aria-pressed={shown}
+      <input
+        id={checkboxId}
+        type="checkbox"
+        checked={shown}
         disabled={disabled}
-        onClick={() => setShown((value) => !value)}
-      >
-        Affiché
-      </button>
+        className="settings-display-toggle-checkbox"
+        aria-label="Afficher publiquement"
+        onChange={(event) => setShown(event.target.checked)}
+      />
     </div>
   );
 }
@@ -43,6 +42,7 @@ export function SettingsContactRow({
   showName,
   defaultShown,
   showDisabled = false,
+  showVisibilityLabel = false,
 }: {
   id: string;
   label: string;
@@ -55,6 +55,7 @@ export function SettingsContactRow({
   showName: string;
   defaultShown: boolean;
   showDisabled?: boolean;
+  showVisibilityLabel?: boolean;
 }) {
   return (
     <div className="settings-contact-row">
@@ -73,11 +74,21 @@ export function SettingsContactRow({
           className={`field-input mt-2 ${readOnly ? "settings-contact-readonly" : ""}`}
         />
       </div>
-      <ContactDisplayToggle
-        name={showName}
-        defaultChecked={defaultShown}
-        disabled={showDisabled}
-      />
+      <div className="settings-display-toggle-col">
+        <span
+          className={`field-label settings-contact-visibility-label ${
+            showVisibilityLabel ? "" : "invisible"
+          }`}
+          aria-hidden={!showVisibilityLabel}
+        >
+          Visibilité
+        </span>
+        <ContactDisplayToggle
+          name={showName}
+          defaultChecked={defaultShown}
+          disabled={showDisabled}
+        />
+      </div>
     </div>
   );
 }

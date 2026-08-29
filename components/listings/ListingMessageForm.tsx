@@ -21,6 +21,26 @@ type ListingMessageFormProps = {
   trailing?: React.ReactNode;
 };
 
+function InlineMessageActions({
+  leading,
+  children,
+  trailing,
+}: {
+  leading?: React.ReactNode;
+  children: React.ReactNode;
+  trailing?: React.ReactNode;
+}) {
+  return (
+    <div className="listing-message-inline min-w-0">
+      {leading ? <div className="listing-message-leading">{leading}</div> : null}
+      <div className="listing-message-actions">
+        {children}
+        {trailing}
+      </div>
+    </div>
+  );
+}
+
 export function ListingMessageForm({
   listingId,
   src,
@@ -45,13 +65,11 @@ export function ListingMessageForm({
   if (isOwner) {
     if (isInline) {
       return (
-        <div className="listing-message-inline min-w-0">
-          {leading ? <div className="listing-message-leading">{leading}</div> : null}
-          {trailing}
+        <InlineMessageActions leading={leading}>
           <p className="text-xs text-[var(--muted)]">
             C&apos;est votre annonce. Les messages arriveront dans votre espace.
           </p>
-        </div>
+        </InlineMessageActions>
       );
     }
 
@@ -74,11 +92,9 @@ export function ListingMessageForm({
 
     if (isInline) {
       return (
-        <div className="listing-message-inline min-w-0">
+        <InlineMessageActions leading={leading} trailing={trailing}>
           {loginButton}
-          {leading ? <div className="listing-message-leading">{leading}</div> : null}
-          {trailing}
-        </div>
+        </InlineMessageActions>
       );
     }
 
@@ -98,11 +114,9 @@ export function ListingMessageForm({
 
     if (isInline) {
       return (
-        <div className="listing-message-inline min-w-0">
+        <InlineMessageActions leading={leading} trailing={trailing}>
           {messageButton}
-          {leading ? <div className="listing-message-leading">{leading}</div> : null}
-          {trailing}
-        </div>
+        </InlineMessageActions>
       );
     }
 

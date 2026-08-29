@@ -7,7 +7,6 @@ import { updateProfile, type ActionResult } from "@/app/actions";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import { ProfileLogoUpload } from "@/components/settings/ProfileLogoUpload";
 import {
-  ContactDisplayToggle,
   SettingsContactRow,
 } from "@/components/settings/ContactDisplayToggle";
 import { SWISS_CANTONS } from "@/lib/swiss-cantons";
@@ -152,43 +151,46 @@ export function ProfileSettingsForm({
               ) : null}
             </div>
 
-            <SettingsContactRow
-              id="profile-email"
-              label="Email"
-              name="contact_email_display"
-              type="email"
-              defaultValue={displayEmail}
-              readOnly
-              showName="show_email"
-              defaultShown={profile.showEmail}
-              showDisabled={!displayEmail}
-            />
+            <div className="settings-contact-section">
+              <SettingsContactRow
+                id="profile-email"
+                label="Email"
+                name="contact_email_display"
+                type="email"
+                defaultValue={displayEmail}
+                readOnly
+                showName="show_email"
+                defaultShown={profile.showEmail}
+                showDisabled={!displayEmail}
+                showVisibilityLabel
+              />
 
-            <SettingsContactRow
-              id="profile-phone"
-              label="Numéro de téléphone"
-              name="phone"
-              type="tel"
-              autoComplete="tel"
-              placeholder="+41 79 000 00 00"
-              defaultValue={profile.phone}
-              showName="show_phone"
-              defaultShown={profile.showPhone}
-              showDisabled={!profile.phone.trim()}
-            />
+              <SettingsContactRow
+                id="profile-phone"
+                label="Numéro de téléphone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                placeholder="+41 79 000 00 00"
+                defaultValue={profile.phone}
+                showName="show_phone"
+                defaultShown={profile.showPhone}
+                showDisabled={!profile.phone.trim()}
+              />
 
-            <SettingsContactRow
-              id="profile-website"
-              label="Site internet"
-              name="website"
-              type="url"
-              autoComplete="url"
-              placeholder="https://example.ch"
-              defaultValue={profile.website}
-              showName="show_website"
-              defaultShown={profile.showWebsite}
-              showDisabled={!profile.website.trim()}
-            />
+              <SettingsContactRow
+                id="profile-website"
+                label="Site internet"
+                name="website"
+                type="url"
+                autoComplete="url"
+                placeholder="https://example.ch"
+                defaultValue={profile.website}
+                showName="show_website"
+                defaultShown={profile.showWebsite}
+                showDisabled={!profile.website.trim()}
+              />
+            </div>
 
             {profileType === "agent" ? (
               <div>
@@ -231,25 +233,19 @@ export function ProfileSettingsForm({
 
         <div className="dashboard-settings-card">
           <div className="dashboard-settings-col">
-            <div className="settings-contact-row">
-              <div className="settings-contact-field">
-                <label htmlFor="profile-address" className="field-label">
-                  Adresse
-                </label>
-                <input
-                  id="profile-address"
-                  name="address"
-                  type="text"
-                  autoComplete="street-address"
-                  placeholder="Rue et numéro"
-                  defaultValue={profile.address}
-                  className="field-input mt-2"
-                />
-              </div>
-              <ContactDisplayToggle
-                name="show_address"
-                defaultChecked={profile.showAddress}
-                disabled={!profile.address.trim()}
+            <div className="settings-contact-section">
+              <SettingsContactRow
+                id="profile-address"
+                label="Adresse"
+                name="address"
+                type="text"
+                autoComplete="street-address"
+                placeholder="Rue et numéro"
+                defaultValue={profile.address}
+                showName="show_address"
+                defaultShown={profile.showAddress}
+                showDisabled={!profile.address.trim()}
+                showVisibilityLabel
               />
             </div>
 
@@ -288,6 +284,7 @@ export function ProfileSettingsForm({
                 type="button"
                 className="dashboard-bank-card-trigger"
                 aria-expanded={bankOpen}
+                aria-controls="bank-account-panel"
                 onClick={() => setBankOpen((value) => !value)}
               >
                 <span className="dashboard-bank-card-title">
@@ -304,11 +301,15 @@ export function ProfileSettingsForm({
               </button>
 
               <div
+                id="bank-account-panel"
                 className={`dashboard-bank-card-panel ${
                   bankOpen ? "dashboard-bank-card-panel-open" : ""
                 }`}
+                aria-hidden={!bankOpen}
+                inert={!bankOpen ? true : undefined}
               >
-                <div className="dashboard-bank-card-body">
+                <div className="dashboard-bank-card-panel-inner">
+                  <div className="dashboard-bank-card-body">
                   <div>
                     <label htmlFor="bank-account-name" className="field-label">
                       Nom du compte
@@ -366,6 +367,7 @@ export function ProfileSettingsForm({
                       className="field-input mt-2"
                     />
                   </div>
+                </div>
                 </div>
               </div>
             </div>

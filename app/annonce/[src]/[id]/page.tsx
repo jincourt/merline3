@@ -163,7 +163,7 @@ export default async function AnnoncePage({
                   loginHref={loginHref}
                   variant="inline"
                   trailing={
-                    src === "prod" && ownerContact ? (
+                    src === "prod" && ownerContact && !isOwner ? (
                       <ProfileContactDialog
                         ownerName={ownerDisplayName}
                         contact={ownerContact}

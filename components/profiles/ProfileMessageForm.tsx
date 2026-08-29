@@ -18,7 +18,35 @@ type ProfileMessageFormProps = {
   isLoggedIn: boolean;
   loginHref: string;
   variant?: "default" | "inline" | "header";
+  trailing?: React.ReactNode;
 };
+
+function HeaderMessageActions({
+  children,
+  trailing,
+  open = false,
+}: {
+  children: React.ReactNode;
+  trailing?: React.ReactNode;
+  open?: boolean;
+}) {
+  return (
+    <div
+      className={`profile-message-header-wrap${
+        open ? " profile-message-header-wrap-open" : ""
+      }`}
+    >
+      {open ? (
+        children
+      ) : (
+        <div className="profile-message-header-actions">
+          {children}
+          {trailing}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function ProfileMessageForm({
   profileId,
@@ -26,6 +54,7 @@ export function ProfileMessageForm({
   isLoggedIn,
   loginHref,
   variant = "default",
+  trailing,
 }: ProfileMessageFormProps) {
   const isInline = variant === "inline";
   const isHeader = variant === "header";
@@ -77,7 +106,9 @@ export function ProfileMessageForm({
     );
 
     if (isHeader) {
-      return <div className="profile-message-header-wrap">{loginButton}</div>;
+      return (
+        <HeaderMessageActions trailing={trailing}>{loginButton}</HeaderMessageActions>
+      );
     }
 
     return loginButton;
@@ -97,7 +128,9 @@ export function ProfileMessageForm({
     );
 
     if (isHeader) {
-      return <div className="profile-message-header-wrap">{messageButton}</div>;
+      return (
+        <HeaderMessageActions trailing={trailing}>{messageButton}</HeaderMessageActions>
+      );
     }
 
     return messageButton;
@@ -150,11 +183,7 @@ export function ProfileMessageForm({
   );
 
   if (isHeader) {
-    return (
-      <div className="profile-message-header-wrap profile-message-header-wrap-open">
-        {messageForm}
-      </div>
-    );
+    return <HeaderMessageActions open>{messageForm}</HeaderMessageActions>;
   }
 
   return messageForm;

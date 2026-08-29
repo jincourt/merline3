@@ -5,7 +5,7 @@ import { SiteContainer } from "@/components/layout/SiteContainer";
 import { MotionDiv } from "@/components/ui/motion";
 import { CatalogCard } from "@/components/catalog/CatalogCard";
 import { ProfileAvatar } from "@/components/profiles/ProfileAvatar";
-import { ProfileContactInfo } from "@/components/profiles/ProfileContactInfo";
+import { ProfileContactDialog } from "@/components/profiles/ProfileContactDialog";
 import { ProfileMessageForm } from "@/components/profiles/ProfileMessageForm";
 import { ProfileReviewForm, ProfileReviewStars } from "@/components/profiles/ProfileReviewForm";
 import { ProfileReviewsSection } from "@/components/profiles/ProfileReviewsSection";
@@ -92,6 +92,14 @@ export default async function PublicProfilePage({
                 isLoggedIn={Boolean(currentUser)}
                 loginHref={loginHref}
                 variant="header"
+                trailing={
+                  hasVisibleContactInfo(visibleContact) ? (
+                    <ProfileContactDialog
+                      ownerName={displayName}
+                      contact={visibleContact}
+                    />
+                  ) : null
+                }
               />
             </div>
           </MotionDiv>
@@ -104,12 +112,6 @@ export default async function PublicProfilePage({
                   {profile.description || "Aucune description pour le moment."}
                 </p>
               </section>
-            </MotionDiv>
-          ) : null}
-
-          {hasVisibleContactInfo(visibleContact) ? (
-            <MotionDiv delay={0.08} className="mt-8">
-              <ProfileContactInfo contact={visibleContact} />
             </MotionDiv>
           ) : null}
 
