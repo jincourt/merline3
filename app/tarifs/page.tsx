@@ -6,7 +6,7 @@ import { TarifsPage } from "@/components/marketing/TarifsPage";
 export const metadata: Metadata = {
   title: "Tarifs — Merline Pro",
   description:
-    "Publication à 19 CHF.-, abonnement Merline Pro à 69 CHF/mois pour des annonces illimitées et des packs publicitaires boost x100.",
+    "Publication à 29 CHF.-, abonnement Merline Pro à 119 CHF/mois pour des annonces illimitées et des packs publicitaires boost x100.",
 };
 
 export default function TarifsRoute() {

@@ -9,7 +9,7 @@ export async function getProfileListings(
     supabase
       .from("products")
       .select(
-            "id, listing_type, category, title, description, commission_type, commission_value, address, photos, created_at, status, session_views, favorite_count",
+            "id, listing_type, category, title, description, commission_type, commission_value, price, address, photos, created_at, status, session_views, favorite_count",
       )
       .eq("user_id", userId)
       .eq("status", "active")

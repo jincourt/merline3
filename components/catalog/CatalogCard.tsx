@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { CatalogListing } from "@/lib/types";
-import { formatListingPrice } from "@/lib/catalog";
+import { formatListingPrice, formatCatalogSalePrice, getCatalogSalePriceLabel } from "@/lib/catalog";
 import { getAgentDisplayName } from "@/lib/agent-profiles";
 import { getListingHref } from "@/lib/types";
 import { MotionArticle } from "@/components/ui/motion";
@@ -103,6 +103,8 @@ export function CatalogCard({
   const image = listing.photos?.find((photo) => photo?.startsWith("http"));
   const href = getListingHref(listing.id, listing.intent);
   const commission = formatListingPrice(listing);
+  const salePrice = formatCatalogSalePrice(listing);
+  const salePriceLabel = getCatalogSalePriceLabel(listing);
 
   if (variant === "grid") {
     return (
@@ -129,6 +131,15 @@ export function CatalogCard({
               <span className="catalog-card-commission-label">Commission:</span>
               <span className="catalog-card-commission-value">{commission}</span>
             </p>
+
+            {listing.intent === "sell" && listing.price != null ? (
+              <p className="catalog-card-listing-price">
+                <span className="catalog-card-listing-price-label">
+                  {salePriceLabel}:
+                </span>
+                <span className="catalog-card-listing-price-value">{salePrice}</span>
+              </p>
+            ) : null}
 
             <CatalogCardOwner
               name={listing.ownerName ?? ""}
@@ -161,6 +172,14 @@ export function CatalogCard({
                 {listing.title}
               </h3>
               <p className="mt-1 text-xs text-[var(--muted-dim)]">{listing.category}</p>
+              {listing.intent === "sell" && listing.price != null ? (
+                <p className="mt-1 text-xs text-[var(--muted-dim)]">
+                  {salePriceLabel}:{" "}
+                  <span className="font-medium text-[var(--foreground)]">
+                    {salePrice}
+                  </span>
+                </p>
+              ) : null}
             </div>
             <div className="flex flex-col items-end gap-1">
               <span className="font-mono text-xs text-[var(--muted-dim)]">

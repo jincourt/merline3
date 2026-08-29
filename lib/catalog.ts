@@ -1,5 +1,10 @@
 import type { BuyRequest, CatalogListing, ListingSource, Product } from "@/lib/types";
-import { formatCommission, sourceToIntent } from "@/lib/types";
+import {
+  formatCommission,
+  formatSalePrice,
+  getSalePriceLabel,
+  sourceToIntent,
+} from "@/lib/types";
 
 export type CatalogFilters = {
   q: string;
@@ -56,7 +61,7 @@ export function toCatalogListing(
     description: item.description,
     commission_type: item.commission_type,
     commission_value: item.commission_value,
-    price: null,
+    price: item.price ?? null,
     is_free: false,
     address: item.address,
     photos: item.photos,
@@ -163,6 +168,14 @@ export function formatListingPrice(item: CatalogListing) {
   return formatCommission(item.commission_type, item.commission_value);
 }
 
+export function formatCatalogSalePrice(item: CatalogListing) {
+  return formatSalePrice(item.price);
+}
+
+export function getCatalogSalePriceLabel(item: CatalogListing) {
+  return getSalePriceLabel(item.commission_type);
+}
+
 export type PublicListing = CatalogListing & {
   email: string | null;
   user_id: string | null;
@@ -178,7 +191,7 @@ export async function fetchPublicListing(
     const primary = await supabase
       .from("products")
       .select(
-        "id, listing_type, category, title, description, commission_type, commission_value, address, photos, email, user_id, created_at, status, session_views, favorite_count",
+        "id, listing_type, category, title, description, commission_type, commission_value, price, address, photos, email, user_id, created_at, status, session_views, favorite_count",
       )
       .eq("id", id)
       .eq("status", "active")
@@ -191,7 +204,7 @@ export async function fetchPublicListing(
             await supabase
               .from("products")
               .select(
-                "id, listing_type, category, title, description, commission_type, commission_value, address, photos, email, user_id, created_at, status",
+                "id, listing_type, category, title, description, commission_type, commission_value, price, address, photos, email, user_id, created_at, status",
               )
               .eq("id", id)
               .eq("status", "active")
@@ -211,7 +224,7 @@ export async function fetchPublicListing(
       description: listing.description,
       commission_type: listing.commission_type,
       commission_value: listing.commission_value,
-      price: null,
+      price: "price" in listing ? listing.price ?? null : null,
       is_free: false,
       address: listing.address,
       photos: listing.photos ?? [],

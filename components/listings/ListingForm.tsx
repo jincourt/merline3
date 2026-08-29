@@ -65,6 +65,8 @@ const MODE_COPY = {
   sell: {
     priceLabel: "Commission",
     priceError: "Indiquez une commission valide.",
+    salePriceError: "Indiquez un prix valide.",
+    salePriceAverageError: "Indiquez un prix moyen valide.",
     submitPending: "Publication…",
     submitLabel: "Publier l'annonce",
     titlePlaceholderService: "Ex. Cours de piano à domicile",
@@ -399,6 +401,15 @@ export function ListingForm({
         setFormError("Le pourcentage ne peut pas dépasser 100 %.");
         return false;
       }
+      const salePrice = Number(price);
+      if (!price || Number.isNaN(salePrice) || salePrice < 0) {
+        setFormError(
+          commissionType === "percent"
+            ? copy.salePriceAverageError
+            : copy.salePriceError,
+        );
+        return false;
+      }
     } else if (!isFree && (!price || Number(price) < 0)) {
       setFormError(copy.priceError);
       return false;
@@ -653,6 +664,22 @@ export function ListingForm({
                   value={commissionValue}
                   onChange={(event) => setCommissionValue(event.target.value)}
                   placeholder={commissionType === "percent" ? "10" : "120"}
+                  className="field-input mt-2"
+                />
+              </div>
+              <div className="mt-3">
+                <label htmlFor="listing_price" className="field-label">
+                  {commissionType === "percent" ? "Prix moyen (CHF)" : "Prix (CHF)"}
+                </label>
+                <input
+                  id="listing_price"
+                  name="price"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={price}
+                  onChange={(event) => setPrice(event.target.value)}
+                  placeholder={commissionType === "percent" ? "2500" : "1200"}
                   className="field-input mt-2"
                 />
               </div>

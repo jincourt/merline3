@@ -117,7 +117,7 @@ export function VendrePlanStep({
         <p className="mt-1 text-xs text-[var(--muted)]">
           Boost x100 — multipliez la visibilité de votre annonce sur l&apos;application.
         </p>
-        <div className="mt-3 grid gap-4 md:grid-cols-3">
+        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {(Object.keys(BOOST_PACKS) as BoostPackId[]).map((id) => {
             const pack = BOOST_PACKS[id];
             const selected = boostId === id;

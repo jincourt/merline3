@@ -1,6 +1,11 @@
 export type PlanId = "publication" | "abonnement";
 
-export type BoostPackId = "boost_7" | "boost_14" | "boost_30";
+export type BoostPackId =
+  | "boost_7"
+  | "boost_14"
+  | "boost_30"
+  | "boost_60"
+  | "boost_90";
 
 export type Plan = {
   id: PlanId;
@@ -29,7 +34,7 @@ export const PLANS: Record<PlanId, Plan> = {
   publication: {
     id: "publication",
     name: "Publication",
-    price: 19,
+    price: 29,
     period: " une fois",
     description: "Publiez une annonce sans abonnement.",
     mode: "payment",
@@ -43,7 +48,7 @@ export const PLANS: Record<PlanId, Plan> = {
   abonnement: {
     id: "abonnement",
     name: "Abonnement",
-    price: 69,
+    price: 119,
     period: "/ mois",
     description: "Annonces illimitées et mise en avant.",
     mode: "subscription",
@@ -96,6 +101,32 @@ export const BOOST_PACKS: Record<BoostPackId, BoostPack> = {
       "Boost x100 sur l'application",
       "Placement en tête du catalogue",
       "Pour les annonces à fort potentiel",
+    ],
+  },
+  boost_60: {
+    id: "boost_60",
+    name: "Boost 60 jours",
+    price: 149,
+    duration: "60 jours",
+    description: "Deux mois de visibilité renforcée.",
+    priceEnvKey: "STRIPE_PRICE_BOOST_60",
+    features: [
+      "Boost x100 sur l'application",
+      "Placement en tête du catalogue",
+      "Durée étendue pour les ventes patientes",
+    ],
+  },
+  boost_90: {
+    id: "boost_90",
+    name: "Boost 90 jours",
+    price: 249,
+    duration: "90 jours",
+    description: "Visibilité maximale sur trois mois.",
+    priceEnvKey: "STRIPE_PRICE_BOOST_90",
+    features: [
+      "Boost x100 sur l'application",
+      "Placement en tête du catalogue",
+      "Pour les annonces premium ou complexes",
     ],
   },
 };

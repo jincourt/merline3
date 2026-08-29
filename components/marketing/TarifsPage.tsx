@@ -92,7 +92,7 @@ export function TarifsPage() {
             </p>
           </MotionDiv>
 
-          <div className="mt-10 grid gap-4 md:grid-cols-3 md:gap-5">
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 md:gap-5">
             {boostPacks.map((pack, index) => (
               <AnimatedPlanCard
                 key={pack.name}

@@ -47,7 +47,7 @@ export async function fetchFavoriteListings(
       ? supabase
           .from("products")
           .select(
-            "id, listing_type, category, title, description, commission_type, commission_value, address, photos, created_at, status, session_views, favorite_count",
+            "id, listing_type, category, title, description, commission_type, commission_value, price, address, photos, created_at, status, session_views, favorite_count",
           )
           .in("id", prodIds)
           .eq("status", "active")
@@ -85,7 +85,7 @@ export async function fetchFavoriteListings(
           description: product.description,
           commission_type: product.commission_type,
           commission_value: product.commission_value,
-          price: null,
+          price: product.price ?? null,
           is_free: false,
           address: product.address,
           photos: product.photos ?? [],

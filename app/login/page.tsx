@@ -10,7 +10,7 @@ export default function LoginPage({
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
   return (
-    <main className="page-form grid min-h-dvh flex-1 w-full place-items-center px-6">
+    <main className="page-form flex min-h-dvh flex-1 w-full items-center justify-center px-6 py-10">
       <div className="w-full max-w-[440px]">
         <SiteCard variant="outline">
           <div className="flex justify-center">

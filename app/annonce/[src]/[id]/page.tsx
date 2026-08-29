@@ -11,7 +11,7 @@ import { ListingMessageForm } from "@/components/listings/ListingMessageForm";
 import { ListingOwnerPreview } from "@/components/profiles/ListingOwnerPreview";
 import { ProfileReviewForm } from "@/components/profiles/ProfileReviewForm";
 import { ProfileReviewsSection } from "@/components/profiles/ProfileReviewsSection";
-import { fetchPublicListing, formatListingPrice } from "@/lib/catalog";
+import { fetchPublicListing, formatListingPrice, formatCatalogSalePrice, getCatalogSalePriceLabel } from "@/lib/catalog";
 import { isListingFavorited } from "@/lib/favorites";
 import { getUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -58,6 +58,10 @@ export default async function AnnoncePage({
   const loginHref = `/login?next=${encodeURIComponent(`/annonce/${src}/${id}`)}`;
   const priceLabel = formatListingPrice(listing);
   const amountLabel = intent === "sell" ? "Commission" : "Budget";
+  const salePriceLabel =
+    intent === "sell" ? getCatalogSalePriceLabel(listing) : null;
+  const salePriceValue =
+    intent === "sell" ? formatCatalogSalePrice(listing) : null;
 
   let ownerProfile = null;
   let reviewSummary: ProfileReviewSummary = {
@@ -150,10 +154,18 @@ export default async function AnnoncePage({
                   loginHref={loginHref}
                   variant="inline"
                   leading={
-                    <span className="btn-ghost pointer-events-none shrink-0 gap-2 px-5">
-                      <span className="text-[var(--muted)]">{amountLabel}</span>
-                      <span className="font-semibold">{priceLabel}</span>
-                    </span>
+                    <>
+                      <span className="btn-ghost pointer-events-none shrink-0 gap-2 px-5">
+                        <span className="text-[var(--muted)]">{amountLabel}</span>
+                        <span className="font-semibold">{priceLabel}</span>
+                      </span>
+                      {intent === "sell" && listing.price != null ? (
+                        <span className="btn-ghost pointer-events-none shrink-0 gap-2 px-5">
+                          <span className="text-[var(--muted)]">{salePriceLabel}</span>
+                          <span className="font-semibold">{salePriceValue}</span>
+                        </span>
+                      ) : null}
+                    </>
                   }
                 />
               </div>

@@ -136,6 +136,19 @@ function parseListingFormData(
       };
     }
 
+    const priceRaw = String(formData.get("price") ?? "").trim();
+    const price = priceRaw ? Number(priceRaw) : null;
+
+    if (price === null || Number.isNaN(price) || price < 0) {
+      return {
+        ok: false,
+        message:
+          commissionType === "percent"
+            ? "Indiquez un prix moyen valide."
+            : "Indiquez un prix valide.",
+      };
+    }
+
     return {
       ok: true,
       data: {
@@ -149,6 +162,7 @@ function parseListingFormData(
         photos,
         commissionType,
         commissionValue,
+        price,
       },
     };
   }
@@ -189,6 +203,7 @@ function productListingPayload(data: ParsedListingForm) {
     description: data.description,
     commission_type: data.commissionType,
     commission_value: data.commissionValue ?? null,
+    price: data.price ?? null,
     address: data.address,
     email: data.email || null,
     photos: data.photos,

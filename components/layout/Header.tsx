@@ -37,7 +37,7 @@ export async function Header({
             alt="Merline"
             width={32}
             height={32}
-            className={`h-8 w-8 object-contain ${gifIndigo ? "merline-gif-indigo" : ""}`}
+            className={`h-8 w-8 object-contain ${gifIndigo || light ? "merline-gif-indigo" : ""}`}
             unoptimized
           />
           <span

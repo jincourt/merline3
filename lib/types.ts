@@ -38,6 +38,7 @@ export type Product = ListingFields & {
   created_at: string;
   commission_type: CommissionType;
   commission_value: number;
+  price: number | null;
   session_views?: number;
   favorite_count?: number;
 };
@@ -128,6 +129,21 @@ export function formatCommission(
     maximumFractionDigits: 0,
   }).format(commissionValue);
   return `CHF ${formatted}.-`;
+}
+
+export function formatSalePrice(price: number | null | undefined) {
+  if (price === null || price === undefined) return "—";
+  return new Intl.NumberFormat("fr-CH", {
+    style: "currency",
+    currency: "CHF",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+
+export function getSalePriceLabel(
+  commissionType: CommissionType | null | undefined,
+) {
+  return commissionType === "percent" ? "Prix moyen" : "Prix";
 }
 
 export function intentToSource(intent: ListingIntent): ListingSource {
