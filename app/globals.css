@@ -1198,6 +1198,25 @@ textarea.field-input {
   color: var(--indigo);
 }
 
+.pricing-amount {
+  margin-top: 0.75rem;
+}
+
+.pricing-original-price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-dim);
+  text-decoration: line-through;
+}
+
+.pricing-original-period {
+  font-size: 0.6875rem;
+  font-weight: 400;
+}
+
 .catalog-filters {
   display: flex;
   flex-wrap: wrap;
@@ -2452,11 +2471,6 @@ textarea.field-input {
 .dashboard-conv-send:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-}
-
-.merline-gif-indigo {
-  filter: brightness(0) saturate(100%) invert(36%) sepia(93%) saturate(1352%)
-    hue-rotate(221deg) brightness(97%) contrast(93%);
 }
 
 .dialog-overlay {

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveListingCheckout } from "@/app/actions";
 import { AnimatedPlanCard } from "@/components/marketing/AnimatedPlanCard";
+import { PricingAmount } from "@/components/marketing/PricingAmount";
 import {
   BOOST_PACKS,
   PLANS,
@@ -85,14 +86,17 @@ export function VendrePlanStep({
                   <p className="text-sm font-medium text-[var(--foreground)]">
                     {plan.name}
                   </p>
-                  <div className="mt-3 flex items-baseline gap-1">
-                    <span className="text-3xl font-medium tracking-tight text-[var(--foreground)]">
-                      {included ? "Inclus" : `CHF ${plan.price}.-`}
-                    </span>
-                    {!included ? (
-                      <span className="text-xs text-[var(--muted)]">{plan.period}</span>
-                    ) : null}
-                  </div>
+                  {included ? (
+                    <p className="mt-3 text-3xl font-medium tracking-tight text-[var(--foreground)]">
+                      Inclus
+                    </p>
+                  ) : (
+                    <PricingAmount
+                      price={plan.price}
+                      originalPrice={plan.originalPrice}
+                      period={plan.period}
+                    />
+                  )}
                   <p className="mt-3 text-sm text-[var(--muted)]">{plan.description}</p>
                   <ul className="mt-5 space-y-2">
                     {plan.features.map((feature) => (
@@ -117,7 +121,7 @@ export function VendrePlanStep({
         <p className="mt-1 text-xs text-[var(--muted)]">
           Boost x100 — multipliez la visibilité de votre annonce sur l&apos;application.
         </p>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="mt-3 grid gap-4 md:grid-cols-3">
           {(Object.keys(BOOST_PACKS) as BoostPackId[]).map((id) => {
             const pack = BOOST_PACKS[id];
             const selected = boostId === id;
@@ -146,12 +150,11 @@ export function VendrePlanStep({
                   <p className="text-sm font-medium text-[var(--foreground)]">
                     {pack.name}
                   </p>
-                  <div className="mt-3 flex items-baseline gap-1">
-                    <span className="text-3xl font-medium tracking-tight text-[var(--foreground)]">
-                      CHF {pack.price}.-
-                    </span>
-                    <span className="text-xs text-[var(--muted)]">/ {pack.duration}</span>
-                  </div>
+                  <PricingAmount
+                    price={pack.price}
+                    originalPrice={pack.originalPrice}
+                    period={`/ ${pack.duration}`}
+                  />
                   <p className="mt-1 text-xs font-medium text-[var(--indigo)]">
                     Boost x100
                   </p>

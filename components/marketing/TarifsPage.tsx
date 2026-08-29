@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AnimatedPlanCard } from "./AnimatedPlanCard";
 import { MotionDiv } from "@/components/ui/motion";
+import { PricingAmount } from "@/components/marketing/PricingAmount";
 import { SectionShell } from "@/components/layout/SectionShell";
 import { BOOST_PACKS, PLANS, type BoostPackId, type PlanId } from "@/lib/plans";
 
@@ -46,12 +47,11 @@ export function TarifsPage() {
                   {plan.name}
                 </p>
 
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="text-3xl font-medium tracking-tight text-[var(--foreground)]">
-                    CHF {plan.price}.-
-                  </span>
-                  <span className="text-xs text-[var(--muted)]">{plan.period}</span>
-                </div>
+                <PricingAmount
+                  price={plan.price}
+                  originalPrice={plan.originalPrice}
+                  period={plan.period}
+                />
 
                 <p className="mt-3 text-sm text-[var(--muted)]">{plan.description}</p>
 
@@ -92,7 +92,7 @@ export function TarifsPage() {
             </p>
           </MotionDiv>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 md:gap-5">
+          <div className="mt-10 grid gap-4 md:grid-cols-3 md:gap-5">
             {boostPacks.map((pack, index) => (
               <AnimatedPlanCard
                 key={pack.name}
@@ -107,12 +107,11 @@ export function TarifsPage() {
                   {pack.name}
                 </p>
 
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="text-3xl font-medium tracking-tight text-[var(--foreground)]">
-                    CHF {pack.price}.-
-                  </span>
-                  <span className="text-xs text-[var(--muted)]">/ {pack.duration}</span>
-                </div>
+                <PricingAmount
+                  price={pack.price}
+                  originalPrice={pack.originalPrice}
+                  period={`/ ${pack.duration}`}
+                />
 
                 <p className="mt-1 text-xs font-medium text-[var(--indigo)]">
                   Boost x100

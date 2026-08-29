@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getProfile, getUser } from "@/lib/auth";
+import { MERLINE_GIF, MERLINE_GIF_INDIGO } from "@/lib/brand-assets";
 import { HeaderNav } from "./HeaderNav";
 
 export async function Header({
@@ -33,11 +34,11 @@ export async function Header({
       <div className="mx-auto flex h-[4.5rem] max-w-[1200px] items-center gap-3 px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
           <Image
-            src="/merline.gif"
+            src={gifIndigo || light ? MERLINE_GIF_INDIGO : MERLINE_GIF}
             alt="Merline"
             width={32}
             height={32}
-            className={`h-8 w-8 object-contain ${gifIndigo || light ? "merline-gif-indigo" : ""}`}
+            className="h-8 w-8 object-contain"
             unoptimized
           />
           <span

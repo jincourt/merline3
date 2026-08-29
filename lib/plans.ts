@@ -1,16 +1,12 @@
 export type PlanId = "publication" | "abonnement";
 
-export type BoostPackId =
-  | "boost_7"
-  | "boost_14"
-  | "boost_30"
-  | "boost_60"
-  | "boost_90";
+export type BoostPackId = "boost_7" | "boost_14" | "boost_30";
 
 export type Plan = {
   id: PlanId;
   name: string;
   price: number;
+  originalPrice?: number;
   period: string;
   description: string;
   mode: "subscription" | "payment";
@@ -22,6 +18,7 @@ export type BoostPack = {
   id: BoostPackId;
   name: string;
   price: number;
+  originalPrice?: number;
   duration: string;
   description: string;
   priceEnvKey: string;
@@ -34,7 +31,8 @@ export const PLANS: Record<PlanId, Plan> = {
   publication: {
     id: "publication",
     name: "Publication",
-    price: 29,
+    price: 19,
+    originalPrice: 29,
     period: " une fois",
     description: "Publiez une annonce sans abonnement.",
     mode: "payment",
@@ -48,7 +46,8 @@ export const PLANS: Record<PlanId, Plan> = {
   abonnement: {
     id: "abonnement",
     name: "Abonnement",
-    price: 119,
+    price: 69,
+    originalPrice: 119,
     period: "/ mois",
     description: "Annonces illimitées et mise en avant.",
     mode: "subscription",
@@ -66,6 +65,7 @@ export const BOOST_PACKS: Record<BoostPackId, BoostPack> = {
     id: "boost_7",
     name: "Boost 7 jours",
     price: 49,
+    originalPrice: 89,
     duration: "7 jours",
     description: "Visibilité x100 pendant une semaine.",
     priceEnvKey: "STRIPE_PRICE_BOOST_7",
@@ -79,6 +79,7 @@ export const BOOST_PACKS: Record<BoostPackId, BoostPack> = {
     id: "boost_14",
     name: "Boost 14 jours",
     price: 89,
+    originalPrice: 149,
     duration: "14 jours",
     description: "Deux semaines de promotion intensive.",
     badge: "Populaire",
@@ -94,6 +95,7 @@ export const BOOST_PACKS: Record<BoostPackId, BoostPack> = {
     id: "boost_30",
     name: "Boost 30 jours",
     price: 149,
+    originalPrice: 249,
     duration: "30 jours",
     description: "Un mois complet de visibilité maximale.",
     priceEnvKey: "STRIPE_PRICE_BOOST_30",
@@ -101,32 +103,6 @@ export const BOOST_PACKS: Record<BoostPackId, BoostPack> = {
       "Boost x100 sur l'application",
       "Placement en tête du catalogue",
       "Pour les annonces à fort potentiel",
-    ],
-  },
-  boost_60: {
-    id: "boost_60",
-    name: "Boost 60 jours",
-    price: 149,
-    duration: "60 jours",
-    description: "Deux mois de visibilité renforcée.",
-    priceEnvKey: "STRIPE_PRICE_BOOST_60",
-    features: [
-      "Boost x100 sur l'application",
-      "Placement en tête du catalogue",
-      "Durée étendue pour les ventes patientes",
-    ],
-  },
-  boost_90: {
-    id: "boost_90",
-    name: "Boost 90 jours",
-    price: 249,
-    duration: "90 jours",
-    description: "Visibilité maximale sur trois mois.",
-    priceEnvKey: "STRIPE_PRICE_BOOST_90",
-    features: [
-      "Boost x100 sur l'application",
-      "Placement en tête du catalogue",
-      "Pour les annonces premium ou complexes",
     ],
   },
 };
@@ -171,4 +147,11 @@ export function calculateCheckoutTotal(
 
 export function formatChf(amount: number): string {
   return `CHF ${amount}.-`;
+}
+
+export function hasPricingDiscount(
+  price: number,
+  originalPrice?: number,
+): originalPrice is number {
+  return originalPrice != null && originalPrice > price;
 }

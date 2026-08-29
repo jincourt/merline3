@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { SiteCard } from "@/components/layout/SiteCard";
+import { MERLINE_GIF_INDIGO } from "@/lib/brand-assets";
 import { sanitizeNextPath } from "@/lib/auth";
 
 export default function LoginPage({
@@ -16,11 +17,11 @@ export default function LoginPage({
           <div className="flex justify-center">
             <Link href="/" className="inline-flex rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--indigo)]">
               <Image
-                src="/merline.gif"
+                src={MERLINE_GIF_INDIGO}
                 alt="Merline"
                 width={40}
                 height={40}
-                className="h-10 w-10 object-contain merline-gif-indigo"
+                className="h-10 w-10 object-contain"
                 unoptimized
               />
             </Link>

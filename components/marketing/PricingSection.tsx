@@ -1,6 +1,7 @@
 import { CheckoutButton } from "./CheckoutButton";
 import { AnimatedPlanCard } from "./AnimatedPlanCard";
 import { MotionDiv } from "@/components/ui/motion";
+import { PricingAmount } from "@/components/marketing/PricingAmount";
 import { SectionShell } from "@/components/layout/SectionShell";
 import { PLANS, type PlanId } from "@/lib/plans";
 
@@ -39,12 +40,11 @@ export function PricingSection() {
                 {plan.name}
               </p>
 
-              <div className="mt-3 flex items-baseline gap-1">
-                <span className="text-3xl font-medium tracking-tight text-[var(--foreground)]">
-                  CHF {plan.price}.-
-                </span>
-                <span className="text-xs text-[var(--muted)]">{plan.period}</span>
-              </div>
+              <PricingAmount
+                price={plan.price}
+                originalPrice={plan.originalPrice}
+                period={plan.period}
+              />
 
               <p className="mt-3 text-sm text-[var(--muted)]">{plan.description}</p>
 
