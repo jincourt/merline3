@@ -8,10 +8,13 @@ import {
   filterCatalogListings,
   filtersFromSearchParams,
   getCatalogCategories,
+  sortCatalogListings,
   type CatalogFilters,
+  type CatalogSort,
 } from "@/lib/catalog";
 import { CatalogCard } from "./CatalogCard";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
+import { RangeFilterDropdown } from "@/components/ui/RangeFilterDropdown";
 import { MotionDiv } from "@/components/ui/motion";
 
 type CatalogBrowserProps = {
@@ -22,8 +25,17 @@ type CatalogBrowserProps = {
 };
 
 const TYPE_OPTIONS = [
+  { value: "", label: "Tous" },
   { value: "objet", label: "Objet" },
   { value: "service", label: "Service" },
+] as const;
+
+const SORT_OPTIONS = [
+  { value: "newest", label: "Plus récent" },
+  { value: "price-asc", label: "Prix croissant" },
+  { value: "price-desc", label: "Prix décroissant" },
+  { value: "commission-asc", label: "Commission croissante" },
+  { value: "commission-desc", label: "Commission décroissante" },
 ] as const;
 
 export function CatalogBrowser({
@@ -48,10 +60,10 @@ export function CatalogBrowser({
     [categories],
   );
 
-  const filtered = useMemo(
-    () => filterCatalogListings(listings, filters),
-    [listings, filters],
-  );
+  const filtered = useMemo(() => {
+    const next = filterCatalogListings(listings, filters);
+    return sortCatalogListings(next, filters.sort);
+  }, [listings, filters]);
 
   useEffect(() => {
     setPage(0);
@@ -63,27 +75,39 @@ export function CatalogBrowser({
 
   const hasMore = pageSize ? (page + 1) * pageSize < filtered.length : false;
 
+  const salePriceValues = useMemo(
+    () =>
+      listings
+        .filter((listing) => listing.price !== null && listing.price > 0)
+        .map((listing) => listing.price as number),
+    [listings],
+  );
+
+  const commissionValues = useMemo(
+    () =>
+      listings
+        .filter(
+          (listing) =>
+            listing.intent === "sell" &&
+            listing.commission_value !== null &&
+            listing.commission_value > 0 &&
+            listing.commission_type !== "percent",
+        )
+        .map((listing) => listing.commission_value as number),
+    [listings],
+  );
+
   function updateFilter<K extends keyof CatalogFilters>(key: K, value: CatalogFilters[K]) {
     setFilters((current) => ({ ...current, [key]: value }));
   }
 
-  function toggleFilter(
-    key: "listingType",
-    value: NonNullable<CatalogFilters["listingType"]>,
-  ) {
-    setFilters((current) => ({
-      ...current,
-      [key]: current[key] === value ? null : value,
-    }));
-  }
-
   return (
-    <div className="space-y-6">
-      <MotionDiv className="space-y-6">
+    <div className="catalog-browser">
+      <MotionDiv className="catalog-browser-head">
         {showSearch ? (
           <div className="catalog-search">
-            <label htmlFor="catalog-search" className="section-title">
-              Rechercher une mission
+            <label htmlFor="catalog-search" className="sr-only">
+              Rechercher dans le catalogue
             </label>
             <input
               id="catalog-search"
@@ -91,68 +115,106 @@ export function CatalogBrowser({
               value={filters.q}
               onChange={(event) => updateFilter("q", event.target.value)}
               placeholder="Titre, catégorie, description, lieu…"
-              className="field-input mt-4"
+              className="field-input catalog-search-input"
             />
           </div>
         ) : null}
 
-        <div className="catalog-filters-2col">
-          <div className="catalog-filter-col">
-            <SelectDropdown
-              id="catalog-category"
-              label="Catégorie"
-              labelClassName="section-subtitle"
-              labelSpacing="lg"
-              value={filters.category}
-              onChange={(value) => updateFilter("category", value)}
-              options={categoryOptions}
-              placeholder="Toutes les catégories"
-            />
-          </div>
+        <div className="catalog-toolbar">
+          <div
+            className="catalog-segment"
+            role="group"
+            aria-label="Type d'annonce"
+          >
+            {TYPE_OPTIONS.map((option) => {
+              const isActive =
+                option.value === ""
+                  ? filters.listingType === null
+                  : filters.listingType === option.value;
 
-          <div className="catalog-filter-col">
-            <p className="section-subtitle">Type</p>
-            <div className="catalog-filter-grid mt-4">
-              {TYPE_OPTIONS.map((option) => (
+              return (
                 <button
-                  key={option.value}
+                  key={option.value || "all"}
                   type="button"
-                  className={`catalog-filter-pill catalog-filter-pill-lg ${
-                    filters.listingType === option.value ? "catalog-filter-pill-active" : ""
+                  className={`catalog-segment-btn ${
+                    isActive ? "catalog-segment-btn-active" : ""
                   }`}
-                  onClick={() => toggleFilter("listingType", option.value)}
+                  onClick={() =>
+                    updateFilter(
+                      "listingType",
+                      option.value === ""
+                        ? null
+                        : option.value,
+                    )
+                  }
                 >
                   {option.label}
                 </button>
-              ))}
-            </div>
+              );
+            })}
+          </div>
+
+          <div className="catalog-toolbar-controls">
+            <SelectDropdown
+              id="catalog-category"
+              value={filters.category}
+              onChange={(value) => updateFilter("category", value)}
+              options={categoryOptions}
+              placeholder="Catégorie"
+              className="catalog-toolbar-select catalog-toolbar-select-wide"
+              active={filters.category !== ""}
+              mobileBehavior="inline"
+            />
+
+            <RangeFilterDropdown
+              id="catalog-price"
+              label="Prix"
+              minValue={filters.salePriceMin}
+              maxValue={filters.salePriceMax}
+              onMinChange={(value) => updateFilter("salePriceMin", value)}
+              onMaxChange={(value) => updateFilter("salePriceMax", value)}
+              distributionValues={salePriceValues}
+              suffix="CHF"
+              className="catalog-toolbar-range"
+            />
+
+            <RangeFilterDropdown
+              id="catalog-commission"
+              label="Commission"
+              minValue={filters.commissionMin}
+              maxValue={filters.commissionMax}
+              onMinChange={(value) => updateFilter("commissionMin", value)}
+              onMaxChange={(value) => updateFilter("commissionMax", value)}
+              distributionValues={commissionValues}
+              suffix="CHF"
+              className="catalog-toolbar-range"
+            />
+
+            <SelectDropdown
+              id="catalog-sort"
+              value={filters.sort || "newest"}
+              onChange={(value) => updateFilter("sort", value as CatalogSort)}
+              options={[...SORT_OPTIONS]}
+              placeholder="Trier"
+              className="catalog-toolbar-select"
+              active={(filters.sort || "newest") !== "newest"}
+              mobileBehavior="inline"
+            />
           </div>
         </div>
       </MotionDiv>
 
-      <p className="section-subtitle">
-        {filtered.length} annonce{filtered.length > 1 ? "s" : ""}
-      </p>
-
       {visible.length === 0 ? (
-        <div className="border border-dashed border-[var(--border-strong)] p-12 text-center">
-          <p className="text-sm text-[var(--muted)]">
-            Aucune annonce ne correspond à vos filtres.
-          </p>
+        <div className="catalog-empty">
+          <p>Aucune annonce ne correspond à vos filtres.</p>
         </div>
       ) : (
-        <div
-          className={
-            layout === "grid"
-              ? "grid grid-cols-2 gap-4 lg:grid-cols-3"
-              : "flex flex-col gap-4"
-          }
-        >
+        <div className={layout === "grid" ? "catalog-grid" : "catalog-list"}>
           {visible.map((listing, index) => (
             <CatalogCard
               key={`${listing.intent}-${listing.id}`}
               listing={listing}
-              delay={index * 0.05}
+              delay={index * 0.04}
               variant={layout}
             />
           ))}
@@ -160,7 +222,7 @@ export function CatalogBrowser({
       )}
 
       {hasMore ? (
-        <div className="pt-2">
+        <div className="catalog-more">
           <button
             type="button"
             className="btn-ghost"

@@ -1,16 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { signOut } from "@/app/auth/actions";
 import { HeaderIcon, MenuIcon } from "./HeaderIcons";
-import { getAccountMenuLinks } from "./header-menu-links";
+import { HeaderAccountMenuPanel } from "./HeaderAccountMenuPanel";
 
 type MenuPosition = {
   top: number;
-  left: number;
   right: number;
 };
 
@@ -28,13 +25,11 @@ export function HeaderMobileMenu({
   const [mounted, setMounted] = useState(false);
   const [menuPosition, setMenuPosition] = useState<MenuPosition>({
     top: 0,
-    left: 16,
-    right: 16,
+    right: 24,
   });
   const rootRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const displayName = username || "Mon compte";
 
   useEffect(() => {
     setMounted(true);
@@ -47,9 +42,8 @@ export function HeaderMobileMenu({
       if (!buttonRef.current) return;
       const rect = buttonRef.current.getBoundingClientRect();
       setMenuPosition({
-        top: rect.bottom + 12,
-        left: 16,
-        right: 16,
+        top: rect.bottom + 8,
+        right: Math.max(24, window.innerWidth - rect.right),
       });
     }
 
@@ -90,12 +84,10 @@ export function HeaderMobileMenu({
   }, [open]);
 
   const triggerClass = indigo
-    ? "header-icon-btn header-icon-btn-indigo"
+    ? "header-user-menu-trigger header-user-menu-trigger-indigo header-user-menu-trigger-icon"
     : light
-      ? "header-icon-btn header-icon-btn-light"
-      : "header-icon-btn";
-
-  const menuLinks = getAccountMenuLinks(username);
+      ? "header-user-menu-trigger header-user-menu-trigger-light header-user-menu-trigger-icon"
+      : "header-user-menu-trigger header-user-menu-trigger-icon";
 
   const menu =
     open && mounted ? (
@@ -108,62 +100,35 @@ export function HeaderMobileMenu({
         />
         <div
           ref={menuRef}
-          className="header-mobile-menu"
+          className="header-user-menu header-mobile-menu"
           role="menu"
           style={{
             top: menuPosition.top,
-            left: menuPosition.left,
             right: menuPosition.right,
           }}
         >
-          <p className="header-mobile-menu-user">{displayName}</p>
-          <div className="header-user-menu-links">
-            {menuLinks.map((item) => {
-              const active =
-                item.href.startsWith("/profil/")
-                  ? pathname === item.href
-                  : pathname.startsWith(item.href);
-              const Icon = item.icon;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  role="menuitem"
-                  className={`header-user-menu-item ${active ? "header-user-menu-item-active" : ""}`}
-                  onClick={() => setOpen(false)}
-                >
-                  <HeaderIcon>
-                    <Icon />
-                  </HeaderIcon>
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-          <div className="header-user-menu-footer">
-            <form action={signOut}>
-              <button type="submit" role="menuitem" className="header-user-menu-signout">
-                Déconnexion
-              </button>
-            </form>
-          </div>
+          <HeaderAccountMenuPanel
+            username={username}
+            pathname={pathname}
+            onNavigate={() => setOpen(false)}
+            showUserHeader
+          />
         </div>
       </>
     ) : null;
 
   return (
-    <div ref={rootRef} className="md:hidden">
+    <div ref={rootRef} className="relative shrink-0">
       <button
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`${triggerClass} ${open ? "header-icon-btn-active" : ""}`}
+        className={`${triggerClass} ${open ? "header-user-menu-trigger-open" : ""}`}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Menu du compte"
       >
-        <HeaderIcon className="h-5 w-5">
+        <HeaderIcon className="header-user-menu-trigger-icon-svg">
           <MenuIcon open={open} />
         </HeaderIcon>
       </button>

@@ -82,10 +82,10 @@ export function ConvReplyForm({
   }
 
   return (
-    <form action={action} className="dashboard-conv-input-wrap">
+    <form action={action} className="messages-conv-compose">
       <input type="hidden" name="conv_id" value={convId} />
 
-      <div className="dashboard-conv-compose-field">
+      <div className="messages-conv-compose-field">
         <textarea
           ref={textareaRef}
           id="reply-body"
@@ -94,16 +94,16 @@ export function ConvReplyForm({
           required
           minLength={1}
           placeholder="Écrire un message…"
-          className="dashboard-conv-textarea"
+          className="messages-conv-textarea"
           onInput={syncTextareaHeight}
         />
 
-        <div className="dashboard-conv-compose-actions">
+        <div className="messages-conv-compose-actions">
           {hasShareOptions ? (
-            <div ref={menuRef} className="dashboard-conv-share">
+            <div ref={menuRef} className="messages-conv-share">
               <button
                 type="button"
-                className="dashboard-conv-action-btn"
+                className="messages-conv-action-btn"
                 aria-expanded={menuOpen}
                 aria-haspopup="menu"
                 aria-label="Partager des informations"
@@ -113,12 +113,12 @@ export function ConvReplyForm({
               </button>
 
               {menuOpen ? (
-                <div className="dashboard-conv-share-menu" role="menu">
+                <div className="messages-conv-share-menu" role="menu">
                   {hasPhone ? (
                     <button
                       type="button"
                       role="menuitem"
-                      className="dashboard-conv-share-item"
+                      className="messages-conv-share-item"
                       onClick={() =>
                         insertShareMessage(`Mon numéro : ${phone.trim()}`)
                       }
@@ -130,7 +130,7 @@ export function ConvReplyForm({
                     <button
                       type="button"
                       role="menuitem"
-                      className="dashboard-conv-share-item"
+                      className="messages-conv-share-item"
                       onClick={() =>
                         insertShareMessage(formatBankAccountMessage(bankAccount))
                       }
@@ -145,7 +145,7 @@ export function ConvReplyForm({
 
           <button
             type="submit"
-            className="dashboard-conv-send dashboard-conv-send-inline"
+            className="messages-conv-send"
             disabled={pending}
             aria-label={pending ? "Envoi en cours" : "Envoyer"}
           >
@@ -155,7 +155,7 @@ export function ConvReplyForm({
       </div>
 
       {state.message && !state.success ? (
-        <p className="dashboard-conv-input-error">{state.message}</p>
+        <p className="messages-conv-error">{state.message}</p>
       ) : null}
     </form>
   );

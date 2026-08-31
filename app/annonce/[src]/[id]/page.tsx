@@ -8,11 +8,17 @@ import { CatalogBreadcrumb } from "@/components/catalog/CatalogBreadcrumb";
 import { ListingDescription } from "@/components/listings/ListingDescription";
 import { ListingPageHeader } from "@/components/listings/ListingPageHeader";
 import { ListingMessageForm } from "@/components/listings/ListingMessageForm";
+import { ListingStat } from "@/components/listings/ListingStat";
 import { ProfileContactDialog } from "@/components/profiles/ProfileContactDialog";
 import { ListingOwnerPreview } from "@/components/profiles/ListingOwnerPreview";
 import { ProfileReviewForm } from "@/components/profiles/ProfileReviewForm";
 import { ProfileReviewsSection } from "@/components/profiles/ProfileReviewsSection";
-import { fetchPublicListing, formatListingPrice, formatCatalogSalePrice, getCatalogSalePriceLabel } from "@/lib/catalog";
+import {
+  fetchPublicListing,
+  formatListingPrice,
+  formatCatalogSalePrice,
+  getCatalogSalePriceLabel,
+} from "@/lib/catalog";
 import { isListingFavorited } from "@/lib/favorites";
 import { getUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -100,8 +106,8 @@ export default async function AnnoncePage({
   return (
     <>
       <Header light gifIndigo />
-      <main className="page-form flex-1">
-        <SiteContainer className="pb-24 pt-10 md:pb-32 md:pt-14">
+      <main className="section-light flex-1">
+        <SiteContainer className="pb-24 pt-8 md:pb-32 md:pt-12">
           <MotionDiv>
             <CatalogBreadcrumb
               listingType={listing.listing_type}
@@ -109,9 +115,9 @@ export default async function AnnoncePage({
             />
           </MotionDiv>
 
-          <div className="mt-6 grid gap-6 md:grid-cols-2 md:gap-8 md:items-start">
+          <div className="listing-page-grid">
             <MotionDiv delay={0.06}>
-              <div className="overflow-hidden rounded-md border border-[var(--border)] bg-white">
+              <div className="listing-page-media">
                 {image ? (
                   <div className="relative aspect-square">
                     <Image
@@ -134,6 +140,7 @@ export default async function AnnoncePage({
             <MotionDiv delay={0.12}>
               <ListingPageHeader
                 title={listing.title}
+                category={listing.category}
                 sessionViews={listing.session_views}
                 initialFavoriteCount={listing.favorite_count}
                 listingId={listing.id}
@@ -142,7 +149,15 @@ export default async function AnnoncePage({
                 isLoggedIn={Boolean(user)}
                 loginHref={loginHref}
               />
-              <p className="mt-3 text-sm text-[var(--muted)]">{listing.address}</p>
+
+              <p className="listing-page-address">{listing.address}</p>
+
+              <div className="listing-stat-grid">
+                <ListingStat label={amountLabel} value={priceLabel} />
+                {intent === "sell" && listing.price != null && salePriceLabel && salePriceValue ? (
+                  <ListingStat label={salePriceLabel} value={salePriceValue} />
+                ) : null}
+              </div>
 
               <div className="listing-contact-block">
                 {ownerProfile ? (
@@ -170,20 +185,6 @@ export default async function AnnoncePage({
                       />
                     ) : null
                   }
-                  leading={
-                    <>
-                      <span className="btn-ghost pointer-events-none shrink-0 gap-2 px-5">
-                        <span className="text-[var(--muted)]">{amountLabel}</span>
-                        <span className="font-semibold">{priceLabel}</span>
-                      </span>
-                      {intent === "sell" && listing.price != null ? (
-                        <span className="btn-ghost pointer-events-none shrink-0 gap-2 px-5">
-                          <span className="text-[var(--muted)]">{salePriceLabel}</span>
-                          <span className="font-semibold">{salePriceValue}</span>
-                        </span>
-                      ) : null}
-                    </>
-                  }
                 />
               </div>
 
@@ -192,7 +193,7 @@ export default async function AnnoncePage({
           </div>
 
           {ownerProfile ? (
-            <MotionDiv delay={0.18} className="mt-10">
+            <MotionDiv delay={0.18} className="listing-reviews-wrap">
               <section className="listing-reviews-section">
                 {canReviewOwner && !existingReview ? (
                   <ProfileReviewForm

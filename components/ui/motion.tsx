@@ -67,8 +67,9 @@ export function MotionSection({
 export function MotionArticle({
   children,
   delay = 0,
+  hoverLift = true,
   ...props
-}: HTMLMotionProps<"article"> & { delay?: number }) {
+}: HTMLMotionProps<"article"> & { delay?: number; hoverLift?: boolean }) {
   return (
     <motion.article
       initial="hidden"
@@ -76,7 +77,9 @@ export function MotionArticle({
       viewport={{ once: true, amount: 0.15 }}
       variants={fadeUp}
       transition={{ ...defaultTransition, delay }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      whileHover={
+        hoverLift ? { y: -4, transition: { duration: 0.2 } } : undefined
+      }
       {...props}
     >
       {children}

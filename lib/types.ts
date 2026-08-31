@@ -117,6 +117,14 @@ export type CatalogListing = {
   favorite_count?: number;
 };
 
+function formatChfAmount(value: number) {
+  return new Intl.NumberFormat("fr-CH", {
+    style: "currency",
+    currency: "CHF",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 export function formatCommission(
   commissionType: CommissionType | null | undefined,
   commissionValue: number | null | undefined,
@@ -125,19 +133,12 @@ export function formatCommission(
   if (commissionType === "percent") {
     return `${Number.isInteger(commissionValue) ? commissionValue : commissionValue.toString().replace(".", ",")}%`;
   }
-  const formatted = new Intl.NumberFormat("fr-CH", {
-    maximumFractionDigits: 0,
-  }).format(commissionValue);
-  return `CHF ${formatted}.-`;
+  return formatChfAmount(commissionValue);
 }
 
 export function formatSalePrice(price: number | null | undefined) {
   if (price === null || price === undefined) return "—";
-  return new Intl.NumberFormat("fr-CH", {
-    style: "currency",
-    currency: "CHF",
-    maximumFractionDigits: 0,
-  }).format(price);
+  return formatChfAmount(price);
 }
 
 export function getSalePriceLabel(

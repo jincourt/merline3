@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { TarifsPage } from "@/components/marketing/TarifsPage";
 
 export const metadata: Metadata = {
-  title: "Tarifs — Merline Pro",
+  title: "Merline Pro — Tarifs",
   description:
     "Publication à 19 CHF.-, abonnement Merline Pro à 69 CHF/mois pour des annonces illimitées et des packs publicitaires boost x100.",
 };
@@ -12,11 +12,11 @@ export const metadata: Metadata = {
 export default function TarifsRoute() {
   return (
     <>
-      <Header indigo />
-      <main>
+      <Header light />
+      <main className="section-light">
         <TarifsPage />
       </main>
-      <Footer indigo />
+      <Footer light />
     </>
   );
 }

@@ -3,10 +3,14 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
   try {
-    return await updateSession(request);
+    const response = await updateSession(request);
+    response.headers.set("x-pathname", request.nextUrl.pathname);
+    return response;
   } catch (error) {
     console.error("Middleware error:", error);
-    return NextResponse.next({ request });
+    const response = NextResponse.next({ request });
+    response.headers.set("x-pathname", request.nextUrl.pathname);
+    return response;
   }
 }
 

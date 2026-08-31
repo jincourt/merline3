@@ -177,7 +177,7 @@ export function VendrePlanStep({
           type="button"
           onClick={handleContinue}
           disabled={pending}
-          className="btn-vendre-submit btn-vendre-submit-lg"
+          className="btn-hero"
         >
           {pending ? "Enregistrement…" : "Suivant"}
         </button>

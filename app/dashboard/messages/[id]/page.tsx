@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
@@ -78,86 +79,86 @@ export default async function ConversationPage({
           username: ownerProfile.username?.trim() ?? "",
         })}`
       : "Profil"
-    : (listing?.title ?? "Annonce");
+    : (listing?.title?.trim() ?? "");
   const otherUsername = profile?.username?.trim() ?? "";
   const otherName = otherUsername || "Utilisateur";
   const ownerUsername = ownerProfile?.username?.trim() ?? "";
 
   return (
-    <PageMotion className="dashboard-page dashboard-conv-page">
-      <header className="dashboard-conv-header">
-        <Link
-          href="/dashboard/messages"
-          className="dashboard-conv-back text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
-        >
-          ← Retour aux messages
-        </Link>
-
-        <div className="dashboard-conv-header-main">
-          <div className="min-w-0 flex-1">
-            <h1 className="dashboard-conv-title">{listingTitle}</h1>
-            <p className="dashboard-conv-subtitle">
-              Avec{" "}
-              {otherUsername ? (
-                <Link href={getProfileHref(otherUsername)} className="dashboard-conv-peer-link">
-                  {otherName}
-                </Link>
-              ) : (
-                otherName
-              )}
-            </p>
-          </div>
-          <Link
-            href={
-              isProfileConv && ownerUsername
-                ? getProfileHref(ownerUsername)
-                : getListingHref(conv.listing_id, sourceToIntent(conv.src))
-            }
-            className="dashboard-conv-listing-link btn-ghost shrink-0 text-sm"
-          >
-            {isProfileConv ? "Voir le profil" : "Voir l'annonce"}
+    <PageMotion className="messages-conv-page">
+      <div className="messages-conv-inner mx-auto flex w-full max-w-[1200px] flex-1 flex-col px-6">
+        <header className="messages-conv-head shrink-0">
+          <Link href="/dashboard/messages" className="messages-conv-back">
+            <ChevronLeft className="messages-conv-back-icon" aria-hidden strokeWidth={2} />
+            Messages
           </Link>
-        </div>
-      </header>
 
-      <ConvMessages>
-        {(messages ?? []).map((message) => {
-          const mine = message.sender_id === user.id;
-
-          return (
-            <div
-              key={message.id}
-              className={`dashboard-conv-row ${
-                mine ? "dashboard-conv-row-mine" : "dashboard-conv-row-other"
-              }`}
-            >
-              <div
-                className={`dashboard-conv-bubble ${
-                  mine ? "dashboard-conv-bubble-mine" : ""
-                }`}
-              >
-                <p className="whitespace-pre-wrap text-sm leading-snug text-[var(--foreground)]">
-                  {message.body}
-                </p>
-                <time className="mt-1.5 block text-[10px] text-[var(--muted-dim)]">
-                  {new Intl.DateTimeFormat("fr-CH", {
-                    day: "numeric",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }).format(new Date(message.created_at))}
-                </time>
-              </div>
+          <div className="messages-conv-head-main">
+            <div className="min-w-0">
+              <h1 className="messages-conv-title">{listingTitle}</h1>
+              <p className="messages-conv-subtitle">
+                Avec{" "}
+                {otherUsername ? (
+                  <Link href={getProfileHref(otherUsername)} className="messages-conv-peer-link">
+                    {otherName}
+                  </Link>
+                ) : (
+                  otherName
+                )}
+              </p>
             </div>
-          );
-        })}
-      </ConvMessages>
+            <Link
+              href={
+                isProfileConv && ownerUsername
+                  ? getProfileHref(ownerUsername)
+                  : getListingHref(conv.listing_id, sourceToIntent(conv.src))
+              }
+              className="messages-conv-listing-link shrink-0"
+            >
+              {isProfileConv ? "Voir le profil" : "Voir l'annonce"}
+            </Link>
+          </div>
+        </header>
 
-      <ConvReplyForm
-        convId={conv.id}
-        phone={userProfile?.phone ?? ""}
-        bankAccount={bankAccount}
-      />
+        <div className="messages-conv-panel">
+          <ConvMessages>
+            {(messages ?? []).map((message) => {
+              const mine = message.sender_id === user.id;
+
+              return (
+                <div
+                  key={message.id}
+                  className={`messages-conv-row ${
+                    mine ? "messages-conv-row-mine" : "messages-conv-row-other"
+                  }`}
+                >
+                  <div
+                    className={`messages-conv-bubble ${
+                      mine ? "messages-conv-bubble-mine" : ""
+                    }`}
+                  >
+                    <p className="messages-conv-bubble-body">{message.body}</p>
+                    <time className="messages-conv-bubble-time">
+                      {new Intl.DateTimeFormat("fr-CH", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }).format(new Date(message.created_at))}
+                    </time>
+                  </div>
+                </div>
+              );
+            })}
+          </ConvMessages>
+        </div>
+
+        <ConvReplyForm
+          convId={conv.id}
+          phone={userProfile?.phone ?? ""}
+          bankAccount={bankAccount}
+        />
+      </div>
     </PageMotion>
   );
 }

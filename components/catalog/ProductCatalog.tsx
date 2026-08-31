@@ -22,7 +22,7 @@ function CatalogPanel() {
 export function ProductCatalog() {
   return (
     <section id="catalogue" className="section-light w-full">
-      <SiteContainer className="py-16 md:py-24">
+      <SiteContainer className="pb-16 pt-0 md:pb-24">
         <Suspense fallback={<CatalogFallback />}>
           <CatalogPanel />
         </Suspense>

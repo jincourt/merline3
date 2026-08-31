@@ -6,20 +6,34 @@ import {
   sourceToIntent,
 } from "@/lib/types";
 
+export type CatalogSort =
+  | ""
+  | "newest"
+  | "price-asc"
+  | "price-desc"
+  | "commission-asc"
+  | "commission-desc";
+
 export type CatalogFilters = {
   q: string;
   listingType: "objet" | "service" | null;
   category: string;
-  priceMin: string;
-  priceMax: string;
+  sort: CatalogSort;
+  commissionMin: string;
+  commissionMax: string;
+  salePriceMin: string;
+  salePriceMax: string;
 };
 
 export const DEFAULT_CATALOG_FILTERS: CatalogFilters = {
   q: "",
   listingType: null,
   category: "",
-  priceMin: "",
-  priceMax: "",
+  sort: "",
+  commissionMin: "",
+  commissionMax: "",
+  salePriceMin: "",
+  salePriceMax: "",
 };
 
 export function buildCatalogHref(
@@ -106,13 +120,66 @@ export function getCatalogCategories(listings: CatalogListing[]): string[] {
   );
 }
 
+function getListingSalePrice(item: CatalogListing) {
+  return item.price;
+}
+
+function getListingCommissionAmount(item: CatalogListing) {
+  if (item.intent === "buy") return null;
+  return item.commission_value;
+}
+
+function compareNullable(
+  a: number | null,
+  b: number | null,
+  direction: "asc" | "desc",
+) {
+  if (a === null && b === null) return 0;
+  if (a === null) return 1;
+  if (b === null) return -1;
+  return direction === "asc" ? a - b : b - a;
+}
+
+export function sortCatalogListings(
+  listings: CatalogListing[],
+  sort: CatalogSort,
+): CatalogListing[] {
+  const effective = sort || "newest";
+
+  return [...listings].sort((a, b) => {
+    switch (effective) {
+      case "price-asc":
+        return compareNullable(getListingSalePrice(a), getListingSalePrice(b), "asc");
+      case "price-desc":
+        return compareNullable(getListingSalePrice(a), getListingSalePrice(b), "desc");
+      case "commission-asc":
+        return compareNullable(
+          getListingCommissionAmount(a),
+          getListingCommissionAmount(b),
+          "asc",
+        );
+      case "commission-desc":
+        return compareNullable(
+          getListingCommissionAmount(a),
+          getListingCommissionAmount(b),
+          "desc",
+        );
+      case "newest":
+      default:
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+  });
+}
+
 export function filterCatalogListings(
   listings: CatalogListing[],
   filters: CatalogFilters,
 ): CatalogListing[] {
   const query = filters.q.trim().toLowerCase();
-  const min = filters.priceMin ? Number(filters.priceMin) : null;
-  const max = filters.priceMax ? Number(filters.priceMax) : null;
+  const commissionMin = filters.commissionMin ? Number(filters.commissionMin) : null;
+  const commissionMax = filters.commissionMax ? Number(filters.commissionMax) : null;
+  const salePriceMin = filters.salePriceMin ? Number(filters.salePriceMin) : null;
+  const salePriceMax = filters.salePriceMax ? Number(filters.salePriceMax) : null;
 
   return listings.filter((item) => {
     if (filters.listingType !== null && item.listing_type !== filters.listingType) {
@@ -138,14 +205,29 @@ export function filterCatalogListings(
       }
     }
 
-    if (min !== null && !Number.isNaN(min)) {
-      if (item.commission_value === null || item.commission_value < min) {
+    if (commissionMin !== null && !Number.isNaN(commissionMin)) {
+      if (
+        item.commission_value === null ||
+        item.commission_value < commissionMin
+      ) {
         return false;
       }
     }
 
-    if (max !== null && !Number.isNaN(max)) {
-      if (item.commission_value !== null && item.commission_value > max) {
+    if (commissionMax !== null && !Number.isNaN(commissionMax)) {
+      if (item.commission_value !== null && item.commission_value > commissionMax) {
+        return false;
+      }
+    }
+
+    if (salePriceMin !== null && !Number.isNaN(salePriceMin)) {
+      if (item.price === null || item.price < salePriceMin) {
+        return false;
+      }
+    }
+
+    if (salePriceMax !== null && !Number.isNaN(salePriceMax)) {
+      if (item.price !== null && item.price > salePriceMax) {
         return false;
       }
     }
@@ -158,11 +240,7 @@ export function formatListingPrice(item: CatalogListing) {
   if (item.intent === "buy") {
     if (item.is_free) return "Budget flexible";
     if (item.price === null) return "—";
-    return new Intl.NumberFormat("fr-CH", {
-      style: "currency",
-      currency: "CHF",
-      maximumFractionDigits: 0,
-    }).format(item.price);
+    return formatSalePrice(item.price);
   }
 
   return formatCommission(item.commission_type, item.commission_value);

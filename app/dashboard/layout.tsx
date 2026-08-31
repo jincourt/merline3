@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { Header } from "@/components/layout/Header";
 import { SiteContainer } from "@/components/layout/SiteContainer";
 import { getSignupStatus, getUser, incompleteSetupPath } from "@/lib/auth";
@@ -18,6 +19,18 @@ export default async function DashboardLayout({
 
   if (!signupStatus.isComplete) {
     redirect(incompleteSetupPath("/dashboard", signupStatus));
+  }
+
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  const isMessages = pathname.startsWith("/dashboard/messages");
+
+  if (isMessages) {
+    return (
+      <>
+        <Header light />
+        <main className="section-light flex min-h-[calc(100dvh-4rem)] flex-col">{children}</main>
+      </>
+    );
   }
 
   return (

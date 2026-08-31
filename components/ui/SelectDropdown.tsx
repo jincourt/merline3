@@ -21,6 +21,8 @@ type SelectDropdownProps = {
   labelSpacing?: "sm" | "md" | "lg";
   disabled?: boolean;
   size?: "default" | "compact";
+  active?: boolean;
+  mobileBehavior?: "dialog" | "inline";
 };
 
 function ChevronIcon({ open, compact = false }: { open: boolean; compact?: boolean }) {
@@ -47,6 +49,8 @@ export function SelectDropdown({
   labelSpacing,
   disabled = false,
   size = "default",
+  active = false,
+  mobileBehavior = "dialog",
 }: SelectDropdownProps) {
   const generatedId = useId();
   const triggerId = id ?? generatedId;
@@ -59,6 +63,10 @@ export function SelectDropdown({
 
   const selected = options.find((option) => option.value === value);
   const displayLabel = selected?.label ?? placeholder;
+  const useInlineMobilePanel = mobileBehavior === "inline";
+  const showPanel = open && (!mobile || useInlineMobilePanel);
+  const showMobileDialog =
+    open && mobile && !useInlineMobilePanel && mounted;
 
   useEffect(() => {
     setMounted(true);
@@ -97,7 +105,7 @@ export function SelectDropdown({
     document.addEventListener("mousedown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
 
-    if (mobile) {
+    if (mobile && !useInlineMobilePanel) {
       document.body.style.overflow = "hidden";
     }
 
@@ -106,7 +114,7 @@ export function SelectDropdown({
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = "";
     };
-  }, [open, mobile]);
+  }, [open, mobile, useInlineMobilePanel]);
 
   function selectOption(nextValue: string) {
     onChange(nextValue);
@@ -156,41 +164,40 @@ export function SelectDropdown({
         ? "mt-3"
         : "mt-2";
 
-  const mobileDialog =
-    open && mobile && mounted ? (
+  const mobileDialog = showMobileDialog ? (
+    <div
+      className="dialog-overlay"
+      role="presentation"
+      onClick={() => setOpen(false)}
+    >
       <div
-        className="dialog-overlay"
-        role="presentation"
-        onClick={() => setOpen(false)}
+        ref={dialogRef}
+        className="select-dropdown-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`${triggerId}-dialog-title`}
+        onClick={(event) => event.stopPropagation()}
       >
-        <div
-          ref={dialogRef}
-          className="select-dropdown-dialog"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={`${triggerId}-dialog-title`}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className="select-dropdown-dialog-header">
-            <p
-              id={`${triggerId}-dialog-title`}
-              className="text-sm font-medium text-[var(--foreground)]"
-            >
-              {label ?? placeholder}
-            </p>
-            <button
-              type="button"
-              className="text-[var(--muted)] hover:text-[var(--foreground)]"
-              aria-label="Fermer"
-              onClick={() => setOpen(false)}
-            >
-              ✕
-            </button>
-          </div>
-          {optionList}
+        <div className="select-dropdown-dialog-header">
+          <p
+            id={`${triggerId}-dialog-title`}
+            className="text-sm font-medium text-[var(--foreground)]"
+          >
+            {label ?? placeholder}
+          </p>
+          <button
+            type="button"
+            className="text-[var(--muted)] hover:text-[var(--foreground)]"
+            aria-label="Fermer"
+            onClick={() => setOpen(false)}
+          >
+            ✕
+          </button>
         </div>
+        {optionList}
       </div>
-    ) : null;
+    </div>
+  ) : null;
 
   return (
     <div
@@ -210,7 +217,9 @@ export function SelectDropdown({
         type="button"
         className={`select-dropdown-trigger ${label ? triggerSpacing : ""} ${
           !selected ? "select-dropdown-trigger-placeholder" : ""
-        } ${disabled ? "select-dropdown-trigger-disabled" : ""}`.trim()}
+        } ${active ? "select-dropdown-trigger-active" : ""} ${
+          disabled ? "select-dropdown-trigger-disabled" : ""
+        }`.trim()}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listboxId}
@@ -225,7 +234,7 @@ export function SelectDropdown({
         <ChevronIcon open={open} compact={size === "compact"} />
       </button>
 
-      {open && !mobile ? (
+      {showPanel ? (
         <div className="select-dropdown-panel">{optionList}</div>
       ) : null}
 

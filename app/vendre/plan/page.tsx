@@ -50,13 +50,14 @@ export default async function VendrePlanPage({
 
   return (
     <>
-      <Header indigo />
-      <main className="section-indigo flex-1">
+      <Header light gifIndigo />
+      <main className="section-light flex-1">
         <FormPageHero
+          variant="light"
           title="Choisissez votre forfait"
           description="Sélectionnez un plan Merline Pro et, si vous le souhaitez, une option publicitaire pour booster votre annonce."
         >
-          <div className="section-light overflow-hidden rounded-md bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.18)] md:p-8">
+          <div className="form-shell">
             <VendrePlanStep
               listingId={listing.id}
               listingTitle={listing.title}
@@ -65,7 +66,7 @@ export default async function VendrePlanPage({
           </div>
         </FormPageHero>
       </main>
-      <Footer indigo />
+      <Footer light />
     </>
   );
 }

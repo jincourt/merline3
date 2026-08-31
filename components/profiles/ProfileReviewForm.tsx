@@ -110,13 +110,24 @@ export function ProfileReviewStars({
   count,
   className = "",
   singleStar = false,
+  showReviewCount = true,
+  countFormat = "label",
 }: {
   rating: number | null;
   count: number;
   className?: string;
   singleStar?: boolean;
+  showReviewCount?: boolean;
+  countFormat?: "label" | "parens";
 }) {
   if (!count || rating === null) return null;
+
+  const countSuffix =
+    showReviewCount && countFormat === "parens"
+      ? ` (${count})`
+      : showReviewCount
+        ? ` · ${count} avis`
+        : "";
 
   return (
     <div className={`profile-review-summary ${className}`.trim()}>
@@ -142,7 +153,8 @@ export function ProfileReviewStars({
         )}
       </div>
       <p className="profile-review-summary-text">
-        {rating.toFixed(1)} · {count} avis{count > 1 ? "" : ""}
+        {rating.toFixed(1)}
+        {countSuffix}
       </p>
     </div>
   );

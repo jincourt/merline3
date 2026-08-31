@@ -13,10 +13,10 @@ export function ListingDescription({ description }: ListingDescriptionProps) {
   const isLong = description.length > DESCRIPTION_TRUNCATE_LENGTH;
 
   return (
-    <div className="mt-5 border-t border-[var(--border)] pt-5">
-      <p className="text-xs uppercase tracking-wider text-[var(--muted)]">Description</p>
+    <div className="listing-description">
+      <h2 className="listing-section-label">Description</h2>
       <p
-        className={`mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[var(--foreground)]${
+        className={`listing-description-text${
           !expanded && isLong ? " line-clamp-4" : ""
         }`}
       >
@@ -26,7 +26,7 @@ export function ListingDescription({ description }: ListingDescriptionProps) {
         <button
           type="button"
           onClick={() => setExpanded((value) => !value)}
-          className="mt-2 text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+          className="listing-description-toggle"
         >
           {expanded ? "Moins" : "Plus"}
         </button>

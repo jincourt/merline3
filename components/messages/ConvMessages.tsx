@@ -12,7 +12,7 @@ export function ConvMessages({ children }: { children: React.ReactNode }) {
   }, [children]);
 
   return (
-    <div ref={ref} className="dashboard-conv-messages space-y-2">
+    <div ref={ref} className="messages-conv-feed">
       {children}
     </div>
   );

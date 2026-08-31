@@ -8,6 +8,7 @@ import type { ListingSource } from "@/lib/types";
 
 type ListingPageHeaderProps = {
   title: string;
+  category: string;
   sessionViews?: number;
   initialFavoriteCount?: number;
   listingId: string;
@@ -19,6 +20,7 @@ type ListingPageHeaderProps = {
 
 export function ListingPageHeader({
   title,
+  category,
   sessionViews = 0,
   initialFavoriteCount = 0,
   listingId,
@@ -53,9 +55,12 @@ export function ListingPageHeader({
   }
 
   return (
-    <>
-      <div className="flex items-start justify-between gap-4">
-        <h1 className="text-2xl font-medium tracking-tight">{title}</h1>
+    <div className="listing-page-header">
+      <div className="listing-page-header-top">
+        <div>
+          <p className="listing-page-eyebrow">{category}</p>
+          <h1 className="listing-page-title">{title}</h1>
+        </div>
         <button
           type="button"
           onClick={handleFavoriteClick}
@@ -65,7 +70,7 @@ export function ListingPageHeader({
           disabled={pending}
         >
           <Heart
-            className="h-6 w-6"
+            className="h-5 w-5"
             fill={isFavorited ? "currentColor" : "none"}
             strokeWidth={1.75}
             aria-hidden
@@ -76,8 +81,8 @@ export function ListingPageHeader({
         views={sessionViews}
         favorites={favoriteCount}
         variant="listing"
-        className="mt-3"
+        className="listing-page-stats"
       />
-    </>
+    </div>
   );
 }

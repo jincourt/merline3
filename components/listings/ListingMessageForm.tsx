@@ -84,7 +84,7 @@ export function ListingMessageForm({
     const loginButton = (
       <a
         href={loginHref}
-        className={`btn-form btn-primary text-center${isInline ? "" : " mt-6 block w-full"}`}
+        className={`btn-form btn-hero text-center${isInline ? "" : " mt-6 block w-full"}`}
       >
         {isInline ? "Envoyer un message" : "Connectez-vous pour envoyer un message"}
       </a>
@@ -106,7 +106,7 @@ export function ListingMessageForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`btn-form btn-primary${isInline ? "" : " mt-6 w-full"}`}
+        className={`btn-form btn-hero${isInline ? "" : " mt-6 w-full"}`}
       >
         Envoyer un message
       </button>
@@ -157,7 +157,7 @@ export function ListingMessageForm({
         >
           Annuler
         </button>
-        <button type="submit" className="btn-form btn-primary flex-1" disabled={pending}>
+        <button type="submit" className="btn-form btn-hero flex-1" disabled={pending}>
           {pending ? "Envoi…" : "Envoyer"}
         </button>
       </div>

@@ -1,11 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import { Menu, X } from "lucide-react";
 import { formatCompactNumber, formatDuration, formatViewCount } from "@/lib/analytics";
 import { getListingHref } from "@/lib/types";
 import type { AdminDashboardData, AdminVisitorRow } from "@/lib/admin-stats";
+import { AdminMenu } from "./AdminMenu";
+
+const AdLibrary = dynamic(
+  () => import("./library/AdLibrary").then((mod) => mod.AdLibrary),
+  { ssr: false, loading: () => <p className="admin-empty">Chargement de la library…</p> },
+);
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "Brouillon",
@@ -47,6 +55,8 @@ function visitorLabel(visitor: AdminVisitorRow) {
 
 export function AdminDashboard({ data }: { data: AdminDashboardData }) {
   const router = useRouter();
+  const [page, setPage] = useState<"menu" | "dashboard" | "library">("dashboard");
+  const previousPage = useRef<"dashboard" | "library">("dashboard");
   const [section, setSection] = useState<
     "overview" | "home" | "listings" | "users" | "visitors"
   >("overview");
@@ -83,37 +93,89 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
 
   const { overview } = data;
 
+  const title =
+    page === "library"
+      ? "Library"
+      : page === "menu"
+        ? "Merline Menu"
+        : section === "users"
+          ? "Utilisateurs"
+          : section === "visitors"
+            ? "Visiteurs"
+            : "Dashboard";
+
   return (
-    <div className="admin-app">
+    <div className={`admin-app${page === "library" ? " admin-app-wide" : ""}`}>
       <header className="admin-topbar">
         <div>
-          <h1>Dashboard</h1>
+          {page === "menu" ? null : <h1>{title}</h1>}
         </div>
-        <button type="button" className="admin-btn-ghost" onClick={logout}>
-          Déconnexion
+        <button
+          type="button"
+          className="admin-burger"
+          aria-label={page === "menu" ? "Fermer le menu" : "Ouvrir le menu"}
+          onClick={() => {
+            if (page === "menu") {
+              setPage(previousPage.current);
+              return;
+            }
+            previousPage.current = page;
+            setPage("menu");
+          }}
+        >
+          {page === "menu" ? <X size={20} /> : <Menu size={20} />}
         </button>
       </header>
 
-      <nav className="admin-nav" aria-label="Sections">
-        {(
-          [
-            ["overview", "Vue d’ensemble"],
-            ["home", "Accueil"],
-            ["listings", "Annonces"],
-            ["users", "Utilisateurs"],
-            ["visitors", "Visiteurs"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            className={section === id ? "is-active" : ""}
-            onClick={() => setSection(id)}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
+      {page === "menu" ? (
+        <AdminMenu
+          onDashboard={() => {
+            previousPage.current = "dashboard";
+            setSection("overview");
+            setPage("dashboard");
+          }}
+          onUsers={() => {
+            previousPage.current = "dashboard";
+            setSection("users");
+            setPage("dashboard");
+          }}
+          onVisitors={() => {
+            previousPage.current = "dashboard";
+            setSection("visitors");
+            setPage("dashboard");
+          }}
+          onLibrary={() => {
+            previousPage.current = "library";
+            setPage("library");
+          }}
+          onLogout={logout}
+        />
+      ) : null}
+
+      {page === "library" ? <AdLibrary /> : null}
+
+      {page === "dashboard" ? (
+        <>
+          {section === "users" || section === "visitors" ? null : (
+            <nav className="admin-nav" aria-label="Sections">
+              {(
+                [
+                  ["overview", "Vue d’ensemble"],
+                  ["home", "Accueil"],
+                  ["listings", "Annonces"],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={section === id ? "is-active" : ""}
+                  onClick={() => setSection(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </nav>
+          )}
 
       {section === "overview" ? (
         <section className="admin-section">
@@ -354,6 +416,8 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
             </div>
           </article>
         </section>
+      ) : null}
+        </>
       ) : null}
     </div>
   );

@@ -3,43 +3,38 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { CatalogListing } from "@/lib/types";
-import { formatListingPrice, formatCatalogSalePrice, getCatalogSalePriceLabel } from "@/lib/catalog";
+import {
+  formatListingPrice,
+  formatCatalogSalePrice,
+} from "@/lib/catalog";
 import { getAgentDisplayName } from "@/lib/agent-profiles";
 import { getListingHref } from "@/lib/types";
 import { MotionArticle } from "@/components/ui/motion";
-import { ProfileReviewStars } from "@/components/profiles/ProfileReviewForm";
 import { ProfileAvatar } from "@/components/profiles/ProfileAvatar";
-import { ListingEngagementStats } from "@/components/analytics/ListingEngagementStats";
+import { ProfileReviewStars } from "@/components/profiles/ProfileReviewForm";
 
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat("fr-CH", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(iso));
+function CatalogCardLocation({ address }: { address: string }) {
+  if (!address.trim()) return null;
+
+  return <p className="catalog-card-location">{address}</p>;
 }
-
 function ListingImage({
   image,
   title,
-  commission,
   sizes,
-  showCommissionBadge = false,
 }: {
   image?: string;
   title: string;
-  commission?: string;
   sizes: string;
-  showCommissionBadge?: boolean;
 }) {
   return (
-    <div className="relative aspect-square overflow-hidden bg-[var(--surface-elevated)]">
+    <div className="catalog-card-image">
       {image ? (
         <Image
           src={image}
           alt={title}
           fill
-          className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+          className="object-cover"
           sizes={sizes}
         />
       ) : (
@@ -47,14 +42,11 @@ function ListingImage({
           <span className="text-xs text-[var(--muted-dim)]">Aucune image</span>
         </div>
       )}
-      {showCommissionBadge && commission ? (
-        <span className="catalog-commission-badge">{commission}</span>
-      ) : null}
     </div>
   );
 }
 
-function CatalogCardOwner({
+function CatalogCardHead({
   name,
   username,
   avatarUrl,
@@ -71,23 +63,52 @@ function CatalogCardOwner({
   if (!displayName) return null;
 
   return (
-    <div className="catalog-card-owner">
-      <ProfileAvatar
-        name={name}
-        username={username}
-        avatarUrl={avatarUrl}
-        size="sm"
-      />
-      <div className="catalog-card-owner-meta">
-        <p className="catalog-card-owner-name">{displayName}</p>
-        <ProfileReviewStars
-          rating={averageRating}
-          count={reviewCount}
-          singleStar
-          className="catalog-card-owner-rating"
+    <div className="catalog-card-head">
+      <div className="catalog-card-head-brand">
+        <ProfileAvatar
+          name={name}
+          username={username}
+          avatarUrl={avatarUrl}
+          size="sm"
+          className="catalog-card-head-avatar"
         />
+        <span className="catalog-card-head-name">{displayName}</span>
       </div>
+      <ProfileReviewStars
+        rating={averageRating}
+        count={reviewCount}
+        singleStar
+        showReviewCount
+        countFormat="parens"
+        className="catalog-card-head-rating"
+      />
     </div>
+  );
+}
+
+function CatalogCardFinanceBadge({
+  listing,
+  commission,
+  salePrice,
+}: {
+  listing: CatalogListing;
+  commission: string;
+  salePrice: string;
+}) {
+  const showSalePrice = listing.intent === "sell" && listing.price != null;
+
+  return (
+    <p className="catalog-card-finance">
+      {showSalePrice ? (
+        <>
+          <span className="catalog-card-finance-price">{salePrice}</span>
+          <span className="catalog-card-finance-sep" aria-hidden>
+            ·
+          </span>
+        </>
+      ) : null}
+      <span className="catalog-card-finance-commission">{commission}</span>
+    </p>
   );
 }
 
@@ -104,50 +125,35 @@ export function CatalogCard({
   const href = getListingHref(listing.id, listing.intent);
   const commission = formatListingPrice(listing);
   const salePrice = formatCatalogSalePrice(listing);
-  const salePriceLabel = getCatalogSalePriceLabel(listing);
 
   if (variant === "grid") {
     return (
-      <MotionArticle delay={delay} className="h-full">
-        <Link href={href} className="card-case group flex h-full flex-col">
+      <MotionArticle delay={delay} hoverLift={false} className="h-full">
+        <Link href={href} className="catalog-card catalog-card-grid group flex h-full flex-col">
+          <CatalogCardHead
+            name={listing.ownerName ?? ""}
+            username={listing.ownerUsername ?? ""}
+            avatarUrl={listing.ownerAvatarUrl}
+            averageRating={listing.ownerAverageRating ?? null}
+            reviewCount={listing.ownerReviewCount ?? 0}
+          />
+
           <ListingImage
             image={image}
             title={listing.title}
             sizes="(max-width: 1024px) 50vw, 33vw"
           />
 
-          <div className="catalog-card-body">
+          <div className="catalog-card-content">
             <h3 className="catalog-card-title">{listing.title}</h3>
 
-            <div className="catalog-card-meta">
-              <p className="catalog-card-category">{listing.category}</p>
-              <ListingEngagementStats
-                views={listing.session_views}
-                favorites={listing.favorite_count}
-              />
-            </div>
-
-            <p className="catalog-card-commission">
-              <span className="catalog-card-commission-label">Commission:</span>
-              <span className="catalog-card-commission-value">{commission}</span>
-            </p>
-
-            {listing.intent === "sell" && listing.price != null ? (
-              <p className="catalog-card-listing-price">
-                <span className="catalog-card-listing-price-label">
-                  {salePriceLabel}:
-                </span>
-                <span className="catalog-card-listing-price-value">{salePrice}</span>
-              </p>
-            ) : null}
-
-            <CatalogCardOwner
-              name={listing.ownerName ?? ""}
-              username={listing.ownerUsername ?? ""}
-              avatarUrl={listing.ownerAvatarUrl}
-              averageRating={listing.ownerAverageRating ?? null}
-              reviewCount={listing.ownerReviewCount ?? 0}
+            <CatalogCardFinanceBadge
+              listing={listing}
+              commission={commission}
+              salePrice={salePrice}
             />
+
+            <CatalogCardLocation address={listing.address} />
           </div>
         </Link>
       </MotionArticle>
@@ -155,56 +161,39 @@ export function CatalogCard({
   }
 
   return (
-    <MotionArticle delay={delay}>
-      <Link href={href} className="card-case group grid md:grid-cols-[160px_1fr]">
-        <ListingImage
-          image={image}
-          title={listing.title}
-          commission={commission}
-          sizes="(max-width: 768px) 100vw, 160px"
-          showCommissionBadge
-        />
+    <MotionArticle delay={delay} hoverLift={false}>
+      <Link href={href} className="catalog-card catalog-card-list group">
+        <div className="catalog-card-list-media">
+          <ListingImage
+            image={image}
+            title={listing.title}
+            sizes="(max-width: 768px) 100vw, 200px"
+          />
+        </div>
 
-        <div className="flex flex-col p-6 md:p-8">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-medium tracking-tight text-[var(--foreground)]">
-                {listing.title}
-              </h3>
-              <p className="mt-1 text-xs text-[var(--muted-dim)]">{listing.category}</p>
-              {listing.intent === "sell" && listing.price != null ? (
-                <p className="mt-1 text-xs text-[var(--muted-dim)]">
-                  {salePriceLabel}:{" "}
-                  <span className="font-medium text-[var(--foreground)]">
-                    {salePrice}
-                  </span>
-                </p>
-              ) : null}
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <span className="font-mono text-xs text-[var(--muted-dim)]">
-                {formatDate(listing.created_at)}
-              </span>
-              <ListingEngagementStats
-                views={listing.session_views}
-                favorites={listing.favorite_count}
-              />
-            </div>
-          </div>
+        <div className="catalog-card-list-body">
+          <CatalogCardHead
+            name={listing.ownerName ?? ""}
+            username={listing.ownerUsername ?? ""}
+            avatarUrl={listing.ownerAvatarUrl}
+            averageRating={listing.ownerAverageRating ?? null}
+            reviewCount={listing.ownerReviewCount ?? 0}
+          />
 
-          <h4 className="mt-5 text-sm font-medium text-[var(--foreground)]">
-            {listing.address}
-          </h4>
+          <h3 className="catalog-card-title catalog-card-title-list">{listing.title}</h3>
 
-          <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-[var(--muted)]">
-            {listing.description}
-          </p>
+          <CatalogCardFinanceBadge
+            listing={listing}
+            commission={commission}
+            salePrice={salePrice}
+          />
 
-          <div className="mt-auto flex items-center justify-between pt-8">
-            <span className="text-[10px] uppercase tracking-widest text-[var(--muted-dim)]">
-              Multi-diffusion
-            </span>
-            <span className="btn-link">Voir l&apos;annonce</span>
+          <CatalogCardLocation address={listing.address} />
+
+          <p className="catalog-card-excerpt">{listing.description}</p>
+
+          <div className="catalog-card-list-foot">
+            <span className="catalog-card-link">Voir l&apos;annonce →</span>
           </div>
         </div>
       </Link>

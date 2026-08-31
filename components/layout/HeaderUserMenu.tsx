@@ -1,13 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { signOut } from "@/app/auth/actions";
 import { ChevronDown } from "lucide-react";
-import { HeaderIcon } from "./HeaderIcons";
-import { getAccountMenuLinks } from "./header-menu-links";
+import { HeaderAccountMenuPanel } from "./HeaderAccountMenuPanel";
 
 type MenuPosition = {
   top: number;
@@ -43,7 +40,7 @@ export function HeaderUserMenu({
       if (!buttonRef.current) return;
       const rect = buttonRef.current.getBoundingClientRect();
       setMenuPosition({
-        top: rect.bottom + 18,
+        top: rect.bottom + 8,
         right: Math.max(16, window.innerWidth - rect.right),
       });
     }
@@ -83,12 +80,10 @@ export function HeaderUserMenu({
   }, [open]);
 
   const triggerClass = indigo
-    ? "text-white hover:text-white/90"
+    ? "header-user-menu-trigger header-user-menu-trigger-indigo"
     : light
-      ? "text-[#0a0a0a] hover:text-[#52525b]"
-      : "text-[var(--foreground)] hover:text-[var(--muted)]";
-
-  const menuLinks = getAccountMenuLinks(username);
+      ? "header-user-menu-trigger header-user-menu-trigger-light"
+      : "header-user-menu-trigger";
 
   const menu =
     open && mounted ? (
@@ -98,38 +93,11 @@ export function HeaderUserMenu({
         role="menu"
         style={{ top: menuPosition.top, right: menuPosition.right }}
       >
-        <div className="header-user-menu-links">
-          {menuLinks.map((item) => {
-            const active =
-              item.href.startsWith("/profil/")
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                role="menuitem"
-                className={`header-user-menu-item ${active ? "header-user-menu-item-active" : ""}`}
-                onClick={() => setOpen(false)}
-              >
-                <HeaderIcon>
-                  <Icon />
-                </HeaderIcon>
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-
-        <div className="header-user-menu-footer">
-          <form action={signOut}>
-            <button type="submit" role="menuitem" className="header-user-menu-signout">
-              Déconnexion
-            </button>
-          </form>
-        </div>
+        <HeaderAccountMenuPanel
+          username={username}
+          pathname={pathname}
+          onNavigate={() => setOpen(false)}
+        />
       </div>
     ) : null;
 
@@ -139,14 +107,14 @@ export function HeaderUserMenu({
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`flex max-w-[14rem] items-center gap-1.5 text-base font-medium transition-colors ${triggerClass}`}
+        className={`${triggerClass} ${open ? "header-user-menu-trigger-open" : ""}`}
         aria-expanded={open}
         aria-haspopup="menu"
         title={username || undefined}
       >
         <span className="truncate">{displayName}</span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`header-user-menu-chevron ${open ? "header-user-menu-chevron-open" : ""}`}
           strokeWidth={1.75}
           aria-hidden
         />

@@ -1,11 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getUser } from "@/lib/auth";
-import { MERLINE_GIF, MERLINE_GIF_INDIGO } from "@/lib/brand-assets";
+import { MERLINE_GIF } from "@/lib/brand-assets";
 import { MotionDiv } from "@/components/ui/motion";
 import {
-  footerAccountLinks,
-  footerGuestLinks,
+  footerLanguageLabels,
   footerLegalLinks,
   footerPlatformLinks,
   type FooterLink,
@@ -40,18 +38,37 @@ function FooterColumn({
   );
 }
 
-export async function Footer({
+function FooterTextColumn({
+  title,
+  items,
+}: {
+  title: string;
+  items: readonly string[];
+}) {
+  return (
+    <div className="site-footer-column">
+      <p className="site-footer-heading">{title}</p>
+      <ul className="site-footer-links">
+        {items.map((item) => (
+          <li key={item}>
+            <span className="site-footer-text">{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export function Footer({
   light = false,
   indigo = false,
 }: {
   light?: boolean;
   indigo?: boolean;
 }) {
-  const user = await getUser();
-  const accountLinks = user ? footerAccountLinks : footerGuestLinks;
   const footerClass = [
     "site-footer",
-    light ? "site-footer-on-light" : "",
+    light ? "site-footer-light" : "",
     indigo ? "site-footer-after-indigo" : "",
   ]
     .filter(Boolean)
@@ -64,32 +81,21 @@ export async function Footer({
           <div className="site-footer-brand">
             <Link href="/" className="site-footer-logo">
               <Image
-                src={light ? MERLINE_GIF_INDIGO : MERLINE_GIF}
+                src={MERLINE_GIF}
                 alt=""
                 width={32}
                 height={32}
-                className="h-8 w-8 object-contain"
+                className={`h-8 w-8 object-contain ${light ? "brand-logo-black" : ""}`}
                 unoptimized
                 aria-hidden
               />
               <span>Merline</span>
             </Link>
-            <p className="site-footer-tagline">
-              Merline connecte annonceurs et agents autour d&apos;une commission
-              transparente.
-            </p>
           </div>
 
           <FooterColumn title="Plateforme" links={footerPlatformLinks} />
-          <FooterColumn title={user ? "Mon compte" : "Compte"} links={accountLinks} />
           <FooterColumn title="Légal" links={footerLegalLinks} />
-        </div>
-
-        <div className="site-footer-bottom">
-          <p className="site-footer-copy">
-            © {new Date().getFullYear()} Merline. Tous droits réservés.
-          </p>
-          <p className="site-footer-note">Plateforme suisse de mise en relation.</p>
+          <FooterTextColumn title="Langue" items={footerLanguageLabels} />
         </div>
       </MotionDiv>
     </footer>

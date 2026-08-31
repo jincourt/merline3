@@ -10,6 +10,12 @@ import {
   type ActionResult,
 } from "@/app/actions";
 import { AuthDialog } from "@/components/auth/AuthDialog";
+import { CategoryPicker } from "@/components/listings/CategoryPicker";
+import {
+  formatCategorySelections,
+  parseCategorySelections,
+  type CategorySelection,
+} from "@/lib/categories";
 import {
   clearFormDraft,
   loadFormDraft,
@@ -34,8 +40,7 @@ const COMMISSION_UNIT_OPTIONS = [
 
 const FORM_ID = "listing-form";
 
-const FORM_CARD_CLASS =
-  "section-light overflow-hidden rounded-md bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.18)] md:p-8";
+const FORM_CARD_CLASS = "form-shell";
 
 const initialState: ActionResult = { success: false, message: "" };
 
@@ -97,6 +102,7 @@ function Toggle({
   checked,
   defaultChecked = false,
   onCheckedChange,
+  minimal = false,
 }: {
   id: string;
   name?: string;
@@ -105,14 +111,21 @@ function Toggle({
   checked?: boolean;
   defaultChecked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
+  minimal?: boolean;
 }) {
   return (
     <label
       htmlFor={id}
-      className="flex w-full cursor-pointer items-start justify-between gap-4 rounded-md border border-[var(--border)] bg-[var(--background)] px-4 py-3"
+      className={
+        minimal
+          ? "flex w-full cursor-pointer items-center justify-between gap-4 py-1"
+          : "flex w-full cursor-pointer items-start justify-between gap-4 rounded-lg border border-[var(--border)] bg-white px-4 py-3"
+      }
     >
       <span>
-        <span className="block text-sm font-medium text-[var(--foreground)]">
+        <span
+          className={`block ${minimal ? "text-sm text-[var(--foreground)]" : "text-sm font-medium text-[var(--foreground)]"}`}
+        >
           {label}
         </span>
         {description ? (
@@ -128,9 +141,48 @@ function Toggle({
         checked={checked}
         defaultChecked={checked === undefined ? defaultChecked : undefined}
         onChange={(event) => onCheckedChange?.(event.target.checked)}
-        className="mt-1 h-4 w-4 border-[var(--border-strong)] accent-[var(--accent)]"
+        className="h-4 w-4 border-[var(--border-strong)] accent-[var(--accent)]"
       />
     </label>
+  );
+}
+
+function StripeSegment<T extends string>({
+  options,
+  value,
+  onChange,
+  label,
+}: {
+  options: readonly { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+  label?: string;
+}) {
+  return (
+    <div className="form-stripe-field">
+      {label ? (
+        <span className="field-label">{label}</span>
+      ) : null}
+      <div
+        className="stripe-segment"
+        role="group"
+        {...(label ? { "aria-label": label } : {})}
+      >
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            className={`stripe-segment-btn ${
+              value === option.value ? "stripe-segment-btn-active" : ""
+            }`}
+            onClick={() => onChange(option.value)}
+            aria-pressed={value === option.value}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -161,14 +213,17 @@ export function ListingForm({
   profile,
   isAuthenticated,
   editListing,
+  flat = false,
 }: {
   mode: FormMode;
   profile?: ProfileDefaults | null;
   isAuthenticated?: boolean;
   editListing?: EditListingData | null;
+  flat?: boolean;
 }) {
   const router = useRouter();
   const isEditing = Boolean(editListing);
+  const useMinimal = flat && mode === "sell" && !isEditing;
   const copy = MODE_COPY[mode];
   const [sellState, sellAction, sellPending] = useActionState(
     isEditing ? updateProduct : submitProduct,
@@ -182,12 +237,16 @@ export function ListingForm({
   const action = mode === "sell" ? sellAction : buyAction;
   const pending = mode === "sell" ? sellPending : buyPending;
   const formRef = useRef<HTMLFormElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [authed, setAuthed] = useState(isAuthenticated ?? false);
   const [formError, setFormError] = useState("");
   const [listingType, setListingType] = useState<ListingType>("objet");
   const [category, setCategory] = useState("");
   const [customCategory, setCustomCategory] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<
+    CategorySelection[]
+  >([]);
   const [isFree, setIsFree] = useState(false);
   const [commissionType, setCommissionType] = useState<"chf" | "percent">("chf");
   const [commissionValue, setCommissionValue] = useState("");
@@ -241,8 +300,15 @@ export function ListingForm({
     }
 
     setListingType(normalizeListingType(draft.listingType));
-    setCategory(draft.category);
-    setCustomCategory(draft.customCategory);
+    if (flat && mode === "sell") {
+      const parsed = parseCategorySelections(draft.category);
+      setSelectedCategories(parsed.selections);
+      setCustomCategory("");
+      setCategory("");
+    } else {
+      setCategory(draft.category);
+      setCustomCategory(draft.customCategory);
+    }
     setIsFree(draft.isFree);
     setCommissionType(draft.commissionType === "percent" ? "percent" : "chf");
     setCommissionValue(draft.commissionValue ?? draft.price ?? "");
@@ -253,15 +319,18 @@ export function ListingForm({
     setAddress(draft.address);
     setEmail(draft.email || profile?.email || "");
     setDraftLoaded(true);
-  }, [editListing, mode, profile?.email]);
+  }, [editListing, mode, profile?.email, flat]);
 
   useEffect(() => {
     if (!draftLoaded || editListing) return;
 
     const draft: FormDraft = {
       listingType,
-      category,
-      customCategory,
+      category:
+        useMinimal && mode === "sell"
+          ? formatCategorySelections(selectedCategories)
+          : category,
+      customCategory: useMinimal ? "" : customCategory,
       isFree,
       commissionType,
       commissionValue,
@@ -280,6 +349,8 @@ export function ListingForm({
     listingType,
     category,
     customCategory,
+    selectedCategories,
+    useMinimal,
     isFree,
     commissionType,
     commissionValue,
@@ -294,8 +365,11 @@ export function ListingForm({
   function persistDraft() {
     saveFormDraft(mode, {
       listingType,
-      category,
-      customCategory,
+      category:
+        useMinimal && mode === "sell"
+          ? formatCategorySelections(selectedCategories)
+          : category,
+      customCategory: useMinimal ? "" : customCategory,
       isFree,
       commissionType,
       commissionValue,
@@ -371,7 +445,12 @@ export function ListingForm({
   function validateForm() {
     setFormError("");
 
-    if (!resolvedCategory) {
+    if (useMinimal) {
+      if (selectedCategories.length === 0) {
+        setFormError("Sélectionnez au moins une catégorie.");
+        return false;
+      }
+    } else if (!resolvedCategory) {
       setFormError("Sélectionnez une catégorie.");
       return false;
     }
@@ -435,6 +514,7 @@ export function ListingForm({
     setListingType(type);
     setCategory("");
     setCustomCategory("");
+    setSelectedCategories([]);
   }
 
   function handleCategorySelect(value: string) {
@@ -447,10 +527,16 @@ export function ListingForm({
   const categories = getCategoriesForType(listingType);
   const placeholders = TYPE_PLACEHOLDERS[listingType] ?? TYPE_PLACEHOLDERS.objet;
   const physicalListing = isPhysicalListingType(listingType);
-  const resolvedCategory =
-    category === "Personnalisé" ? customCategory.trim() : category;
-  const showDetailsSection = Boolean(resolvedCategory);
-  const externalSubmit = mode === "sell" && !isEditing;
+  const resolvedCategory = useMinimal
+    ? formatCategorySelections(selectedCategories)
+    : category === "Personnalisé"
+      ? customCategory.trim()
+      : category;
+  const showDetailsSection = useMinimal || Boolean(resolvedCategory);
+  const externalSubmit = mode === "sell" && !isEditing && !useMinimal;
+  const submittedCategory = useMinimal
+    ? formatCategorySelections(selectedCategories)
+    : category;
 
   const submitLabel = pending
     ? isEditing
@@ -460,7 +546,221 @@ export function ListingForm({
       ? "Enregistrer les modifications"
       : copy.submitLabel;
 
-  const form = (
+  const hiddenFields = (
+    <>
+      <input type="hidden" name="photos" value={JSON.stringify(photos)} />
+      <input type="hidden" name="listing_type" value={listingType} />
+      {editListing ? (
+        <input type="hidden" name="listing_id" value={editListing.id} />
+      ) : null}
+      <input type="hidden" name="category" value={submittedCategory} />
+      <input
+        type="hidden"
+        name="custom_category"
+        value={
+          useMinimal
+            ? ""
+            : category === "Personnalisé"
+              ? customCategory
+              : ""
+        }
+      />
+      {mode === "buy" && isFree ? (
+        <input type="hidden" name="is_free" value="on" />
+      ) : null}
+      {mode === "sell" ? (
+        <>
+          <input type="hidden" name="commission_type" value={commissionType} />
+          <input
+            type="hidden"
+            name="commission_value"
+            value={commissionValue}
+          />
+        </>
+      ) : null}
+      <input type="hidden" name="email" value={email} />
+    </>
+  );
+
+  const form = useMinimal ? (
+    <form
+      ref={formRef}
+      action={action}
+      onSubmit={handleSubmit}
+      className="form-stripe"
+    >
+      {hiddenFields}
+
+      <StripeSegment
+        label="Type"
+        options={LISTING_TYPES}
+        value={listingType}
+        onChange={handleListingTypeChange}
+      />
+      <div className="form-stripe-field">
+        <CategoryPicker
+          listingType={listingType}
+          selected={selectedCategories}
+          onSelectedChange={setSelectedCategories}
+        />
+      </div>
+
+      <div className="form-stripe-section">
+        <p className="form-stripe-section-title">Annonce</p>
+        <div className="form-stripe-field">
+          <label htmlFor="title" className="field-label">
+            Titre
+          </label>
+          <input
+            id="title"
+            name="title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder={placeholders.title}
+            className="field-input"
+            minLength={2}
+          />
+        </div>
+        <div className="form-stripe-field">
+          <label htmlFor="description" className="field-label">
+            Description
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            rows={4}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder={placeholders.description}
+            className="field-input min-h-28 resize-y"
+            minLength={10}
+          />
+        </div>
+        <div className="form-stripe-field">
+          <label htmlFor="address" className="field-label">
+            Lieu
+          </label>
+          <input
+            id="address"
+            name="address"
+            value={address}
+            onChange={(event) => setAddress(event.target.value)}
+            placeholder="Genève"
+            className="field-input"
+          />
+        </div>
+        <div className="form-stripe-field">
+          <span className="field-label">Photos</span>
+          <input
+            ref={photoInputRef}
+            id="photos"
+            type="file"
+            accept="image/*"
+            multiple
+            className="sr-only"
+            onChange={(event) => handlePhotoUpload(event.target.files)}
+            disabled={uploading || pending}
+          />
+          <button
+            type="button"
+            className="stripe-upload"
+            onClick={() => photoInputRef.current?.click()}
+            disabled={uploading || pending}
+          >
+            {uploading ? "Envoi en cours…" : "Ajouter des photos"}
+          </button>
+          {uploadError ? (
+            <p className="text-xs text-[var(--error)]">{uploadError}</p>
+          ) : null}
+          {photos.length > 0 ? (
+            <div className="stripe-photos">
+              {photos.filter(Boolean).map((photo, index) => (
+                <div key={`${photo}-${index}`} className="stripe-photo">
+                  <img src={photo} alt={`Photo ${index + 1}`} />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(index)}
+                    className="stripe-photo-remove"
+                  >
+                    Retirer
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="form-stripe-section">
+        <p className="form-stripe-section-title">Commission</p>
+        <StripeSegment
+          label="Unité"
+          options={COMMISSION_UNIT_OPTIONS}
+          value={commissionType}
+          onChange={setCommissionType}
+        />
+        <div className="form-stripe-row">
+          <div className="form-stripe-field">
+            <label htmlFor="commission_value" className="field-label">
+              {commissionType === "percent" ? "Pourcentage" : "Montant"}
+            </label>
+            <input
+              id="commission_value"
+              type="number"
+              min="0"
+              max={commissionType === "percent" ? "100" : undefined}
+              step={commissionType === "percent" ? "0.5" : "1"}
+              value={commissionValue}
+              onChange={(event) => setCommissionValue(event.target.value)}
+              placeholder={commissionType === "percent" ? "10" : "120"}
+              className="field-input"
+            />
+          </div>
+          <div className="form-stripe-field">
+            <label htmlFor="listing_price" className="field-label">
+              {commissionType === "percent" ? "Prix moyen (CHF)" : "Prix (CHF)"}
+            </label>
+            <input
+              id="listing_price"
+              name="price"
+              type="number"
+              min="0"
+              step="1"
+              value={price}
+              onChange={(event) => setPrice(event.target.value)}
+              placeholder={commissionType === "percent" ? "2500" : "1200"}
+              className="field-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      {formError ? (
+        <p className="mt-4 text-sm text-[var(--error)]" role="alert">
+          {formError}
+        </p>
+      ) : null}
+
+      {state.message ? (
+        <p
+          className={`mt-4 text-sm ${
+            state.success ? "text-[var(--success)]" : "text-[var(--error)]"
+          }`}
+          role="status"
+        >
+          {state.message}
+        </p>
+      ) : null}
+
+      <button
+        type="submit"
+        className="btn-primary form-stripe-submit"
+        disabled={pending}
+      >
+        {pending ? copy.submitPending : "Publier l'annonce"}
+      </button>
+    </form>
+  ) : (
     <form
       id={externalSubmit ? FORM_ID : undefined}
       ref={formRef}
@@ -468,27 +768,7 @@ export function ListingForm({
       onSubmit={handleSubmit}
       className="space-y-3"
     >
-        <input type="hidden" name="photos" value={JSON.stringify(photos)} />
-        <input type="hidden" name="listing_type" value={listingType} />
-        {editListing ? (
-          <input type="hidden" name="listing_id" value={editListing.id} />
-        ) : null}
-        <input type="hidden" name="category" value={category} />
-        <input
-          type="hidden"
-          name="custom_category"
-          value={category === "Personnalisé" ? customCategory : ""}
-        />
-        {mode === "buy" && isFree ? (
-          <input type="hidden" name="is_free" value="on" />
-        ) : null}
-        {mode === "sell" ? (
-          <>
-            <input type="hidden" name="commission_type" value={commissionType} />
-            <input type="hidden" name="commission_value" value={commissionValue} />
-          </>
-        ) : null}
-        <input type="hidden" name="email" value={email} />
+      {hiddenFields}
 
       <div className="space-y-5">
           <div>
@@ -538,7 +818,7 @@ export function ListingForm({
             ) : null}
           </div>
 
-          <div className="border border-dashed border-[var(--border-strong)] bg-[var(--background)] p-6">
+          <div className="form-upload">
             <label htmlFor="photos" className="field-label">
               Photos
             </label>
@@ -740,7 +1020,7 @@ export function ListingForm({
             <div className="flex justify-end pt-2">
               <button
                 type="submit"
-                className="btn-form btn-primary"
+                className="btn-form btn-hero"
                 disabled={pending}
               >
                 {submitLabel}
@@ -754,18 +1034,18 @@ export function ListingForm({
 
   return (
     <>
-      {externalSubmit ? (
+      {externalSubmit && !flat ? (
         <div className={FORM_CARD_CLASS}>{form}</div>
       ) : (
         form
       )}
 
       {externalSubmit && showDetailsSection ? (
-        <div className="mt-6 flex justify-end">
+        <div className="form-submit-wrap">
           <button
             type="submit"
             form={FORM_ID}
-            className="btn-vendre-submit btn-vendre-submit-lg"
+            className="btn-hero"
             disabled={pending}
           >
             {submitLabel}

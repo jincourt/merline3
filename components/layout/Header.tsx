@@ -26,27 +26,27 @@ export async function Header({
     : indigo
       ? "border-white/10 bg-[var(--indigo)]"
       : light
-        ? "border-[rgba(0,0,0,0.08)] bg-white"
+        ? "border-[#e3e8ee] bg-[#f6f9fc]"
         : "border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl";
 
   return (
     <header className={`sticky top-0 z-50 overflow-visible border-b ${headerClass}`}>
-      <div className="mx-auto flex h-[4.5rem] max-w-[1200px] items-center gap-3 px-6">
+      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
           <Image
-            src={gifIndigo || light ? MERLINE_GIF_INDIGO : MERLINE_GIF}
+            src={gifIndigo && light ? MERLINE_GIF_INDIGO : MERLINE_GIF}
             alt="Merline"
             width={32}
             height={32}
-            className="h-8 w-8 object-contain"
+            className={`h-8 w-8 object-contain ${light && !gifIndigo && !indigo ? "brand-logo-black" : ""}`}
             unoptimized
           />
           <span
-            className={`text-lg font-semibold tracking-tight ${
+            className={`text-lg font-normal tracking-tight ${
               indigo
                 ? "text-white"
                 : light || transparent
-                  ? "text-[#0a0a0a]"
+                  ? "text-[#0a2540]"
                   : "text-[var(--foreground)]"
             }`}
           >
