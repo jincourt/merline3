@@ -1,5 +1,5 @@
 import { getProfileReviewSummariesForProfiles } from "@/lib/profile-reviews";
-import type { CatalogListing, ListingSource } from "@/lib/types";
+import type { BuyRequest, CatalogListing, ListingSource, Product } from "@/lib/types";
 import { sourceToIntent } from "@/lib/types";
 
 type FavoriteRow = {
@@ -81,7 +81,7 @@ export async function fetchFavoriteListings(
           )
           .in("id", prodIds)
           .eq("status", "active")
-      : Promise.resolve({ data: [] as { id: string; user_id: string | null }[] }),
+      : Promise.resolve({ data: [] as Product[] }),
     buyIds.length
       ? supabase
           .from("buy_requests")
@@ -90,7 +90,7 @@ export async function fetchFavoriteListings(
           )
           .in("id", buyIds)
           .eq("status", "active")
-      : Promise.resolve({ data: [] as { id: string; user_id: string | null }[] }),
+      : Promise.resolve({ data: [] as BuyRequest[] }),
   ]);
 
   const productsById = new Map(
