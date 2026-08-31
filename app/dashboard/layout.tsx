@@ -23,8 +23,11 @@ export default async function DashboardLayout({
 
   const pathname = (await headers()).get("x-pathname") ?? "";
   const isMessages = pathname.startsWith("/dashboard/messages");
+  const isAnnonces = pathname.startsWith("/dashboard/annonces");
+  const isParametres = pathname.startsWith("/dashboard/parametres");
+  const isFavoris = pathname.startsWith("/dashboard/favoris");
 
-  if (isMessages) {
+  if (isMessages || isAnnonces || isParametres || isFavoris) {
     return (
       <>
         <Header light />

@@ -3,12 +3,18 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { HeaderIcon, PlusIcon } from "@/components/layout/HeaderIcons";
-import { ListingRow, type DashboardListing } from "@/components/listings/ListingRow";
+import {
+  DashboardListingCard,
+  type DashboardListing,
+} from "@/components/listings/DashboardListingCard";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
+import { MotionDiv } from "@/components/ui/motion";
 
 const STATUS_OPTIONS = [
   { value: "active", label: "Active" },
   { value: "paused", label: "En pause" },
+  { value: "draft", label: "Brouillon" },
+  { value: "pending_payment", label: "Paiement en attente" },
   { value: "sold", label: "Vendue" },
   { value: "closed", label: "Fermée" },
 ] as const;
@@ -73,63 +79,78 @@ export function DashboardListingsPanel({ listings }: { listings: DashboardListin
   );
 
   return (
-    <>
-      <div className="dashboard-listings-toolbar">
-        <input
-          id="dashboard-listings-search"
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Rechercher"
-          className="field-input dashboard-listings-search"
-          aria-label="Rechercher"
-        />
+    <div className="dashboard-listings-grid">
+      <MotionDiv delay={0.06} className="dashboard-listings-toolbar">
+        <div className="dashboard-listings-toolbar-leading">
+          <input
+            id="dashboard-listings-search"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Rechercher une annonce"
+            className="field-input catalog-search-input dashboard-listings-search"
+            aria-label="Rechercher"
+          />
+        </div>
 
-        <div className="dashboard-listings-filters">
+        <div className="dashboard-listings-toolbar-status">
           <SelectDropdown
             id="dashboard-listings-status"
             value={status}
             onChange={setStatus}
             options={[...STATUS_OPTIONS]}
-            placeholder="Status"
-            className="dashboard-listings-filter"
+            placeholder="Statut"
+            className="catalog-toolbar-select dashboard-listings-filter"
+            active={Boolean(status)}
+            mobileBehavior="inline"
           />
+        </div>
+
+        <div className="dashboard-listings-toolbar-sort">
           <SelectDropdown
             id="dashboard-listings-sort"
             value={sort}
             onChange={(value) => setSort(value as SortValue)}
             options={[...SORT_OPTIONS]}
             placeholder="Trier"
-            className="dashboard-listings-filter"
+            className="catalog-toolbar-select dashboard-listings-filter"
+            active={Boolean(sort) && sort !== "newest"}
+            mobileBehavior="inline"
           />
         </div>
-      </div>
+      </MotionDiv>
 
       {listings.length === 0 ? (
-        <div className="dashboard-empty">
-          <p className="text-sm text-[var(--muted)]">
-            Vous n&apos;avez pas encore d&apos;annonce.
+        <div className="messages-empty dashboard-listings-empty">
+          <p className="messages-empty-title">Aucune annonce</p>
+          <p className="messages-empty-desc">
+            Publiez votre première annonce pour la rendre visible aux agents.
           </p>
-          <div className="mt-4 flex flex-wrap justify-center gap-3">
-            <Link href="/vendre" className="btn-primary header-publish-btn">
-              <HeaderIcon className="h-4 w-4">
-                <PlusIcon />
-              </HeaderIcon>
-              Publier une annonce
-            </Link>
-          </div>
+          <Link href="/vendre" className="btn-primary header-publish-btn dashboard-listings-empty-cta">
+            <HeaderIcon className="h-4 w-4">
+              <PlusIcon />
+            </HeaderIcon>
+            Publier une annonce
+          </Link>
         </div>
       ) : filteredListings.length === 0 ? (
-        <div className="dashboard-empty">
-          <p className="text-sm text-[var(--muted)]">Aucune annonce ne correspond à votre recherche.</p>
+        <div className="messages-empty dashboard-listings-empty">
+          <p className="messages-empty-title">Aucun résultat</p>
+          <p className="messages-empty-desc">
+            Aucune annonce ne correspond à votre recherche.
+          </p>
         </div>
       ) : (
-        <div className="mt-6 space-y-2.5">
-          {filteredListings.map((listing) => (
-            <ListingRow key={listing.id} listing={listing} />
+        <div className="dashboard-listings-list">
+          {filteredListings.map((listing, index) => (
+            <DashboardListingCard
+              key={listing.id}
+              listing={listing}
+              delay={index * 0.04}
+            />
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }

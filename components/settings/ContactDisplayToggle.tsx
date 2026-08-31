@@ -59,7 +59,7 @@ export function SettingsContactRow({
 }) {
   return (
     <div className="settings-contact-row">
-      <div className="settings-contact-field">
+      <div className="form-stripe-field settings-contact-field">
         <label htmlFor={id} className="field-label">
           {label}
         </label>
@@ -71,7 +71,7 @@ export function SettingsContactRow({
           placeholder={placeholder}
           defaultValue={defaultValue}
           readOnly={readOnly}
-          className={`field-input mt-2 ${readOnly ? "settings-contact-readonly" : ""}`}
+          className={`field-input ${readOnly ? "settings-contact-readonly" : ""}`}
         />
       </div>
       <div className="settings-display-toggle-col">
@@ -81,7 +81,7 @@ export function SettingsContactRow({
           }`}
           aria-hidden={!showVisibilityLabel}
         >
-          Visibilité
+          Visible
         </span>
         <ContactDisplayToggle
           name={showName}

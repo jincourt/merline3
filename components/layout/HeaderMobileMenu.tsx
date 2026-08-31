@@ -86,7 +86,7 @@ export function HeaderMobileMenu({
   const triggerClass = indigo
     ? "header-user-menu-trigger header-user-menu-trigger-indigo header-user-menu-trigger-icon"
     : light
-      ? "header-user-menu-trigger header-user-menu-trigger-light header-user-menu-trigger-icon"
+      ? "dashboard-listings-head-btn dashboard-listings-head-btn-dark header-user-menu-trigger header-user-menu-trigger-icon"
       : "header-user-menu-trigger header-user-menu-trigger-icon";
 
   const menu =

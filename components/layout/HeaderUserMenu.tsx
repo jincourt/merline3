@@ -82,7 +82,7 @@ export function HeaderUserMenu({
   const triggerClass = indigo
     ? "header-user-menu-trigger header-user-menu-trigger-indigo"
     : light
-      ? "header-user-menu-trigger header-user-menu-trigger-light"
+      ? "dashboard-listings-head-btn dashboard-listings-head-btn-dark header-user-menu-trigger"
       : "header-user-menu-trigger";
 
   const menu =

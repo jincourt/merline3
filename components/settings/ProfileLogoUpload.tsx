@@ -65,17 +65,17 @@ export function ProfileLogoUpload({
   }
 
   return (
-    <div>
-      <p className="field-label">Photo de profil</p>
-      <div className="profile-logo-upload mt-2">
+    <div className="form-stripe-field settings-logo-field">
+      <span className="field-label">Photo de profil</span>
+      <div className="settings-logo-upload">
         <ProfileAvatar
           name={displayName}
           username={username}
           avatarUrl={avatarUrl}
           size="lg"
         />
-        <div className="profile-logo-upload-actions">
-          <label className="btn-form btn-ghost cursor-pointer text-sm">
+        <div className="settings-logo-upload-actions">
+          <label className="settings-logo-upload-btn">
             {uploading ? "Envoi…" : avatarUrl ? "Changer la photo" : "Ajouter une photo"}
             <input
               type="file"
@@ -88,7 +88,7 @@ export function ProfileLogoUpload({
           {avatarUrl ? (
             <button
               type="button"
-              className="btn-link-back text-sm"
+              className="settings-logo-upload-remove"
               onClick={handleRemove}
               disabled={uploading}
             >
@@ -99,7 +99,7 @@ export function ProfileLogoUpload({
       </div>
       <input type="hidden" name="avatar_url" value={avatarUrl.split("?")[0] ?? ""} />
       {error ? (
-        <p className="mt-2 text-sm text-[var(--error)]" role="alert">
+        <p className="text-sm text-[var(--error)]" role="alert">
           {error}
         </p>
       ) : null}

@@ -3,7 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile, getUser } from "@/lib/auth";
 import { ListingForm } from "@/components/listings/ListingForm";
-import { PageMotion } from "@/components/layout/PageMotion";
+import { ListingDeleteButton } from "@/components/listings/ListingDeleteButton";
+import { MotionDiv } from "@/components/ui/motion";
 import type { EditListingData, Product } from "@/lib/types";
 
 function isIntent(value: string): value is "sell" | "buy" {
@@ -51,35 +52,46 @@ export default async function ModifierAnnoncePage({
   };
 
   return (
-    <PageMotion className="dashboard-page">
-      <Link
-        href="/dashboard/annonces"
-        className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
-      >
-        ← Retour à vos annonces
-      </Link>
+    <div className="listing-edit-page mx-auto w-full max-w-[1200px] px-6 pb-16 pt-24 md:pb-20 md:pt-32">
+      <div className="vendre-page-grid">
+        <MotionDiv className="vendre-page-intro">
+          <Link href="/dashboard/annonces" className="listing-edit-back">
+            ← Retour à vos annonces
+          </Link>
+          <h1 className="marketing-section-title">Modifier l&apos;annonce</h1>
+          <p className="mt-4 text-base leading-relaxed text-[var(--muted)]">
+            Mettez à jour les informations de votre annonce. Les changements
+            seront visibles dès l&apos;enregistrement.
+          </p>
+          {listing.title ? (
+            <p className="listing-edit-listing-title">{listing.title}</p>
+          ) : null}
+        </MotionDiv>
 
-      <div className="mt-4 border-b border-[var(--border)] pb-5">
-        <h1 className="dashboard-page-title">Modifier l&apos;annonce</h1>
-        <p className="dashboard-page-desc">
-          Annonce de vente · {listing.title}
-        </p>
-      </div>
+        <MotionDiv delay={0.05} className="vendre-page-form">
+          <ListingForm
+            mode="sell"
+            flat
+            isAuthenticated
+            editListing={editListing}
+            profile={
+              profile
+                ? {
+                    email: profile.email,
+                  }
+                : null
+            }
+          />
 
-      <div className="mt-6">
-        <ListingForm
-          mode="sell"
-          isAuthenticated
-          editListing={editListing}
-          profile={
-            profile
-              ? {
-                  email: profile.email,
-                }
-              : null
-          }
-        />
+          <div className="listing-edit-danger">
+            <ListingDeleteButton
+              listingId={listing.id}
+              intent="sell"
+              title={listing.title}
+            />
+          </div>
+        </MotionDiv>
       </div>
-    </PageMotion>
+    </div>
   );
 }

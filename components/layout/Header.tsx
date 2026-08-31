@@ -29,8 +29,14 @@ export async function Header({
         ? "border-[#e3e8ee] bg-[#f6f9fc]"
         : "border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl";
 
+  const themeClass = indigo
+    ? "section-indigo"
+    : light || transparent
+      ? "section-light"
+      : "section-dark";
+
   return (
-    <header className={`sticky top-0 z-50 overflow-visible border-b ${headerClass}`}>
+    <header className={`sticky top-0 z-50 overflow-visible border-b ${headerClass} ${themeClass}`}>
       <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
           <Image

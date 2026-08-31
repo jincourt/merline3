@@ -1,3 +1,4 @@
+import { getProfileReviewSummariesForProfiles } from "@/lib/profile-reviews";
 import type { CatalogListing, ListingSource } from "@/lib/types";
 import { sourceToIntent } from "@/lib/types";
 
@@ -6,6 +7,35 @@ type FavoriteRow = {
   src: ListingSource;
   created_at: string;
 };
+
+type ListingOwnerRef = {
+  listing: CatalogListing;
+  ownerId?: string;
+};
+
+function enrichListingsWithOwners(
+  listings: ListingOwnerRef[],
+  profiles: { id: string; name: string | null; username: string | null; avatar_url: string | null }[],
+  reviewSummaries: Map<string, { averageRating: number | null; count: number }>,
+): CatalogListing[] {
+  const profileById = new Map(profiles.map((profile) => [profile.id, profile]));
+
+  return listings.map(({ listing, ownerId }) => {
+    if (!ownerId) return listing;
+
+    const profile = profileById.get(ownerId);
+    const reviews = reviewSummaries.get(ownerId);
+
+    return {
+      ...listing,
+      ownerName: profile?.name?.trim() ?? "",
+      ownerUsername: profile?.username?.trim() ?? "",
+      ownerAvatarUrl: profile?.avatar_url?.trim() ?? "",
+      ownerAverageRating: reviews?.averageRating ?? null,
+      ownerReviewCount: reviews?.count ?? 0,
+    };
+  });
+}
 
 export async function isListingFavorited(
   supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>,
@@ -47,20 +77,20 @@ export async function fetchFavoriteListings(
       ? supabase
           .from("products")
           .select(
-            "id, listing_type, category, title, description, commission_type, commission_value, price, address, photos, created_at, status, session_views, favorite_count",
+            "id, user_id, listing_type, category, title, description, commission_type, commission_value, price, address, photos, created_at, status, session_views, favorite_count",
           )
           .in("id", prodIds)
           .eq("status", "active")
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [] as { id: string; user_id: string | null }[] }),
     buyIds.length
       ? supabase
           .from("buy_requests")
           .select(
-            "id, listing_type, category, title, description, price, is_free, address, photos, created_at, status, session_views, favorite_count",
+            "id, user_id, listing_type, category, title, description, price, is_free, address, photos, created_at, status, session_views, favorite_count",
           )
           .in("id", buyIds)
           .eq("status", "active")
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [] as { id: string; user_id: string | null }[] }),
   ]);
 
   const productsById = new Map(
@@ -70,29 +100,32 @@ export async function fetchFavoriteListings(
     (buyRequestsResult.data ?? []).map((item) => [item.id, item]),
   );
 
-  return rows.flatMap((row) => {
+  const listingRefs = rows.flatMap((row): ListingOwnerRef[] => {
     if (row.src === "prod") {
       const product = productsById.get(row.listing_id);
       if (!product) return [];
 
       return [
         {
-          id: product.id,
-          intent: sourceToIntent("prod"),
-          listing_type: product.listing_type,
-          category: product.category,
-          title: product.title,
-          description: product.description,
-          commission_type: product.commission_type,
-          commission_value: product.commission_value,
-          price: product.price ?? null,
-          is_free: false,
-          address: product.address,
-          photos: product.photos ?? [],
-          created_at: product.created_at,
-          session_views: product.session_views ?? 0,
-          favorite_count: product.favorite_count ?? 0,
-        } satisfies CatalogListing,
+          ownerId: product.user_id ?? undefined,
+          listing: {
+            id: product.id,
+            intent: sourceToIntent("prod"),
+            listing_type: product.listing_type,
+            category: product.category,
+            title: product.title,
+            description: product.description,
+            commission_type: product.commission_type,
+            commission_value: product.commission_value,
+            price: product.price ?? null,
+            is_free: false,
+            address: product.address,
+            photos: product.photos ?? [],
+            created_at: product.created_at,
+            session_views: product.session_views ?? 0,
+            favorite_count: product.favorite_count ?? 0,
+          },
+        },
       ];
     }
 
@@ -101,22 +134,47 @@ export async function fetchFavoriteListings(
 
     return [
       {
-        id: buyRequest.id,
-        intent: sourceToIntent("buy"),
-        listing_type: buyRequest.listing_type,
-        category: buyRequest.category,
-        title: buyRequest.title,
-        description: buyRequest.description,
-        commission_type: null,
-        commission_value: null,
-        price: buyRequest.price,
-        is_free: buyRequest.is_free,
-        address: buyRequest.address,
-        photos: buyRequest.photos ?? [],
-        created_at: buyRequest.created_at,
-        session_views: buyRequest.session_views ?? 0,
-        favorite_count: buyRequest.favorite_count ?? 0,
-      } satisfies CatalogListing,
+        ownerId: buyRequest.user_id ?? undefined,
+        listing: {
+          id: buyRequest.id,
+          intent: sourceToIntent("buy"),
+          listing_type: buyRequest.listing_type,
+          category: buyRequest.category,
+          title: buyRequest.title,
+          description: buyRequest.description,
+          commission_type: null,
+          commission_value: null,
+          price: buyRequest.price,
+          is_free: buyRequest.is_free,
+          address: buyRequest.address,
+          photos: buyRequest.photos ?? [],
+          created_at: buyRequest.created_at,
+          session_views: buyRequest.session_views ?? 0,
+          favorite_count: buyRequest.favorite_count ?? 0,
+        },
+      },
     ];
   });
+
+  const ownerIds = [
+    ...new Set(
+      listingRefs
+        .map((entry) => entry.ownerId)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+
+  if (!ownerIds.length) {
+    return listingRefs.map((entry) => entry.listing);
+  }
+
+  const [{ data: profiles }, reviewSummaries] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, name, username, avatar_url")
+      .in("id", ownerIds),
+    getProfileReviewSummariesForProfiles(supabase, ownerIds),
+  ]);
+
+  return enrichListingsWithOwners(listingRefs, profiles ?? [], reviewSummaries);
 }

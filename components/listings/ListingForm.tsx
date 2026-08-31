@@ -208,6 +208,21 @@ function resolveEditCategory(listing: EditListingData) {
   return { category: "", customCategory: "" };
 }
 
+function editCategoryToSelections(listing: EditListingData): CategorySelection[] {
+  if (listing.category.includes(" › ") || listing.category.includes(" · ")) {
+    return parseCategorySelections(listing.category).selections;
+  }
+
+  const resolved = resolveEditCategory(listing);
+  if (resolved.category === "Personnalisé" && resolved.customCategory) {
+    return [{ parent: "Personnalisé", sub: resolved.customCategory }];
+  }
+  if (resolved.category) {
+    return [{ parent: resolved.category, sub: "Autre" }];
+  }
+  return [];
+}
+
 export function ListingForm({
   mode,
   profile,
@@ -223,7 +238,7 @@ export function ListingForm({
 }) {
   const router = useRouter();
   const isEditing = Boolean(editListing);
-  const useMinimal = flat && mode === "sell" && !isEditing;
+  const useMinimal = flat && mode === "sell";
   const copy = MODE_COPY[mode];
   const [sellState, sellAction, sellPending] = useActionState(
     isEditing ? updateProduct : submitProduct,
@@ -275,8 +290,14 @@ export function ListingForm({
 
     const resolved = resolveEditCategory(editListing);
     setListingType(normalizeListingType(editListing.listing_type));
-    setCategory(resolved.category);
-    setCustomCategory(resolved.customCategory);
+    if (flat && mode === "sell") {
+      setSelectedCategories(editCategoryToSelections(editListing));
+      setCategory("");
+      setCustomCategory("");
+    } else {
+      setCategory(resolved.category);
+      setCustomCategory(resolved.customCategory);
+    }
     setIsFree(editListing.is_free ?? false);
     setCommissionType(
       editListing.commission_type === "percent" ? "percent" : "chf",
@@ -289,7 +310,7 @@ export function ListingForm({
     setAddress(editListing.address === "En ligne" ? "" : editListing.address);
     setEmail(editListing.email ?? profile?.email ?? "");
     setDraftLoaded(true);
-  }, [editListing, profile?.email]);
+  }, [editListing, profile?.email, flat, mode]);
 
   useEffect(() => {
     if (editListing) return;
@@ -757,7 +778,7 @@ export function ListingForm({
         className="btn-primary form-stripe-submit"
         disabled={pending}
       >
-        {pending ? copy.submitPending : "Publier l'annonce"}
+        {submitLabel}
       </button>
     </form>
   ) : (

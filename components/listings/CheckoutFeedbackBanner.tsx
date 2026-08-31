@@ -22,10 +22,7 @@ export function CheckoutFeedbackBanner() {
 
   if (message === "published") {
     return (
-      <p
-        className="mb-6 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
-        role="status"
-      >
+      <p className="dashboard-feedback-banner dashboard-feedback-banner-success" role="status">
         Paiement confirmé — votre annonce est publiée et visible par les agents.
       </p>
     );
@@ -33,10 +30,7 @@ export function CheckoutFeedbackBanner() {
 
   if (message === "error") {
     return (
-      <p
-        className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"
-        role="alert"
-      >
+      <p className="dashboard-feedback-banner dashboard-feedback-banner-error" role="alert">
         Le paiement n&apos;a pas pu être confirmé. Réessayez depuis vos annonces en
         attente ou contactez le support.
       </p>
