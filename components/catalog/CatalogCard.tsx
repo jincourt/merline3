@@ -1,7 +1,9 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { Star } from "lucide-react";
 import type { CatalogListing } from "@/lib/types";
 import {
   formatListingPrice,
@@ -18,14 +20,42 @@ function CatalogCardLocation({ address }: { address: string }) {
 
   return <p className="catalog-card-location">{address}</p>;
 }
+
+function CatalogCardRatingBadge({
+  rating,
+  count,
+}: {
+  rating: number | null;
+  count: number;
+}) {
+  if (!count || rating === null) return null;
+
+  return (
+    <div
+      className="catalog-card-rating-badge"
+      aria-label={`${rating.toFixed(1)} sur 5, ${count} avis`}
+    >
+      <span>{rating.toFixed(1)}</span>
+      <Star
+        className="catalog-card-rating-badge-star"
+        fill="currentColor"
+        strokeWidth={1.5}
+      />
+      <span className="catalog-card-rating-badge-count">({count})</span>
+    </div>
+  );
+}
+
 function ListingImage({
   image,
   title,
   sizes,
+  overlay,
 }: {
   image?: string;
   title: string;
   sizes: string;
+  overlay?: ReactNode;
 }) {
   return (
     <div className="catalog-card-image">
@@ -42,6 +72,7 @@ function ListingImage({
           <span className="text-xs text-[var(--muted-dim)]">Aucune image</span>
         </div>
       )}
+      {overlay}
     </div>
   );
 }
@@ -52,14 +83,42 @@ function CatalogCardHead({
   avatarUrl,
   averageRating,
   reviewCount,
+  title,
+  children,
 }: {
   name: string;
   username: string;
   avatarUrl?: string;
   averageRating: number | null;
   reviewCount: number;
+  title?: string;
+  children?: ReactNode;
 }) {
   const displayName = getAgentDisplayName({ name, username });
+
+  if (title) {
+    return (
+      <div className="catalog-card-head catalog-card-head-stacked">
+        {displayName ? (
+          <ProfileAvatar
+            name={name}
+            username={username}
+            avatarUrl={avatarUrl}
+            size="md"
+            className="catalog-card-head-avatar"
+          />
+        ) : null}
+        <div className="catalog-card-head-copy">
+          <h3 className="catalog-card-title">{title}</h3>
+          {displayName ? (
+            <span className="catalog-card-head-name">{displayName}</span>
+          ) : null}
+          {children}
+        </div>
+      </div>
+    );
+  }
+
   if (!displayName) return null;
 
   return (
@@ -119,7 +178,7 @@ export function CatalogCard({
 }: {
   listing: CatalogListing;
   delay?: number;
-  variant?: "list" | "grid";
+  variant?: "list" | "grid" | "profile";
 }) {
   const image = listing.photos?.find((photo) => photo?.startsWith("http"));
   const href = getListingHref(listing.id, listing.intent);
@@ -130,30 +189,80 @@ export function CatalogCard({
     return (
       <MotionArticle delay={delay} hoverLift={false} className="h-full">
         <Link href={href} className="catalog-card catalog-card-grid group flex h-full flex-col">
-          <CatalogCardHead
-            name={listing.ownerName ?? ""}
-            username={listing.ownerUsername ?? ""}
-            avatarUrl={listing.ownerAvatarUrl}
-            averageRating={listing.ownerAverageRating ?? null}
-            reviewCount={listing.ownerReviewCount ?? 0}
-          />
-
-          <ListingImage
-            image={image}
-            title={listing.title}
-            sizes="(max-width: 1024px) 50vw, 33vw"
-          />
-
-          <div className="catalog-card-content">
-            <h3 className="catalog-card-title">{listing.title}</h3>
-
-            <CatalogCardFinanceBadge
-              listing={listing}
-              commission={commission}
-              salePrice={salePrice}
+          <div className="catalog-card-grid-media">
+            <ListingImage
+              image={image}
+              title={listing.title}
+              sizes="(max-width: 1024px) 50vw, 33vw"
+              overlay={
+                <CatalogCardRatingBadge
+                  rating={listing.ownerAverageRating ?? null}
+                  count={listing.ownerReviewCount ?? 0}
+                />
+              }
             />
+          </div>
 
-            <CatalogCardLocation address={listing.address} />
+          <div className="catalog-card-content catalog-card-grid-body">
+            <CatalogCardHead
+              name={listing.ownerName ?? ""}
+              username={listing.ownerUsername ?? ""}
+              avatarUrl={listing.ownerAvatarUrl}
+              averageRating={listing.ownerAverageRating ?? null}
+              reviewCount={listing.ownerReviewCount ?? 0}
+              title={listing.title}
+            >
+              <div className="catalog-card-head-meta">
+                <CatalogCardFinanceBadge
+                  listing={listing}
+                  commission={commission}
+                  salePrice={salePrice}
+                />
+                <CatalogCardLocation address={listing.address} />
+              </div>
+            </CatalogCardHead>
+          </div>
+        </Link>
+      </MotionArticle>
+    );
+  }
+
+  if (variant === "profile") {
+    return (
+      <MotionArticle delay={delay} hoverLift={false}>
+        <Link href={href} className="catalog-card catalog-card-profile group">
+          <div className="catalog-card-profile-media">
+            <ListingImage
+              image={image}
+              title={listing.title}
+              sizes="15rem"
+              overlay={
+                <CatalogCardRatingBadge
+                  rating={listing.ownerAverageRating ?? null}
+                  count={listing.ownerReviewCount ?? 0}
+                />
+              }
+            />
+          </div>
+
+          <div className="catalog-card-profile-body">
+            <h3 className="catalog-card-title catalog-card-profile-title">
+              {listing.title}
+            </h3>
+
+            {listing.category?.trim() ? (
+              <span className="catalog-card-profile-tag">{listing.category}</span>
+            ) : null}
+
+            <div className="catalog-card-profile-foot">
+              <CatalogCardFinanceBadge
+                listing={listing}
+                commission={commission}
+                salePrice={salePrice}
+              />
+
+              <CatalogCardLocation address={listing.address} />
+            </div>
           </div>
         </Link>
       </MotionArticle>

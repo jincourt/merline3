@@ -15,6 +15,7 @@ type ProfileReviewFormProps = {
   listingSrc?: string;
   initialRating?: number;
   initialComment?: string;
+  variant?: "default" | "section-header";
 };
 
 export function ProfileReviewForm({
@@ -24,7 +25,9 @@ export function ProfileReviewForm({
   listingSrc,
   initialRating = 0,
   initialComment = "",
+  variant = "default",
 }: ProfileReviewFormProps) {
+  const isSectionHeader = variant === "section-header";
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(initialRating);
@@ -43,64 +46,87 @@ export function ProfileReviewForm({
     return null;
   }
 
+  const trigger = (
+    <button
+      type="button"
+      className={
+        isSectionHeader
+          ? "public-profile-section-action"
+          : "btn-ghost text-sm"
+      }
+      onClick={() => setOpen((value) => !value)}
+    >
+      Ajouter un avis
+    </button>
+  );
+
+  const form = open ? (
+    <form
+      action={action}
+      className={`profile-review-form${
+        isSectionHeader ? " public-profile-review-form" : ""
+      }`}
+    >
+      <input type="hidden" name="profile_id" value={profileId} />
+      <input type="hidden" name="username" value={username} />
+      {listingId ? <input type="hidden" name="listing_id" value={listingId} /> : null}
+      {listingSrc ? <input type="hidden" name="listing_src" value={listingSrc} /> : null}
+      <input type="hidden" name="rating" value={rating || ""} />
+
+      <ProCheckoutStarRating value={rating} onChange={setRating} />
+
+      <textarea
+        name="comment"
+        rows={4}
+        maxLength={1000}
+        defaultValue={initialComment}
+        placeholder="Partagez votre expérience…"
+        className="field-input min-h-[6rem] resize-y"
+      />
+
+      {state.message ? (
+        <p
+          className={`text-sm ${
+            state.success ? "text-[var(--success)]" : "text-[var(--error)]"
+          }`}
+          role="status"
+        >
+          {state.message}
+        </p>
+      ) : null}
+
+      <div className="profile-review-form-actions">
+        <button
+          type="button"
+          className="btn-ghost text-sm"
+          onClick={() => setOpen(false)}
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          className="btn-form btn-primary text-sm"
+          disabled={pending || rating < 1}
+        >
+          {pending ? "Enregistrement…" : "Publier"}
+        </button>
+      </div>
+    </form>
+  ) : null;
+
+  if (isSectionHeader) {
+    return (
+      <>
+        {trigger}
+        {form}
+      </>
+    );
+  }
+
   return (
     <div className="profile-review-form-wrap">
-      <button
-        type="button"
-        className="btn-ghost text-sm"
-        onClick={() => setOpen((value) => !value)}
-      >
-        Ajouter un avis
-      </button>
-
-      {open ? (
-        <form action={action} className="profile-review-form">
-          <input type="hidden" name="profile_id" value={profileId} />
-          <input type="hidden" name="username" value={username} />
-          {listingId ? <input type="hidden" name="listing_id" value={listingId} /> : null}
-          {listingSrc ? <input type="hidden" name="listing_src" value={listingSrc} /> : null}
-          <input type="hidden" name="rating" value={rating || ""} />
-
-          <ProCheckoutStarRating value={rating} onChange={setRating} />
-
-          <textarea
-            name="comment"
-            rows={4}
-            maxLength={1000}
-            defaultValue={initialComment}
-            placeholder="Partagez votre expérience…"
-            className="field-input min-h-[6rem] resize-y"
-          />
-
-          {state.message ? (
-            <p
-              className={`text-sm ${
-                state.success ? "text-[var(--success)]" : "text-[var(--error)]"
-              }`}
-              role="status"
-            >
-              {state.message}
-            </p>
-          ) : null}
-
-          <div className="profile-review-form-actions">
-            <button
-              type="button"
-              className="btn-ghost text-sm"
-              onClick={() => setOpen(false)}
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              className="btn-form btn-primary text-sm"
-              disabled={pending || rating < 1}
-            >
-        {pending ? "Enregistrement…" : "Publier"}
-            </button>
-          </div>
-        </form>
-      ) : null}
+      {trigger}
+      {form}
     </div>
   );
 }

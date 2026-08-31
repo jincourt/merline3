@@ -9,6 +9,7 @@ type ProfileReviewsSectionProps = {
   title?: string;
   titleClassName?: string;
   stacked?: boolean;
+  showTitle?: boolean;
 };
 
 export function ProfileReviewsSection({
@@ -16,6 +17,7 @@ export function ProfileReviewsSection({
   title = "Avis",
   titleClassName,
   stacked = false,
+  showTitle = true,
 }: ProfileReviewsSectionProps) {
   const titleClass =
     titleClassName ??
@@ -23,9 +25,11 @@ export function ProfileReviewsSection({
 
   return (
     <section className={`profile-reviews-section ${stacked ? "profile-reviews-section-stacked" : ""}`.trim()}>
-      <div className={stacked ? "profile-reviews-header-stacked" : "profile-reviews-header"}>
-        <h2 className={titleClass}>{title}</h2>
-      </div>
+      {showTitle ? (
+        <div className={stacked ? "profile-reviews-header-stacked" : "profile-reviews-header"}>
+          <h2 className={titleClass}>{title}</h2>
+        </div>
+      ) : null}
 
       {summary.reviews.length === 0 ? (
         <p className="mt-4 text-sm text-[var(--muted)]">

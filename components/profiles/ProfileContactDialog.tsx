@@ -1,21 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ProfileContactInfo } from "@/components/profiles/ProfileContactInfo";
+import { ProfileMessageForm } from "@/components/profiles/ProfileMessageForm";
 import type { VisibleContactInfo } from "@/lib/profile-contact";
 import { hasVisibleContactInfo } from "@/lib/profile-contact";
 
 type ProfileContactDialogProps = {
   ownerName: string;
   contact: VisibleContactInfo;
+  profileId?: string;
+  isLoggedIn?: boolean;
+  loginHref?: string;
+  showMessageForm?: boolean;
+  filledTrigger?: boolean;
 };
 
 export function ProfileContactDialog({
   ownerName,
   contact,
+  profileId,
+  isLoggedIn = false,
+  loginHref = "/login",
+  showMessageForm = false,
+  filledTrigger = false,
 }: ProfileContactDialogProps) {
   const [open, setOpen] = useState(false);
-  const visible = hasVisibleContactInfo(contact);
+  const visibleContact = hasVisibleContactInfo(contact);
+  const canOpen = visibleContact || showMessageForm;
 
   useEffect(() => {
     if (!open) return;
@@ -33,50 +46,72 @@ export function ProfileContactDialog({
     };
   }, [open]);
 
-  if (!visible) return null;
+  if (!canOpen) return null;
 
   return (
     <>
       <button
         type="button"
-        className="btn-ghost btn-form shrink-0"
+        className={
+          filledTrigger
+            ? "header-user-menu-trigger public-profile-contact-btn"
+            : "btn-form btn-hero shrink-0"
+        }
         onClick={() => setOpen(true)}
       >
-        Contacter
+        Contact
       </button>
 
-      {open ? (
-        <div
-          className="dialog-overlay"
-          role="presentation"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="dialog-panel profile-contact-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="profile-contact-dialog-title"
-            onClick={(event) => event.stopPropagation()}
+      <AnimatePresence>
+        {open ? (
+          <motion.div
+            className="dialog-overlay profile-contact-dialog-overlay"
+            role="presentation"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            onClick={() => setOpen(false)}
           >
-            <h2
-              id="profile-contact-dialog-title"
-              className="text-lg font-medium text-[var(--foreground)]"
+            <motion.div
+              className="profile-contact-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="profile-contact-dialog-title"
+              initial={{ opacity: 0, y: 14, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              onClick={(event) => event.stopPropagation()}
             >
-              Contacter {ownerName}
-            </h2>
-            <ProfileContactInfo contact={contact} className="profile-contact-info-dialog" />
-            <div className="profile-contact-dialog-actions">
-              <button
-                type="button"
-                className="btn-primary btn-form"
-                onClick={() => setOpen(false)}
-              >
-                Fermer
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+              <h2 id="profile-contact-dialog-title" className="profile-contact-dialog-title">
+                {ownerName}
+              </h2>
+
+              {visibleContact ? (
+                <ProfileContactInfo contact={contact} className="profile-contact-info-dialog" />
+              ) : null}
+
+              {showMessageForm && profileId ? (
+                <div
+                  className={`profile-contact-dialog-message${
+                    visibleContact ? "" : " profile-contact-dialog-message-first"
+                  }`}
+                >
+                  <ProfileMessageForm
+                    profileId={profileId}
+                    isOwner={false}
+                    isLoggedIn={isLoggedIn}
+                    loginHref={loginHref}
+                    ownerName={ownerName}
+                    variant="dialog"
+                  />
+                </div>
+              ) : null}
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </>
   );
 }

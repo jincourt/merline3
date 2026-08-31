@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { ArrowUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   startProfileConversation,
@@ -17,7 +18,8 @@ type ProfileMessageFormProps = {
   isOwner: boolean;
   isLoggedIn: boolean;
   loginHref: string;
-  variant?: "default" | "inline" | "header";
+  ownerName?: string;
+  variant?: "default" | "inline" | "header" | "dialog";
   trailing?: React.ReactNode;
 };
 
@@ -53,11 +55,13 @@ export function ProfileMessageForm({
   isOwner,
   isLoggedIn,
   loginHref,
+  ownerName,
   variant = "default",
   trailing,
 }: ProfileMessageFormProps) {
   const isInline = variant === "inline";
   const isHeader = variant === "header";
+  const isDialog = variant === "dialog";
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useActionState(
@@ -72,7 +76,7 @@ export function ProfileMessageForm({
   }, [state.success, state.convId, router]);
 
   if (isOwner) {
-    if (isHeader) {
+    if (isHeader || isDialog) {
       return null;
     }
 
@@ -91,11 +95,113 @@ export function ProfileMessageForm({
     );
   }
 
+  const messageForm = (
+    <form
+      action={action}
+      className={`min-w-0 space-y-3${
+        isHeader
+          ? " profile-message-header-form"
+          : isDialog
+            ? " profile-contact-dialog-message-form"
+            : isInline
+              ? " listing-message-inline w-full"
+              : " mt-6"
+      }`}
+    >
+      <input type="hidden" name="profile_id" value={profileId} />
+
+      {!isDialog ? (
+        <>
+          <label htmlFor="profile-message-body" className="field-label">
+            Votre message
+          </label>
+          <textarea
+            id="profile-message-body"
+            name="body"
+            rows={4}
+            required
+            minLength={1}
+            placeholder="Bonjour, je souhaiterais vous contacter…"
+            className="field-input min-h-28 resize-y"
+          />
+        </>
+      ) : (
+        <>
+          <label htmlFor="profile-contact-message-body" className="profile-contact-dialog-field-label">
+            Envoyer un message
+          </label>
+          <div className="messages-conv-compose-field profile-contact-compose-field">
+            <textarea
+              id="profile-contact-message-body"
+              name="body"
+              rows={2}
+              required
+              minLength={1}
+              placeholder="Bonjour…"
+              className="messages-conv-textarea profile-contact-compose-textarea"
+            />
+            <div className="messages-conv-compose-actions">
+              <button
+                type="submit"
+                className="messages-conv-send"
+                disabled={pending}
+                aria-label={pending ? "Envoi en cours" : "Envoyer"}
+              >
+                <ArrowUp className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {state.message && !state.success ? (
+        <p className={isDialog ? "messages-conv-error" : "text-xs text-[var(--error)]"}>
+          {state.message}
+        </p>
+      ) : null}
+
+      {!isDialog ? (
+        <div className={`flex gap-2${isHeader ? "" : " gap-3"}`}>
+          {isHeader ? (
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="btn-form btn-hero flex-1"
+              disabled={pending}
+            >
+              Annuler
+            </button>
+          ) : null}
+          <button type="submit" className="btn-form btn-hero-filled flex-1" disabled={pending}>
+            {pending ? "Envoi…" : "Envoyer"}
+          </button>
+        </div>
+      ) : null}
+    </form>
+  );
+
+  if (isDialog) {
+    if (!isLoggedIn) {
+      return (
+        <>
+          <p className="profile-contact-dialog-message-hint">
+            Connectez-vous pour écrire à {ownerName ?? "cette personne"}.
+          </p>
+          <a href={loginHref} className="btn-hero-filled profile-contact-dialog-login">
+            Se connecter
+          </a>
+        </>
+      );
+    }
+
+    return messageForm;
+  }
+
   if (!isLoggedIn) {
     const loginButton = (
       <a
         href={loginHref}
-        className={`btn-form btn-primary text-center${
+        className={`btn-form btn-hero-filled public-profile-head-btn inline-flex items-center justify-center text-center${
           isHeader ? " shrink-0 whitespace-nowrap" : isInline ? "" : " mt-6 block w-full"
         }`}
       >
@@ -119,7 +225,7 @@ export function ProfileMessageForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`btn-form btn-primary${
+        className={`btn-form btn-hero-filled public-profile-head-btn${
           isHeader ? " shrink-0 whitespace-nowrap" : isInline ? "" : " mt-6 w-full"
         }`}
       >
@@ -135,52 +241,6 @@ export function ProfileMessageForm({
 
     return messageButton;
   }
-
-  const messageForm = (
-    <form
-      action={action}
-      className={`min-w-0 space-y-3${
-        isHeader
-          ? " profile-message-header-form"
-          : isInline
-            ? " listing-message-inline w-full"
-            : " mt-6"
-      }`}
-    >
-      <input type="hidden" name="profile_id" value={profileId} />
-
-      <label htmlFor="profile-message-body" className="field-label">
-        Votre message
-      </label>
-      <textarea
-        id="profile-message-body"
-        name="body"
-        rows={4}
-        required
-        minLength={1}
-        placeholder="Bonjour, je souhaiterais vous contacter…"
-        className="field-input min-h-28 resize-y"
-      />
-
-      {state.message && !state.success ? (
-        <p className="text-xs text-[var(--error)]">{state.message}</p>
-      ) : null}
-
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="btn-form btn-ghost flex-1"
-          disabled={pending}
-        >
-          Annuler
-        </button>
-        <button type="submit" className="btn-form btn-primary flex-1" disabled={pending}>
-          {pending ? "Envoi…" : "Envoyer"}
-        </button>
-      </div>
-    </form>
-  );
 
   if (isHeader) {
     return <HeaderMessageActions open>{messageForm}</HeaderMessageActions>;
