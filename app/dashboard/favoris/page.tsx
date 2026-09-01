@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
-import { CatalogCard } from "@/components/catalog/CatalogCard";
+import { DashboardFavoritesPanel } from "@/components/listings/DashboardFavoritesPanel";
 import { PageMotion } from "@/components/layout/PageMotion";
 import { fetchFavoriteListings } from "@/lib/favorites";
 
@@ -21,54 +21,26 @@ export default async function FavorisPage() {
   const listings = await fetchFavoriteListings(supabase, user.id);
 
   return (
-    <div className="favorites-page mx-auto w-full max-w-[1200px] px-6 pb-16 pt-24 md:pb-20 md:pt-32">
+    <div className="dashboard-listings-page dashboard-favorites-page mx-auto w-full max-w-[56rem] px-4 pb-16 pt-24 sm:px-6 md:pb-20 md:pt-32">
       <PageMotion>
-        <header className="favorites-page-head">
-          <div className="favorites-page-head-main">
+        <header className="dashboard-listings-head">
+          <div className="dashboard-listings-head-main">
             <h1 className="public-profile-name">Mes favoris</h1>
             <p className="public-profile-meta">{formatFavoritesMeta(listings.length)}</p>
           </div>
 
-          <div className="favorites-page-head-actions">
+          <div className="dashboard-listings-head-actions">
             <Link
               href="/#catalogue"
               className="dashboard-listings-head-btn dashboard-listings-head-btn-dark"
             >
-              Parcourir
+              Parcourir le catalogue
             </Link>
           </div>
         </header>
       </PageMotion>
 
-      {listings.length === 0 ? (
-        <PageMotion delay={0.06}>
-          <div className="messages-empty favorites-empty">
-            <p className="messages-empty-title">Aucun favori</p>
-            <p className="messages-empty-desc">
-              Enregistrez des annonces depuis le catalogue pour les retrouver ici.
-            </p>
-            <Link
-              href="/#catalogue"
-              className="dashboard-listings-head-btn dashboard-listings-head-btn-primary favorites-empty-cta"
-            >
-              Voir le catalogue
-            </Link>
-          </div>
-        </PageMotion>
-      ) : (
-        <PageMotion delay={0.06}>
-          <div className="catalog-grid favorites-grid">
-            {listings.map((listing, index) => (
-              <CatalogCard
-                key={`${listing.intent}-${listing.id}`}
-                listing={listing}
-                delay={index * 0.04}
-                variant="grid"
-              />
-            ))}
-          </div>
-        </PageMotion>
-      )}
+      <DashboardFavoritesPanel listings={listings} />
     </div>
   );
 }

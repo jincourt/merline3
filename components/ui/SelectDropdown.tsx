@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown } from "lucide-react";
 
@@ -23,6 +23,8 @@ type SelectDropdownProps = {
   size?: "default" | "compact";
   active?: boolean;
   mobileBehavior?: "dialog" | "inline";
+  portalPanel?: boolean;
+  panelAlign?: "start" | "end";
 };
 
 function ChevronIcon({ open, compact = false }: { open: boolean; compact?: boolean }) {
@@ -51,20 +53,27 @@ export function SelectDropdown({
   size = "default",
   active = false,
   mobileBehavior = "dialog",
+  portalPanel = false,
+  panelAlign = "start",
 }: SelectDropdownProps) {
   const generatedId = useId();
   const triggerId = id ?? generatedId;
   const listboxId = `${triggerId}-listbox`;
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
 
   const selected = options.find((option) => option.value === value);
   const displayLabel = selected?.label ?? placeholder;
   const useInlineMobilePanel = mobileBehavior === "inline";
-  const showPanel = open && (!mobile || useInlineMobilePanel);
+  const usePortaledPanel = portalPanel && mounted;
+  const showInlinePanel = open && (!mobile || useInlineMobilePanel) && !usePortaledPanel;
+  const showPortaledPanel = open && (!mobile || useInlineMobilePanel) && usePortaledPanel;
   const showMobileDialog =
     open && mobile && !useInlineMobilePanel && mounted;
 
@@ -91,6 +100,7 @@ export function SelectDropdown({
       const target = event.target as Node;
       if (
         containerRef.current?.contains(target) ||
+        panelRef.current?.contains(target) ||
         dialogRef.current?.contains(target)
       ) {
         return;
@@ -115,6 +125,42 @@ export function SelectDropdown({
       document.body.style.overflow = "";
     };
   }, [open, mobile, useInlineMobilePanel]);
+
+  useLayoutEffect(() => {
+    if (!showPortaledPanel) return;
+
+    function updatePanelPosition() {
+      const trigger = triggerRef.current;
+      if (!trigger) return;
+
+      const rect = trigger.getBoundingClientRect();
+      const minWidth = Math.max(rect.width, 176);
+      const gutter = 8;
+      const left =
+        panelAlign === "end"
+          ? Math.max(gutter, rect.right - minWidth)
+          : Math.min(rect.left, window.innerWidth - minWidth - gutter);
+
+      setPanelStyle({
+        position: "fixed",
+        top: rect.bottom + 6,
+        left,
+        right: "auto",
+        minWidth,
+        width: "max-content",
+        zIndex: 9999,
+      });
+    }
+
+    updatePanelPosition();
+    window.addEventListener("resize", updatePanelPosition);
+    window.addEventListener("scroll", updatePanelPosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePanelPosition);
+      window.removeEventListener("scroll", updatePanelPosition, true);
+    };
+  }, [showPortaledPanel, panelAlign, options.length]);
 
   function selectOption(nextValue: string) {
     onChange(nextValue);
@@ -172,7 +218,9 @@ export function SelectDropdown({
     >
       <div
         ref={dialogRef}
-        className="select-dropdown-dialog"
+        className={`select-dropdown-dialog${
+          portalPanel ? " select-dropdown-dialog-light" : ""
+        }`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={`${triggerId}-dialog-title`}
@@ -181,13 +229,21 @@ export function SelectDropdown({
         <div className="select-dropdown-dialog-header">
           <p
             id={`${triggerId}-dialog-title`}
-            className="text-sm font-medium text-[var(--foreground)]"
+            className={
+              portalPanel
+                ? "text-sm font-medium text-[#0a2540]"
+                : "text-sm font-medium text-[var(--foreground)]"
+            }
           >
             {label ?? placeholder}
           </p>
           <button
             type="button"
-            className="text-[var(--muted)] hover:text-[var(--foreground)]"
+            className={
+              portalPanel
+                ? "text-[#6b7c93] hover:text-[#0a2540]"
+                : "text-[var(--muted)] hover:text-[var(--foreground)]"
+            }
             aria-label="Fermer"
             onClick={() => setOpen(false)}
           >
@@ -213,6 +269,7 @@ export function SelectDropdown({
       ) : null}
 
       <button
+        ref={triggerRef}
         id={triggerId}
         type="button"
         className={`select-dropdown-trigger ${label ? triggerSpacing : ""} ${
@@ -234,9 +291,22 @@ export function SelectDropdown({
         <ChevronIcon open={open} compact={size === "compact"} />
       </button>
 
-      {showPanel ? (
+      {showInlinePanel ? (
         <div className="select-dropdown-panel">{optionList}</div>
       ) : null}
+
+      {showPortaledPanel
+        ? createPortal(
+            <div
+              ref={panelRef}
+              className="select-dropdown-panel select-dropdown-panel-portal"
+              style={panelStyle}
+            >
+              {optionList}
+            </div>,
+            document.body,
+          )
+        : null}
 
       {mobileDialog ? createPortal(mobileDialog, document.body) : null}
     </div>

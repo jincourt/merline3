@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ProfileAvatar } from "@/components/profiles/ProfileAvatar";
 import { ProfileReviewStars } from "@/components/profiles/ProfileReviewForm";
 import { getProfileHref } from "@/lib/profile-reviews";
@@ -11,6 +12,7 @@ type ListingOwnerPreviewProps = {
   avatarUrl?: string;
   averageRating?: number | null;
   reviewCount?: number;
+  actions?: ReactNode;
 };
 
 export function ListingOwnerPreview({
@@ -19,30 +21,42 @@ export function ListingOwnerPreview({
   avatarUrl,
   averageRating = null,
   reviewCount = 0,
+  actions,
 }: ListingOwnerPreviewProps) {
   const displayName = name.trim() || username;
+  const profileHref = getProfileHref(username);
 
   return (
-    <div className="listing-owner-preview">
-      <Link href={getProfileHref(username)} className="listing-owner-row">
-        <ProfileAvatar
-          name={name}
-          username={username}
-          avatarUrl={avatarUrl}
-          size="md"
-        />
+    <div className="listing-owner-head">
+      <div className="listing-owner-row">
+        <Link href={profileHref} className="listing-owner-avatar-link">
+          <ProfileAvatar
+            name={name}
+            username={username}
+            avatarUrl={avatarUrl}
+            size="md"
+          />
+        </Link>
+
         <div className="listing-owner-meta">
-          <div className="listing-owner-heading">
-            <span className="listing-owner-name">{displayName}</span>
-            <ProfileReviewStars
-              rating={averageRating}
-              count={reviewCount}
-              singleStar
-              className="listing-owner-rating"
-            />
-          </div>
+          <Link href={profileHref} className="listing-owner-name">
+            {displayName}
+          </Link>
+          <Link href={profileHref} className="listing-owner-username">
+            @{username}
+          </Link>
+          <ProfileReviewStars
+            rating={averageRating}
+            count={reviewCount}
+            singleStar
+            showReviewCount
+            countFormat="parens"
+            className="listing-owner-rating"
+          />
         </div>
-      </Link>
+      </div>
+
+      {actions ? <div className="listing-owner-head-actions">{actions}</div> : null}
     </div>
   );
 }

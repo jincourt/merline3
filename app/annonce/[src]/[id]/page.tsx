@@ -2,13 +2,12 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { SiteContainer } from "@/components/layout/SiteContainer";
 import { MotionDiv } from "@/components/ui/motion";
 import { CatalogBreadcrumb } from "@/components/catalog/CatalogBreadcrumb";
 import { ListingDescription } from "@/components/listings/ListingDescription";
 import { ListingPageHeader } from "@/components/listings/ListingPageHeader";
 import { ListingMessageForm } from "@/components/listings/ListingMessageForm";
-import { ListingStat } from "@/components/listings/ListingStat";
+import { ListingPricing } from "@/components/listings/ListingPricing";
 import { ProfileContactDialog } from "@/components/profiles/ProfileContactDialog";
 import { ListingOwnerPreview } from "@/components/profiles/ListingOwnerPreview";
 import { ProfileReviewForm } from "@/components/profiles/ProfileReviewForm";
@@ -84,12 +83,18 @@ export default async function AnnoncePage({
     ownerProfile = await getProfileByUserId(supabase, listing.user_id);
 
     if (ownerProfile) {
-      [reviewSummary, existingReview] = await Promise.all([
-        getProfileReviews(supabase, ownerProfile.id),
-        user && user.id !== ownerProfile.id
-          ? getUserReviewForProfile(supabase, ownerProfile.id, user.id)
-          : Promise.resolve(null),
-      ]);
+      const reviewsPromise = getProfileReviews(supabase, ownerProfile.id);
+
+      if (src !== "prod") {
+        [reviewSummary, existingReview] = await Promise.all([
+          reviewsPromise,
+          user && user.id !== ownerProfile.id
+            ? getUserReviewForProfile(supabase, ownerProfile.id, user.id)
+            : Promise.resolve(null),
+        ]);
+      } else {
+        reviewSummary = await reviewsPromise;
+      }
     }
   }
 
@@ -103,116 +108,153 @@ export default async function AnnoncePage({
     ? getAgentDisplayName(ownerProfile)
     : "";
 
+  const pricingItems =
+    intent === "sell"
+      ? [
+          ...(listing.price != null && salePriceLabel && salePriceValue
+            ? [{ label: salePriceLabel, value: salePriceValue }]
+            : []),
+          { label: amountLabel, value: priceLabel },
+        ]
+      : [{ label: amountLabel, value: priceLabel }];
+
   return (
     <>
-      <Header light gifIndigo />
-      <main className="section-light flex-1">
-        <SiteContainer className="pb-24 pt-8 md:pb-32 md:pt-12">
+      <Header light />
+      <main className="section-light min-h-[calc(100dvh-4rem)] flex-1">
+        <div className="listing-page mx-auto w-full max-w-[1200px] px-6 pb-24 pt-24 md:pb-32 md:pt-28">
           <MotionDiv>
             <CatalogBreadcrumb
               listingType={listing.listing_type}
               category={listing.category}
+              className="catalog-breadcrumb-page"
             />
           </MotionDiv>
 
           <div className="listing-page-grid">
-            <MotionDiv delay={0.06}>
+            <MotionDiv delay={0.06} className="listing-page-media-col">
               <div className="listing-page-media">
                 {image ? (
-                  <div className="relative aspect-square">
+                  <div className="relative aspect-[4/3] lg:aspect-square">
                     <Image
                       src={image}
                       alt={listing.title}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 50vw"
+                      sizes="(max-width: 1023px) 100vw, 50vw"
                       priority
                     />
                   </div>
                 ) : (
-                  <div className="flex aspect-square items-center justify-center bg-[var(--surface-elevated)]">
+                  <div className="flex aspect-[4/3] items-center justify-center bg-[var(--surface-elevated)] lg:aspect-square">
                     <span className="text-sm text-[var(--muted-dim)]">Aucune image</span>
                   </div>
                 )}
               </div>
             </MotionDiv>
 
-            <MotionDiv delay={0.12}>
-              <ListingPageHeader
-                title={listing.title}
-                category={listing.category}
-                sessionViews={listing.session_views}
-                initialFavoriteCount={listing.favorite_count}
-                listingId={listing.id}
-                src={src}
-                initialFavorited={isFavorited}
-                isLoggedIn={Boolean(user)}
-                loginHref={loginHref}
-              />
-
-              <p className="listing-page-address">{listing.address}</p>
-
-              <div className="listing-stat-grid">
-                <ListingStat label={amountLabel} value={priceLabel} />
-                {intent === "sell" && listing.price != null && salePriceLabel && salePriceValue ? (
-                  <ListingStat label={salePriceLabel} value={salePriceValue} />
-                ) : null}
-              </div>
-
-              <div className="listing-contact-block">
-                {ownerProfile ? (
-                  <ListingOwnerPreview
-                    name={ownerProfile.name}
-                    username={ownerProfile.username}
-                    avatarUrl={ownerProfile.avatarUrl}
-                    averageRating={src === "prod" ? reviewSummary.averageRating : null}
-                    reviewCount={src === "prod" ? reviewSummary.count : 0}
+            <MotionDiv delay={0.12} className="listing-page-details">
+              <div className="form-stripe listing-page-details-stripe">
+                <div className="listing-page-intro">
+                  <ListingPageHeader
+                    title={listing.title}
+                    sessionViews={listing.session_views}
+                    initialFavoriteCount={listing.favorite_count}
+                    listingId={listing.id}
+                    src={src}
+                    initialFavorited={isFavorited}
+                    isLoggedIn={Boolean(user)}
+                    loginHref={loginHref}
                   />
-                ) : null}
 
-                <ListingMessageForm
-                  listingId={listing.id}
-                  src={src}
-                  isOwner={isOwner}
-                  isLoggedIn={Boolean(user)}
-                  loginHref={loginHref}
-                  variant="inline"
-                  trailing={
-                    src === "prod" && ownerContact && !isOwner ? (
-                      <ProfileContactDialog
-                        ownerName={ownerDisplayName}
-                        contact={ownerContact}
-                      />
-                    ) : null
-                  }
-                />
+                  {listing.address?.trim() ? (
+                    <p className="listing-page-address">{listing.address}</p>
+                  ) : null}
+                </div>
+
+                <ListingPricing items={pricingItems} />
+
+                <section className="listing-contact-block form-stripe-section">
+                  {ownerProfile ? (
+                    <ListingOwnerPreview
+                      name={ownerProfile.name}
+                      username={ownerProfile.username}
+                      avatarUrl={ownerProfile.avatarUrl}
+                      averageRating={src === "prod" ? reviewSummary.averageRating : null}
+                      reviewCount={src === "prod" ? reviewSummary.count : 0}
+                      actions={
+                        src === "prod" && !isOwner && ownerContact ? (
+                          <ProfileContactDialog
+                            ownerName={ownerDisplayName}
+                            contact={ownerContact}
+                            profileId={ownerProfile.id}
+                            isLoggedIn={Boolean(user)}
+                            loginHref={loginHref}
+                            showMessageForm
+                            filledTrigger
+                          />
+                        ) : undefined
+                      }
+                    />
+                  ) : null}
+
+                  {src === "buy" ? (
+                    <ListingMessageForm
+                      listingId={listing.id}
+                      src={src}
+                      isOwner={isOwner}
+                      isLoggedIn={Boolean(user)}
+                      loginHref={loginHref}
+                      variant="inline"
+                    />
+                  ) : isOwner ? (
+                    <p className="listing-page-owner-note">
+                      C&apos;est votre annonce. Les messages arriveront dans votre espace.
+                    </p>
+                  ) : null}
+                </section>
               </div>
-
-              <ListingDescription description={listing.description} />
             </MotionDiv>
           </div>
 
-          {ownerProfile ? (
-            <MotionDiv delay={0.18} className="listing-reviews-wrap">
-              <section className="listing-reviews-section">
-                {canReviewOwner && !existingReview ? (
-                  <ProfileReviewForm
-                    profileId={ownerProfile.id}
-                    username={ownerProfile.username}
-                    listingId={listing.id}
-                    listingSrc={src}
-                  />
-                ) : null}
+          <MotionDiv delay={0.18}>
+            <ListingDescription description={listing.description} />
+          </MotionDiv>
 
-                <ProfileReviewsSection
-                  summary={reviewSummary}
-                  title="Avis sur l'annonceur"
-                  stacked
-                />
+          {ownerProfile && src !== "prod" ? (
+            <MotionDiv delay={0.24}>
+              <section className="public-profile-section listing-reviews-wrap">
+                <div className="public-profile-section-head">
+                  <h2 className="public-profile-section-title">Avis</h2>
+                  {canReviewOwner && !existingReview ? (
+                    <ProfileReviewForm
+                      profileId={ownerProfile.id}
+                      username={ownerProfile.username}
+                      listingId={listing.id}
+                      listingSrc={src}
+                      variant="section-header"
+                    />
+                  ) : null}
+                </div>
+
+                {reviewSummary.reviews.length === 0 ? (
+                  !(canReviewOwner && !existingReview) ? (
+                    <div className="messages-empty public-profile-section-panel">
+                      <p className="messages-empty-title">Aucun avis</p>
+                      <p className="messages-empty-desc">
+                        Aucun avis pour le moment.
+                      </p>
+                    </div>
+                  ) : null
+                ) : (
+                  <div className="messages-panel public-profile-reviews-panel">
+                    <ProfileReviewsSection summary={reviewSummary} showTitle={false} />
+                  </div>
+                )}
               </section>
             </MotionDiv>
           ) : null}
-        </SiteContainer>
+        </div>
       </main>
       <Footer light />
     </>

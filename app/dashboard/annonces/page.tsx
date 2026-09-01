@@ -8,7 +8,6 @@ import { getUserProfile } from "@/lib/profile";
 import { DashboardListingsPanel } from "@/components/listings/DashboardListingsPanel";
 import type { DashboardListing } from "@/components/listings/DashboardListingCard";
 import { CheckoutFeedbackBanner } from "@/components/listings/CheckoutFeedbackBanner";
-import { ProfileAvatar } from "@/components/profiles/ProfileAvatar";
 import { PageMotion } from "@/components/layout/PageMotion";
 
 function countActiveListings(listings: DashboardListing[]) {
@@ -42,31 +41,19 @@ export default async function AnnoncesPage() {
   const profileHref = profile?.username ? getProfileHref(profile.username) : null;
 
   return (
-    <div className="dashboard-listings-page mx-auto w-full max-w-[1200px] px-6 pb-16 pt-24 md:pb-20 md:pt-32">
+    <div className="dashboard-listings-page mx-auto w-full max-w-[56rem] px-4 pb-16 pt-24 sm:px-6 md:pb-20 md:pt-32">
       <PageMotion>
-        <header className="public-profile-head dashboard-listings-head">
-          <div className="public-profile-head-main">
-            {profile ? (
-              <ProfileAvatar
-                name={profile.name}
-                username={profile.username}
-                avatarUrl={profile.avatarUrl}
-                size="lg"
-                className="public-profile-avatar"
-              />
-            ) : null}
-            <div className="public-profile-head-info">
-              <h1 className="public-profile-name">Mes annonces</h1>
-              <p className="public-profile-meta">
-                {displayName}
-                {listings.length > 0
-                  ? ` · ${activeCount} active${activeCount > 1 ? "s" : ""} sur ${listings.length}`
-                  : ""}
-              </p>
-            </div>
+        <header className="dashboard-listings-head">
+          <div className="dashboard-listings-head-main">
+            <h1 className="public-profile-name">Mes annonces</h1>
+            <p className="public-profile-meta">
+              {listings.length > 0
+                ? `${activeCount} active${activeCount > 1 ? "s" : ""} sur ${listings.length}`
+                : `${displayName} · Publiez votre première annonce`}
+            </p>
           </div>
 
-          <div className="public-profile-head-actions">
+          <div className="dashboard-listings-head-actions">
             {profileHref ? (
               <Link
                 href={profileHref}
@@ -79,7 +66,7 @@ export default async function AnnoncesPage() {
               href="/vendre"
               className="dashboard-listings-head-btn dashboard-listings-head-btn-primary"
             >
-              Publier
+              Publier une annonce
             </Link>
           </div>
         </header>

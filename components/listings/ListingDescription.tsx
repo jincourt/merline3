@@ -13,24 +13,26 @@ export function ListingDescription({ description }: ListingDescriptionProps) {
   const isLong = description.length > DESCRIPTION_TRUNCATE_LENGTH;
 
   return (
-    <div className="listing-description">
-      <h2 className="listing-section-label">Description</h2>
+    <section className="listing-description public-profile-section form-stripe-section">
+      <h2 className="public-profile-section-title">Description</h2>
       <p
-        className={`listing-description-text${
+        className={`public-profile-description listing-description-text${
           !expanded && isLong ? " line-clamp-4" : ""
         }`}
       >
         {description}
       </p>
       {isLong ? (
-        <button
-          type="button"
-          onClick={() => setExpanded((value) => !value)}
-          className="listing-description-toggle"
-        >
-          {expanded ? "Moins" : "Plus"}
-        </button>
+        <div className="listing-description-actions">
+          <button
+            type="button"
+            onClick={() => setExpanded((value) => !value)}
+            className="public-profile-section-action listing-description-toggle"
+          >
+            {expanded ? "Moins" : "Plus"}
+          </button>
+        </div>
       ) : null}
-    </div>
+    </section>
   );
 }

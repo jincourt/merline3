@@ -14,7 +14,7 @@ const STATUS_OPTIONS = [
   { value: "active", label: "Active" },
   { value: "paused", label: "En pause" },
   { value: "draft", label: "Brouillon" },
-  { value: "pending_payment", label: "Paiement en attente" },
+  { value: "pending_payment", label: "Paiement" },
   { value: "sold", label: "Vendue" },
   { value: "closed", label: "Fermée" },
 ] as const;
@@ -32,7 +32,7 @@ function getSortAmount(listing: DashboardListing) {
   return listing.commission_value ?? 0;
 }
 
-function filterAndSortListings(
+function filterListings(
   listings: DashboardListing[],
   query: string,
   status: string,
@@ -74,53 +74,13 @@ export function DashboardListingsPanel({ listings }: { listings: DashboardListin
   const [sort, setSort] = useState<SortValue>("");
 
   const filteredListings = useMemo(
-    () => filterAndSortListings(listings, query, status, sort),
+    () => filterListings(listings, query, status, sort),
     [listings, query, status, sort],
   );
 
-  return (
-    <div className="dashboard-listings-grid">
-      <MotionDiv delay={0.06} className="dashboard-listings-toolbar">
-        <div className="dashboard-listings-toolbar-leading">
-          <input
-            id="dashboard-listings-search"
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Rechercher une annonce"
-            className="field-input catalog-search-input dashboard-listings-search"
-            aria-label="Rechercher"
-          />
-        </div>
-
-        <div className="dashboard-listings-toolbar-status">
-          <SelectDropdown
-            id="dashboard-listings-status"
-            value={status}
-            onChange={setStatus}
-            options={[...STATUS_OPTIONS]}
-            placeholder="Statut"
-            className="catalog-toolbar-select dashboard-listings-filter"
-            active={Boolean(status)}
-            mobileBehavior="inline"
-          />
-        </div>
-
-        <div className="dashboard-listings-toolbar-sort">
-          <SelectDropdown
-            id="dashboard-listings-sort"
-            value={sort}
-            onChange={(value) => setSort(value as SortValue)}
-            options={[...SORT_OPTIONS]}
-            placeholder="Trier"
-            className="catalog-toolbar-select dashboard-listings-filter"
-            active={Boolean(sort) && sort !== "newest"}
-            mobileBehavior="inline"
-          />
-        </div>
-      </MotionDiv>
-
-      {listings.length === 0 ? (
+  if (listings.length === 0) {
+    return (
+      <div className="dashboard-listings-panel-wrap">
         <div className="messages-empty dashboard-listings-empty">
           <p className="messages-empty-title">Aucune annonce</p>
           <p className="messages-empty-desc">
@@ -133,24 +93,66 @@ export function DashboardListingsPanel({ listings }: { listings: DashboardListin
             Publier une annonce
           </Link>
         </div>
-      ) : filteredListings.length === 0 ? (
-        <div className="messages-empty dashboard-listings-empty">
-          <p className="messages-empty-title">Aucun résultat</p>
-          <p className="messages-empty-desc">
-            Aucune annonce ne correspond à votre recherche.
-          </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dashboard-listings-panel-wrap">
+      <MotionDiv delay={0.06} className="dashboard-listings-panel">
+        <div className="dashboard-listings-panel-head">
+          <label htmlFor="dashboard-listings-search" className="sr-only">
+            Rechercher une annonce
+          </label>
+          <input
+            id="dashboard-listings-search"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Rechercher une annonce"
+            className="field-input dashboard-listings-panel-search"
+          />
+          <SelectDropdown
+            id="dashboard-listings-status"
+            value={status}
+            onChange={setStatus}
+            options={[...STATUS_OPTIONS]}
+            placeholder="Statut"
+            className="catalog-toolbar-select dashboard-listings-panel-filter"
+            active={Boolean(status)}
+            mobileBehavior="dialog"
+            portalPanel
+            panelAlign="start"
+          />
+          <SelectDropdown
+            id="dashboard-listings-sort"
+            value={sort}
+            onChange={(value) => setSort(value as SortValue)}
+            options={[...SORT_OPTIONS]}
+            placeholder="Trier"
+            className="catalog-toolbar-select dashboard-listings-panel-filter"
+            active={Boolean(sort) && sort !== "newest"}
+            mobileBehavior="dialog"
+            portalPanel
+            panelAlign="end"
+          />
         </div>
-      ) : (
-        <div className="dashboard-listings-list">
-          {filteredListings.map((listing, index) => (
-            <DashboardListingCard
-              key={listing.id}
-              listing={listing}
-              delay={index * 0.04}
-            />
-          ))}
-        </div>
-      )}
+
+        {filteredListings.length === 0 ? (
+          <div className="dashboard-listings-panel-empty">
+            <p className="dashboard-listings-panel-empty-title">Aucun résultat</p>
+            <p className="dashboard-listings-panel-empty-desc">
+              Aucune annonce ne correspond à votre recherche.
+            </p>
+          </div>
+        ) : (
+          <ul className="dashboard-listings-list">
+            {filteredListings.map((listing) => (
+              <DashboardListingCard key={listing.id} listing={listing} />
+            ))}
+          </ul>
+        )}
+      </MotionDiv>
     </div>
   );
 }

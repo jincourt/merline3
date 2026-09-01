@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Heart } from "lucide-react";
+import { Eye, Heart } from "lucide-react";
 import { toggleFavorite } from "@/app/actions";
-import { ListingEngagementStats } from "@/components/analytics/ListingEngagementStats";
+import { formatFavoriteCount, formatViewCount } from "@/lib/analytics";
 import type { ListingSource } from "@/lib/types";
 
 type ListingPageHeaderProps = {
   title: string;
-  category: string;
   sessionViews?: number;
   initialFavoriteCount?: number;
   listingId: string;
@@ -20,7 +19,6 @@ type ListingPageHeaderProps = {
 
 export function ListingPageHeader({
   title,
-  category,
   sessionViews = 0,
   initialFavoriteCount = 0,
   listingId,
@@ -32,6 +30,7 @@ export function ListingPageHeader({
   const [isFavorited, setIsFavorited] = useState(initialFavorited);
   const [favoriteCount, setFavoriteCount] = useState(initialFavoriteCount);
   const [pending, startTransition] = useTransition();
+  const views = Number.isFinite(sessionViews) ? Math.max(0, Math.floor(sessionViews)) : 0;
 
   function handleFavoriteClick() {
     if (!isLoggedIn) {
@@ -55,34 +54,34 @@ export function ListingPageHeader({
   }
 
   return (
-    <div className="listing-page-header">
-      <div className="listing-page-header-top">
-        <div>
-          <p className="listing-page-eyebrow">{category}</p>
-          <h1 className="listing-page-title">{title}</h1>
-        </div>
+    <header className="listing-page-header">
+      <h1 className="public-profile-name listing-page-title">{title}</h1>
+
+      <div className="listing-page-engagement">
+        <span className="listing-page-engagement-stat" aria-label={`${views} vue${views === 1 ? "" : "s"}`}>
+          <Eye className="listing-page-engagement-icon" strokeWidth={1.75} aria-hidden />
+          <span>{formatViewCount(views)}</span>
+        </span>
+
         <button
           type="button"
           onClick={handleFavoriteClick}
-          className={`listing-favorite-btn${isFavorited ? " listing-favorite-btn-active" : ""}`}
+          className={`listing-page-engagement-stat listing-page-favorite-stat${
+            isFavorited ? " listing-page-favorite-stat-active" : ""
+          }`}
           aria-pressed={isFavorited}
           aria-label={isFavorited ? "Retirer des favoris" : "Ajouter aux favoris"}
           disabled={pending}
         >
           <Heart
-            className="h-5 w-5"
+            className="listing-page-engagement-icon"
             fill={isFavorited ? "currentColor" : "none"}
             strokeWidth={1.75}
             aria-hidden
           />
+          <span>{formatFavoriteCount(favoriteCount)}</span>
         </button>
       </div>
-      <ListingEngagementStats
-        views={sessionViews}
-        favorites={favoriteCount}
-        variant="listing"
-        className="listing-page-stats"
-      />
-    </div>
+    </header>
   );
 }
