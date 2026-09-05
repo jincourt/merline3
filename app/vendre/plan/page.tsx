@@ -5,6 +5,7 @@ import { FormPageHero } from "@/components/layout/FormPageHero";
 import { VendrePlanStep } from "@/components/listings/VendrePlanStep";
 import { getUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { isSubscriptionCurrentlyActive } from "@/lib/subscription";
 
 export default async function VendrePlanPage({
   searchParams,
@@ -44,7 +45,7 @@ export default async function VendrePlanPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("merline_pro_active")
+    .select("merline_pro_active, merline_pro_expires_at")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -61,7 +62,7 @@ export default async function VendrePlanPage({
             <VendrePlanStep
               listingId={listing.id}
               listingTitle={listing.title}
-              hasActivePro={profile?.merline_pro_active === true}
+              hasActivePro={profile ? isSubscriptionCurrentlyActive(profile) : false}
             />
           </div>
         </FormPageHero>

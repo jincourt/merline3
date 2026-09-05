@@ -9,6 +9,7 @@ import {
   type BoostPackId,
   type PlanId,
 } from "@/lib/plans";
+import { syncProfileFromStripeSubscription } from "@/lib/subscription";
 import { getStripe } from "@/lib/stripe";
 import type Stripe from "stripe";
 
@@ -130,9 +131,8 @@ export async function createListingCheckoutSession({
 export async function activateListingFromCheckout(metadata: {
   listingId?: string;
   userId?: string;
-  planId?: string;
 }) {
-  const { listingId, userId, planId } = metadata;
+  const { listingId, userId } = metadata;
   if (!listingId || !userId) return;
 
   const { createAdminClient } = await import("@/lib/supabase/admin");
@@ -143,13 +143,35 @@ export async function activateListingFromCheckout(metadata: {
     .update({ status: "active" })
     .eq("id", listingId)
     .eq("user_id", userId);
+}
 
-  if (planId === "abonnement") {
-    await supabase
-      .from("profiles")
-      .update({ merline_pro_active: true })
-      .eq("id", userId);
+export async function activateSubscriptionFromCheckoutSession(
+  session: Stripe.Checkout.Session,
+) {
+  if (
+    session.mode !== "subscription" ||
+    !session.subscription ||
+    !session.metadata?.userId
+  ) {
+    return;
   }
+
+  const stripe = getStripe();
+  const subscriptionId =
+    typeof session.subscription === "string"
+      ? session.subscription
+      : session.subscription.id;
+  const customerId =
+    typeof session.customer === "string"
+      ? session.customer
+      : session.customer?.id;
+
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  await syncProfileFromStripeSubscription(
+    session.metadata.userId,
+    subscription,
+    customerId ?? null,
+  );
 }
 
 export async function verifyCheckoutSessionAndActivate(sessionId: string) {
@@ -163,37 +185,13 @@ export async function verifyCheckoutSessionAndActivate(sessionId: string) {
   await activateListingFromCheckout({
     listingId: session.metadata?.listingId,
     userId: session.metadata?.userId,
-    planId: session.metadata?.planId,
   });
 
-  if (
-    session.mode === "subscription" &&
-    session.subscription &&
-    session.metadata?.userId
-  ) {
-    const { createAdminClient } = await import("@/lib/supabase/admin");
-    const supabase = createAdminClient();
-    const subscriptionId =
-      typeof session.subscription === "string"
-        ? session.subscription
-        : session.subscription.id;
-    const customerId =
-      typeof session.customer === "string"
-        ? session.customer
-        : session.customer?.id;
-
-    await supabase
-      .from("profiles")
-      .update({
-        merline_pro_active: true,
-        stripe_subscription_id: subscriptionId,
-        stripe_customer_id: customerId ?? null,
-      })
-      .eq("id", session.metadata.userId);
-  }
+  await activateSubscriptionFromCheckoutSession(session);
 
   return {
     ok: true as const,
     listingId: session.metadata?.listingId ?? null,
+    planId: session.metadata?.planId ?? null,
   };
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAppOrigin } from "@/lib/app-origin";
 import { createClient } from "@/lib/supabase/server";
 import { createListingCheckoutSession } from "@/lib/stripe-checkout";
+import { isSubscriptionCurrentlyActive } from "@/lib/subscription";
 
 export async function POST(request: Request) {
   try {
@@ -41,12 +42,14 @@ export async function POST(request: Request) {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("merline_pro_active")
+      .select("merline_pro_active, merline_pro_expires_at")
       .eq("id", user.id)
       .maybeSingle();
 
     const skipPlanCharge =
-      profile?.merline_pro_active === true && listing.checkout_plan === "abonnement";
+      profile &&
+      isSubscriptionCurrentlyActive(profile) &&
+      listing.checkout_plan === "abonnement";
 
     const origin = getAppOrigin(request);
 

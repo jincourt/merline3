@@ -13,6 +13,7 @@ import {
   type PlanId,
 } from "@/lib/plans";
 import { createClient } from "@/lib/supabase/server";
+import { isSubscriptionCurrentlyActive } from "@/lib/subscription";
 
 export const metadata: Metadata = {
   title: "Paiement — Merline",
@@ -69,12 +70,12 @@ export default async function VendrePaiementPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("merline_pro_active")
+    .select("merline_pro_active, merline_pro_expires_at")
     .eq("id", user.id)
     .maybeSingle();
 
   const skipPlanCharge =
-    profile?.merline_pro_active === true && planId === "abonnement";
+    profile && isSubscriptionCurrentlyActive(profile) && planId === "abonnement";
   const total = calculateCheckoutTotal(planId, boostId, { skipPlanCharge });
   const listingPhoto =
     (listing.photos as string[] | null)?.find((photo) => photo?.startsWith("http")) ??

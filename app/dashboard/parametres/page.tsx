@@ -2,7 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { getUserProfile } from "@/lib/profile";
 import { getUserBankAccount } from "@/lib/profile-bank";
+import { getUserSubscription } from "@/lib/subscription";
 import { ProfileSettingsForm } from "@/components/settings/ProfileSettingsForm";
+import { SubscriptionSettingsSection } from "@/components/settings/SubscriptionSettingsSection";
 import { PageMotion } from "@/components/layout/PageMotion";
 
 export default async function ParametresPage() {
@@ -10,9 +12,10 @@ export default async function ParametresPage() {
   if (!user) return null;
 
   const supabase = await createClient();
-  const [profile, bankAccount] = await Promise.all([
+  const [profile, bankAccount, subscription] = await Promise.all([
     getUserProfile(supabase, user.id),
     getUserBankAccount(supabase, user.id),
+    getUserSubscription(supabase, user.id),
   ]);
 
   if (!profile) {
@@ -47,18 +50,19 @@ export default async function ParametresPage() {
           <div className="settings-page-intro">
             <h1 className="marketing-section-title">Paramètres</h1>
             <p className="mt-4 text-base leading-relaxed text-[var(--muted)]">
-              Mettez à jour votre profil public, vos coordonnées et vos
-              préférences de visibilité.
+              Mettez à jour votre profil public, vos coordonnées, votre abonnement
+              et vos préférences de visibilité.
             </p>
           </div>
 
-          <div className="settings-page-form">
+          <div className="settings-page-form settings-page-form-stack">
             <ProfileSettingsForm
               profile={profile}
               bankAccount={bankAccount}
               userId={user.id}
               authEmail={user.email ?? ""}
             />
+            <SubscriptionSettingsSection subscription={subscription} />
           </div>
         </div>
       </PageMotion>

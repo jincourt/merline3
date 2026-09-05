@@ -23,6 +23,10 @@ import {
   type PlanId,
 } from "@/lib/plans";
 import {
+  isSubscriptionCurrentlyActive,
+  setSubscriptionAutoRenewPreference,
+} from "@/lib/subscription";
+import {
   VALID_LISTING_TYPES,
   VALID_COMMISSION_TYPES,
   type CommissionType,
@@ -380,11 +384,11 @@ export async function saveListingCheckout(
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("merline_pro_active")
+    .select("merline_pro_active, merline_pro_expires_at")
     .eq("id", user.id)
     .maybeSingle();
 
-  const hasActivePro = profile?.merline_pro_active === true;
+  const hasActivePro = profile ? isSubscriptionCurrentlyActive(profile) : false;
   const skipPayment =
     hasActivePro && planId === "abonnement" && !boostId;
 
@@ -1245,4 +1249,63 @@ export async function submitProfileReview(
   }
 
   return { success: true, message: "Avis enregistré." };
+}
+
+export async function confirmSubscriptionRenewal(
+  autoRenew: boolean,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Connectez-vous pour continuer." };
+  }
+
+  const result = await setSubscriptionAutoRenewPreference(user.id, autoRenew);
+
+  if (!result.ok) {
+    return { success: false, message: result.message };
+  }
+
+  revalidatePath("/dashboard/annonces");
+  revalidatePath("/dashboard/parametres");
+
+  return {
+    success: true,
+    message: autoRenew
+      ? "Renouvellement automatique activé."
+      : "Votre abonnement se terminera à la fin de la période en cours.",
+  };
+}
+
+export async function updateSubscriptionAutoRenew(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Connectez-vous pour continuer." };
+  }
+
+  const autoRenew = formData.get("auto_renew") === "1";
+  const result = await setSubscriptionAutoRenewPreference(user.id, autoRenew);
+
+  if (!result.ok) {
+    return { success: false, message: result.message };
+  }
+
+  revalidatePath("/dashboard/parametres");
+
+  return {
+    success: true,
+    message: autoRenew
+      ? "Renouvellement automatique activé."
+      : "Renouvellement automatique désactivé — l'abonnement se terminera à la date indiquée.",
+  };
 }

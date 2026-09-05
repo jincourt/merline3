@@ -22,6 +22,9 @@ export async function GET(request: NextRequest) {
     }
 
     dashboardUrl.searchParams.set("published", "1");
+    if (result.planId === "abonnement") {
+      dashboardUrl.searchParams.set("subscription", "1");
+    }
     return NextResponse.redirect(dashboardUrl);
   } catch (error) {
     console.error("GET /api/checkout/complete:", error);

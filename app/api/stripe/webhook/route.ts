@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { activateListingFromCheckout } from "@/lib/stripe-checkout";
+import {
+  activateListingFromCheckout,
+  activateSubscriptionFromCheckoutSession,
+} from "@/lib/stripe-checkout";
+import { syncProfileFromStripeSubscription } from "@/lib/subscription";
 import { getStripe } from "@/lib/stripe";
 
 export async function POST(request: Request) {
@@ -33,33 +37,23 @@ export async function POST(request: Request) {
         await activateListingFromCheckout({
           listingId: session.metadata?.listingId,
           userId: session.metadata?.userId,
-          planId: session.metadata?.planId,
         });
-
-        if (
-          session.mode === "subscription" &&
-          session.subscription &&
-          session.metadata?.userId
-        ) {
-          const { createAdminClient } = await import("@/lib/supabase/admin");
-          const supabase = createAdminClient();
-          const subscriptionId =
-            typeof session.subscription === "string"
-              ? session.subscription
-              : session.subscription.id;
+        await activateSubscriptionFromCheckoutSession(session);
+        break;
+      }
+      case "customer.subscription.updated": {
+        const subscription = event.data.object as Stripe.Subscription;
+        const userId = subscription.metadata?.userId;
+        if (userId) {
           const customerId =
-            typeof session.customer === "string"
-              ? session.customer
-              : session.customer?.id;
-
-          await supabase
-            .from("profiles")
-            .update({
-              merline_pro_active: true,
-              stripe_subscription_id: subscriptionId,
-              stripe_customer_id: customerId ?? null,
-            })
-            .eq("id", session.metadata.userId);
+            typeof subscription.customer === "string"
+              ? subscription.customer
+              : subscription.customer?.id;
+          await syncProfileFromStripeSubscription(
+            userId,
+            subscription,
+            customerId ?? null,
+          );
         }
         break;
       }
@@ -73,6 +67,7 @@ export async function POST(request: Request) {
             .from("profiles")
             .update({
               merline_pro_active: false,
+              merline_pro_auto_renew: false,
               stripe_subscription_id: null,
             })
             .eq("id", userId);
