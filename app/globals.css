@@ -6912,6 +6912,58 @@ textarea.field-input {
   display: flex;
   flex-direction: column;
   gap: 0;
+  padding: 6rem 1.5rem 6rem;
+}
+
+@media (min-width: 768px) {
+  .listing-page {
+    padding-top: 7rem;
+    padding-bottom: 8rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  .listing-page-prod {
+    padding-top: 3rem;
+  }
+
+  .listing-page-prod .listing-page-top {
+    margin-bottom: 0.75rem;
+  }
+
+  .listing-page-prod .listing-page-grid {
+    margin-top: 0;
+    gap: 1.25rem;
+  }
+}
+
+.listing-page-top {
+  flex-shrink: 0;
+}
+
+.catalog-breadcrumb-compact {
+  display: flex;
+}
+
+@media (max-width: 1023px) {
+  .listing-page-prod .catalog-breadcrumb-compact.catalog-breadcrumb-page {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+}
+
+.catalog-breadcrumb-full {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .catalog-breadcrumb-compact {
+    display: none;
+  }
+
+  .catalog-breadcrumb-full {
+    display: flex;
+  }
 }
 
 .listing-page-grid {

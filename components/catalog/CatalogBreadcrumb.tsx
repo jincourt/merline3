@@ -8,20 +8,36 @@ type CatalogBreadcrumbProps = {
   listingType: ListingType;
   category: string;
   className?: string;
+  variant?: "full" | "category";
 };
 
 export function CatalogBreadcrumb({
   listingType,
   category,
   className = "",
+  variant = "full",
 }: CatalogBreadcrumbProps) {
   const typeLabel = getListingTypeLabel(listingType);
+  const navClassName = `catalog-breadcrumb ${className}`.trim();
+
+  if (variant === "category") {
+    if (!category) return null;
+
+    return (
+      <nav aria-label="Fil d'Ariane" className={navClassName}>
+        <Link
+          href={buildCatalogHref({ listingType, category })}
+          className="catalog-breadcrumb-link catalog-breadcrumb-current"
+          aria-current="page"
+        >
+          {category}
+        </Link>
+      </nav>
+    );
+  }
 
   return (
-    <nav
-      aria-label="Fil d'Ariane"
-      className={`catalog-breadcrumb ${className}`.trim()}
-    >
+    <nav aria-label="Fil d'Ariane" className={navClassName}>
       <Link href="/" className="catalog-breadcrumb-link">
         Page d&apos;accueil
       </Link>

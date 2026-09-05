@@ -122,14 +122,36 @@ export default async function AnnoncePage({
     <>
       <Header light />
       <main className="section-light min-h-[calc(100dvh-4rem)] flex-1">
-        <div className="listing-page mx-auto w-full max-w-[1200px] px-6 pb-24 pt-24 md:pb-32 md:pt-28">
-          <MotionDiv>
-            <CatalogBreadcrumb
-              listingType={listing.listing_type}
-              category={listing.category}
-              className="catalog-breadcrumb-page"
-            />
-          </MotionDiv>
+        <div
+          className={`listing-page mx-auto w-full max-w-[1200px] ${
+            src === "prod" ? "listing-page-prod" : ""
+          }`}
+        >
+          <div className="listing-page-top">
+            <MotionDiv>
+              {src === "prod" ? (
+                <>
+                  <CatalogBreadcrumb
+                    variant="category"
+                    listingType={listing.listing_type}
+                    category={listing.category}
+                    className="catalog-breadcrumb-page catalog-breadcrumb-compact"
+                  />
+                  <CatalogBreadcrumb
+                    listingType={listing.listing_type}
+                    category={listing.category}
+                    className="catalog-breadcrumb-page catalog-breadcrumb-full"
+                  />
+                </>
+              ) : (
+                <CatalogBreadcrumb
+                  listingType={listing.listing_type}
+                  category={listing.category}
+                  className="catalog-breadcrumb-page"
+                />
+              )}
+            </MotionDiv>
+          </div>
 
           <div className="listing-page-grid">
             <MotionDiv delay={0.06} className="listing-page-media-col">
