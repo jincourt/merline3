@@ -71,20 +71,42 @@ export function subscriptionProfileUpdateFromStripe(
   merline_pro_auto_renew: boolean;
   stripe_subscription_id: string;
 } {
+  const period = getSubscriptionBillingPeriod(subscription);
   const active =
     ACTIVE_STRIPE_STATUSES.has(subscription.status) &&
-    new Date(subscription.current_period_end * 1000) > new Date();
+    period !== null &&
+    new Date(period.end * 1000) > new Date();
+
+  if (!period) {
+    return {
+      merline_pro_active: ACTIVE_STRIPE_STATUSES.has(subscription.status),
+      merline_pro_started_at: new Date(subscription.created * 1000).toISOString(),
+      merline_pro_expires_at: new Date(subscription.created * 1000).toISOString(),
+      merline_pro_auto_renew: !subscription.cancel_at_period_end,
+      stripe_subscription_id: subscription.id,
+    };
+  }
 
   return {
     merline_pro_active: active,
-    merline_pro_started_at: new Date(
-      subscription.current_period_start * 1000,
-    ).toISOString(),
-    merline_pro_expires_at: new Date(
-      subscription.current_period_end * 1000,
-    ).toISOString(),
+    merline_pro_started_at: new Date(period.start * 1000).toISOString(),
+    merline_pro_expires_at: new Date(period.end * 1000).toISOString(),
     merline_pro_auto_renew: !subscription.cancel_at_period_end,
     stripe_subscription_id: subscription.id,
+  };
+}
+
+function getSubscriptionBillingPeriod(
+  subscription: Stripe.Subscription,
+): { start: number; end: number } | null {
+  const item = subscription.items.data[0];
+  if (!item?.current_period_start || !item?.current_period_end) {
+    return null;
+  }
+
+  return {
+    start: item.current_period_start,
+    end: item.current_period_end,
   };
 }
 

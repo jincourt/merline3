@@ -74,8 +74,9 @@ export default async function VendrePaiementPage({
     .eq("id", user.id)
     .maybeSingle();
 
-  const skipPlanCharge =
-    profile && isSubscriptionCurrentlyActive(profile) && planId === "abonnement";
+  const skipPlanCharge = Boolean(
+    profile && isSubscriptionCurrentlyActive(profile) && planId === "abonnement",
+  );
   const total = calculateCheckoutTotal(planId, boostId, { skipPlanCharge });
   const listingPhoto =
     (listing.photos as string[] | null)?.find((photo) => photo?.startsWith("http")) ??

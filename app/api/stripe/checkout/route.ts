@@ -46,10 +46,11 @@ export async function POST(request: Request) {
       .eq("id", user.id)
       .maybeSingle();
 
-    const skipPlanCharge =
+    const skipPlanCharge = Boolean(
       profile &&
-      isSubscriptionCurrentlyActive(profile) &&
-      listing.checkout_plan === "abonnement";
+        isSubscriptionCurrentlyActive(profile) &&
+        listing.checkout_plan === "abonnement",
+    );
 
     const origin = getAppOrigin(request);
 
