@@ -76,6 +76,7 @@ export function toCatalogListing(
     commission_type: item.commission_type,
     commission_value: item.commission_value,
     price: item.price ?? null,
+    price_type: item.price_type ?? null,
     is_free: false,
     address: item.address,
     photos: item.photos,
@@ -251,7 +252,7 @@ export function formatCatalogSalePrice(item: CatalogListing) {
 }
 
 export function getCatalogSalePriceLabel(item: CatalogListing) {
-  return getSalePriceLabel(item.commission_type);
+  return getSalePriceLabel(item.commission_type, item.price_type);
 }
 
 export type PublicListing = CatalogListing & {
@@ -269,7 +270,7 @@ export async function fetchPublicListing(
     const primary = await supabase
       .from("products")
       .select(
-        "id, listing_type, category, title, description, commission_type, commission_value, price, address, photos, email, user_id, created_at, status, session_views, favorite_count",
+        "id, listing_type, category, title, description, commission_type, commission_value, price, price_type, address, photos, email, user_id, created_at, status, session_views, favorite_count",
       )
       .eq("id", id)
       .eq("status", "active")
@@ -282,7 +283,7 @@ export async function fetchPublicListing(
             await supabase
               .from("products")
               .select(
-                "id, listing_type, category, title, description, commission_type, commission_value, price, address, photos, email, user_id, created_at, status",
+                "id, listing_type, category, title, description, commission_type, commission_value, price, price_type, address, photos, email, user_id, created_at, status",
               )
               .eq("id", id)
               .eq("status", "active")
@@ -303,6 +304,7 @@ export async function fetchPublicListing(
       commission_type: listing.commission_type,
       commission_value: listing.commission_value,
       price: "price" in listing ? listing.price ?? null : null,
+      price_type: "price_type" in listing ? listing.price_type ?? null : null,
       is_free: false,
       address: listing.address,
       photos: listing.photos ?? [],

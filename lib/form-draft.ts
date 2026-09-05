@@ -1,5 +1,10 @@
 import type { FormMode } from "@/components/listings/ListingForm";
-import type { CommissionType, ListingType } from "@/lib/types";
+import {
+  resolvePriceType,
+  type CommissionType,
+  type ListingType,
+  type PriceType,
+} from "@/lib/types";
 
 export type FormDraft = {
   listingType: ListingType;
@@ -8,6 +13,7 @@ export type FormDraft = {
   isFree: boolean;
   commissionType: CommissionType;
   commissionValue: string;
+  priceType: PriceType;
   photos: string[];
   title: string;
   description: string;
@@ -27,13 +33,23 @@ export function loadFormDraft(mode: FormMode): FormDraft | null {
     const raw = sessionStorage.getItem(storageKey(mode));
     if (!raw) return null;
     const draft = JSON.parse(raw) as Partial<FormDraft>;
+    const commissionType: CommissionType =
+      draft.commissionType === "percent" ? "percent" : "chf";
+    const listingType: ListingType =
+      draft.listingType === "service" ? "service" : "objet";
+
     return {
-      listingType: draft.listingType ?? "objet",
+      listingType,
       category: draft.category ?? "",
       customCategory: draft.customCategory ?? "",
       isFree: draft.isFree ?? false,
-      commissionType: draft.commissionType === "percent" ? "percent" : "chf",
-      commissionValue: draft.commissionValue ?? draft.price ?? "",
+      commissionType,
+      commissionValue: draft.commissionValue ?? "",
+      priceType: resolvePriceType(
+        draft.priceType as PriceType | undefined,
+        commissionType,
+        listingType,
+      ),
       photos: draft.photos ?? [],
       title: draft.title ?? "",
       description: draft.description ?? "",

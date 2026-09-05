@@ -24,12 +24,16 @@ import {
 } from "@/lib/form-draft";
 import {
   getCategoriesForType,
+  getAvailablePriceTypes,
   isPhysicalListingType,
   LISTING_TYPES,
   normalizeListingType,
+  PRICE_TYPE_LABELS,
+  resolvePriceType,
   type CommissionType,
   type EditListingData,
   type ListingType,
+  type PriceType,
 } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 
@@ -70,8 +74,9 @@ const MODE_COPY = {
   sell: {
     priceLabel: "Commission",
     priceError: "Indiquez une commission valide.",
-    salePriceError: "Indiquez un prix valide.",
+    salePriceError: "Indiquez un prix fixe valide.",
     salePriceAverageError: "Indiquez un prix moyen valide.",
+    salePriceHourlyError: "Indiquez un taux horaire valide.",
     submitPending: "Publication…",
     submitLabel: "Publier l'annonce",
     titlePlaceholderService: "Ex. Cours de piano à domicile",
@@ -186,6 +191,192 @@ function StripeSegment<T extends string>({
   );
 }
 
+function getSalePriceValidationMessage(priceType: PriceType) {
+  if (priceType === "average") return MODE_COPY.sell.salePriceAverageError;
+  if (priceType === "hourly") return MODE_COPY.sell.salePriceHourlyError;
+  return MODE_COPY.sell.salePriceError;
+}
+
+function SellPricingFields({
+  variant,
+  commissionType,
+  onCommissionTypeChange,
+  commissionValue,
+  onCommissionValueChange,
+  listingType,
+  priceType,
+  onPriceTypeChange,
+  price,
+  onPriceChange,
+}: {
+  variant: "stripe" | "classic";
+  commissionType: CommissionType;
+  onCommissionTypeChange: (value: CommissionType) => void;
+  commissionValue: string;
+  onCommissionValueChange: (value: string) => void;
+  listingType: ListingType;
+  priceType: PriceType;
+  onPriceTypeChange: (value: PriceType) => void;
+  price: string;
+  onPriceChange: (value: string) => void;
+}) {
+  const resolvedPriceType = resolvePriceType(
+    priceType,
+    commissionType,
+    listingType,
+  );
+  const availablePriceTypes = getAvailablePriceTypes(commissionType, listingType);
+  const showPriceTypeChoice = availablePriceTypes.length > 1;
+  const commissionAmountLabel =
+    commissionType === "percent" ? "Pourcentage" : "Montant commission";
+  const priceAmountLabel = `${PRICE_TYPE_LABELS[resolvedPriceType]} (CHF)`;
+  const priceTypeOptions = availablePriceTypes.map((value) => ({
+    value,
+    label: PRICE_TYPE_LABELS[value],
+  }));
+
+  if (variant === "stripe") {
+    return (
+      <>
+        <StripeSegment
+          label="Unité"
+          options={COMMISSION_UNIT_OPTIONS}
+          value={commissionType}
+          onChange={onCommissionTypeChange}
+        />
+        {showPriceTypeChoice ? (
+          <StripeSegment
+            label="Type de prix"
+            options={priceTypeOptions}
+            value={resolvedPriceType}
+            onChange={onPriceTypeChange}
+          />
+        ) : null}
+        <div className="form-stripe-row">
+          <div className="form-stripe-field">
+            <label htmlFor="commission_value" className="field-label">
+              {commissionAmountLabel}
+            </label>
+            <input
+              id="commission_value"
+              type="number"
+              min="0"
+              max={commissionType === "percent" ? "100" : undefined}
+              step={commissionType === "percent" ? "0.5" : "1"}
+              value={commissionValue}
+              onChange={(event) => onCommissionValueChange(event.target.value)}
+              placeholder={commissionType === "percent" ? "10" : "120"}
+              className="field-input"
+            />
+          </div>
+          <div className="form-stripe-field">
+            <label htmlFor="listing_price" className="field-label">
+              {priceAmountLabel}
+            </label>
+            <input
+              id="listing_price"
+              name="price"
+              type="number"
+              min="0"
+              step="1"
+              value={price}
+              onChange={(event) => onPriceChange(event.target.value)}
+              placeholder={
+                resolvedPriceType === "hourly"
+                  ? "80"
+                  : resolvedPriceType === "average"
+                    ? "2500"
+                    : "1200"
+              }
+              className="field-input"
+            />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="catalog-filter-grid mt-2">
+        {COMMISSION_UNIT_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            className={`catalog-filter-pill catalog-filter-pill-lg ${
+              commissionType === option.value ? "catalog-filter-pill-active" : ""
+            }`}
+            onClick={() => onCommissionTypeChange(option.value)}
+            aria-pressed={commissionType === option.value}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+      {showPriceTypeChoice ? (
+        <div className="mt-3">
+          <span className="field-label">Type de prix</span>
+          <div className="catalog-filter-grid mt-2">
+            {priceTypeOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={`catalog-filter-pill catalog-filter-pill-lg ${
+                  resolvedPriceType === option.value
+                    ? "catalog-filter-pill-active"
+                    : ""
+                }`}
+                onClick={() => onPriceTypeChange(option.value)}
+                aria-pressed={resolvedPriceType === option.value}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      <div className="mt-3">
+        <label htmlFor="commission_value" className="field-label">
+          {commissionAmountLabel}
+        </label>
+        <input
+          id="commission_value"
+          type="number"
+          min="0"
+          max={commissionType === "percent" ? "100" : undefined}
+          step={commissionType === "percent" ? "0.5" : "1"}
+          value={commissionValue}
+          onChange={(event) => onCommissionValueChange(event.target.value)}
+          placeholder={commissionType === "percent" ? "10" : "120"}
+          className="field-input mt-2"
+        />
+      </div>
+      <div className="mt-3">
+        <label htmlFor="listing_price" className="field-label">
+          {priceAmountLabel}
+        </label>
+        <input
+          id="listing_price"
+          name="price"
+          type="number"
+          min="0"
+          step="1"
+          value={price}
+          onChange={(event) => onPriceChange(event.target.value)}
+          placeholder={
+            resolvedPriceType === "hourly"
+              ? "80"
+              : resolvedPriceType === "average"
+                ? "2500"
+                : "1200"
+          }
+          className="field-input mt-2"
+        />
+      </div>
+    </>
+  );
+}
+
 function getFieldValue(form: HTMLFormElement, name: string) {
   const field = form.elements.namedItem(name);
   if (!field || !("value" in field) || typeof field.value !== "string") {
@@ -263,8 +454,9 @@ export function ListingForm({
     CategorySelection[]
   >([]);
   const [isFree, setIsFree] = useState(false);
-  const [commissionType, setCommissionType] = useState<"chf" | "percent">("chf");
+  const [commissionType, setCommissionType] = useState<CommissionType>("chf");
   const [commissionValue, setCommissionValue] = useState("");
+  const [priceType, setPriceType] = useState<PriceType>("fixed");
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -303,6 +495,13 @@ export function ListingForm({
       editListing.commission_type === "percent" ? "percent" : "chf",
     );
     setCommissionValue(editListing.commission_value?.toString() ?? "");
+    setPriceType(
+      resolvePriceType(
+        editListing.price_type ?? null,
+        editListing.commission_type === "percent" ? "percent" : "chf",
+        normalizeListingType(editListing.listing_type),
+      ),
+    );
     setPhotos(editListing.photos ?? []);
     setTitle(editListing.title);
     setDescription(editListing.description);
@@ -332,7 +531,14 @@ export function ListingForm({
     }
     setIsFree(draft.isFree);
     setCommissionType(draft.commissionType === "percent" ? "percent" : "chf");
-    setCommissionValue(draft.commissionValue ?? draft.price ?? "");
+    setCommissionValue(draft.commissionValue ?? "");
+    setPriceType(
+      resolvePriceType(
+        draft.priceType,
+        draft.commissionType === "percent" ? "percent" : "chf",
+        normalizeListingType(draft.listingType),
+      ),
+    );
     setPhotos(draft.photos);
     setTitle(draft.title);
     setDescription(draft.description);
@@ -341,6 +547,12 @@ export function ListingForm({
     setEmail(draft.email || profile?.email || "");
     setDraftLoaded(true);
   }, [editListing, mode, profile?.email, flat]);
+
+  useEffect(() => {
+    setPriceType((current) =>
+      resolvePriceType(current, commissionType, listingType),
+    );
+  }, [commissionType, listingType]);
 
   useEffect(() => {
     if (!draftLoaded || editListing) return;
@@ -355,6 +567,7 @@ export function ListingForm({
       isFree,
       commissionType,
       commissionValue,
+      priceType: resolvePriceType(priceType, commissionType, listingType),
       photos,
       title,
       description,
@@ -375,6 +588,7 @@ export function ListingForm({
     isFree,
     commissionType,
     commissionValue,
+    priceType,
     photos,
     title,
     description,
@@ -394,6 +608,7 @@ export function ListingForm({
       isFree,
       commissionType,
       commissionValue,
+      priceType: resolvePriceType(priceType, commissionType, listingType),
       photos,
       title,
       description,
@@ -501,13 +716,14 @@ export function ListingForm({
         setFormError("Le pourcentage ne peut pas dépasser 100 %.");
         return false;
       }
+      const resolvedPriceType = resolvePriceType(
+        priceType,
+        commissionType,
+        listingType,
+      );
       const salePrice = Number(price);
       if (!price || Number.isNaN(salePrice) || salePrice < 0) {
-        setFormError(
-          commissionType === "percent"
-            ? MODE_COPY.sell.salePriceAverageError
-            : MODE_COPY.sell.salePriceError,
-        );
+        setFormError(getSalePriceValidationMessage(resolvedPriceType));
         return false;
       }
     } else if (!isFree && (!price || Number(price) < 0)) {
@@ -596,6 +812,11 @@ export function ListingForm({
             type="hidden"
             name="commission_value"
             value={commissionValue}
+          />
+          <input
+            type="hidden"
+            name="price_type"
+            value={resolvePriceType(priceType, commissionType, listingType)}
           />
         </>
       ) : null}
@@ -714,46 +935,18 @@ export function ListingForm({
 
       <div className="form-stripe-section">
         <p className="form-stripe-section-title">Commission</p>
-        <StripeSegment
-          label="Unité"
-          options={COMMISSION_UNIT_OPTIONS}
-          value={commissionType}
-          onChange={setCommissionType}
+        <SellPricingFields
+          variant="stripe"
+          commissionType={commissionType}
+          onCommissionTypeChange={setCommissionType}
+          commissionValue={commissionValue}
+          onCommissionValueChange={setCommissionValue}
+          listingType={listingType}
+          priceType={priceType}
+          onPriceTypeChange={setPriceType}
+          price={price}
+          onPriceChange={setPrice}
         />
-        <div className="form-stripe-row">
-          <div className="form-stripe-field">
-            <label htmlFor="commission_value" className="field-label">
-              {commissionType === "percent" ? "Pourcentage" : "Montant"}
-            </label>
-            <input
-              id="commission_value"
-              type="number"
-              min="0"
-              max={commissionType === "percent" ? "100" : undefined}
-              step={commissionType === "percent" ? "0.5" : "1"}
-              value={commissionValue}
-              onChange={(event) => setCommissionValue(event.target.value)}
-              placeholder={commissionType === "percent" ? "10" : "120"}
-              className="field-input"
-            />
-          </div>
-          <div className="form-stripe-field">
-            <label htmlFor="listing_price" className="field-label">
-              {commissionType === "percent" ? "Prix moyen (CHF)" : "Prix (CHF)"}
-            </label>
-            <input
-              id="listing_price"
-              name="price"
-              type="number"
-              min="0"
-              step="1"
-              value={price}
-              onChange={(event) => setPrice(event.target.value)}
-              placeholder={commissionType === "percent" ? "2500" : "1200"}
-              className="field-input"
-            />
-          </div>
-        </div>
       </div>
 
       {formError ? (
@@ -935,55 +1128,18 @@ export function ListingForm({
           {mode === "sell" ? (
             <div>
               <label className="field-label">{copy.priceLabel}</label>
-              <div className="catalog-filter-grid mt-2">
-                {COMMISSION_UNIT_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    className={`catalog-filter-pill catalog-filter-pill-lg ${
-                      commissionType === option.value ? "catalog-filter-pill-active" : ""
-                    }`}
-                    onClick={() => setCommissionType(option.value)}
-                    aria-pressed={commissionType === option.value}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-3">
-                <label htmlFor="commission_value" className="field-label">
-                  {commissionType === "percent"
-                    ? "Pourcentage"
-                    : "Montant (CHF)"}
-                </label>
-                <input
-                  id="commission_value"
-                  type="number"
-                  min="0"
-                  max={commissionType === "percent" ? "100" : undefined}
-                  step={commissionType === "percent" ? "0.5" : "1"}
-                  value={commissionValue}
-                  onChange={(event) => setCommissionValue(event.target.value)}
-                  placeholder={commissionType === "percent" ? "10" : "120"}
-                  className="field-input mt-2"
-                />
-              </div>
-              <div className="mt-3">
-                <label htmlFor="listing_price" className="field-label">
-                  {commissionType === "percent" ? "Prix moyen (CHF)" : "Prix (CHF)"}
-                </label>
-                <input
-                  id="listing_price"
-                  name="price"
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={price}
-                  onChange={(event) => setPrice(event.target.value)}
-                  placeholder={commissionType === "percent" ? "2500" : "1200"}
-                  className="field-input mt-2"
-                />
-              </div>
+              <SellPricingFields
+                variant="classic"
+                commissionType={commissionType}
+                onCommissionTypeChange={setCommissionType}
+                commissionValue={commissionValue}
+                onCommissionValueChange={setCommissionValue}
+                listingType={listingType}
+                priceType={priceType}
+                onPriceTypeChange={setPriceType}
+                price={price}
+                onPriceChange={setPrice}
+              />
             </div>
           ) : (
             <div className="grid gap-5 md:grid-cols-2">

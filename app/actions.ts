@@ -29,8 +29,12 @@ import {
 import {
   VALID_LISTING_TYPES,
   VALID_COMMISSION_TYPES,
+  isValidPriceType,
+  resolvePriceType,
   type CommissionType,
   type ListingSource,
+  type ListingType,
+  type PriceType,
 } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -58,6 +62,7 @@ type ParsedListingForm = {
   photos: string[];
   isFree?: boolean;
   price?: number | null;
+  priceType?: PriceType;
   commissionType?: CommissionType;
   commissionValue?: number | null;
 };
@@ -142,16 +147,34 @@ function parseListingFormData(
 
     const priceRaw = String(formData.get("price") ?? "").trim();
     const price = priceRaw ? Number(priceRaw) : null;
+    const priceTypeRaw = String(formData.get("price_type") ?? "").trim();
+    const listingTypeValue = listingType as ListingType;
+    const commissionTypeValue = commissionType as CommissionType;
 
     if (price === null || Number.isNaN(price) || price < 0) {
+      const resolvedForMessage = resolvePriceType(
+        isValidPriceType(priceTypeRaw) ? priceTypeRaw : null,
+        commissionTypeValue,
+        listingTypeValue,
+      );
+      const priceLabel =
+        resolvedForMessage === "average"
+          ? "prix moyen"
+          : resolvedForMessage === "hourly"
+            ? "taux horaire"
+            : "prix fixe";
+
       return {
         ok: false,
-        message:
-          commissionType === "percent"
-            ? "Indiquez un prix moyen valide."
-            : "Indiquez un prix valide.",
+        message: `Indiquez un ${priceLabel} valide.`,
       };
     }
+
+    const priceType = resolvePriceType(
+      isValidPriceType(priceTypeRaw) ? priceTypeRaw : null,
+      commissionTypeValue,
+      listingTypeValue,
+    );
 
     return {
       ok: true,
@@ -164,9 +187,10 @@ function parseListingFormData(
         address,
         email,
         photos,
-        commissionType,
+        commissionType: commissionTypeValue,
         commissionValue,
         price,
+        priceType,
       },
     };
   }
@@ -208,6 +232,7 @@ function productListingPayload(data: ParsedListingForm) {
     commission_type: data.commissionType,
     commission_value: data.commissionValue ?? null,
     price: data.price ?? null,
+    price_type: data.priceType ?? null,
     address: data.address,
     email: data.email || null,
     photos: data.photos,

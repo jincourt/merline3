@@ -8,7 +8,17 @@ export type ListingStatus = "active" | "paused" | "sold" | "closed" | "found";
 
 export type CommissionType = "chf" | "percent";
 
+export type PriceType = "fixed" | "average" | "hourly";
+
 export const VALID_COMMISSION_TYPES: CommissionType[] = ["chf", "percent"];
+
+export const VALID_PRICE_TYPES: PriceType[] = ["fixed", "average", "hourly"];
+
+export const PRICE_TYPE_LABELS: Record<PriceType, string> = {
+  fixed: "Prix fixe",
+  average: "Prix moyen",
+  hourly: "Taux horaire",
+};
 
 export type ListingFields = {
   listing_type: ListingType;
@@ -39,6 +49,7 @@ export type Product = ListingFields & {
   commission_type: CommissionType;
   commission_value: number;
   price: number | null;
+  price_type: PriceType | null;
   session_views?: number;
   favorite_count?: number;
 };
@@ -105,6 +116,7 @@ export type CatalogListing = {
   commission_type: CommissionType | null;
   commission_value: number | null;
   price: number | null;
+  price_type?: PriceType | null;
   is_free: boolean;
   address: string;
   photos: string[];
@@ -142,10 +154,40 @@ export function formatSalePrice(price: number | null | undefined) {
   return formatChfAmount(price);
 }
 
+export function isValidPriceType(value: string): value is PriceType {
+  return VALID_PRICE_TYPES.includes(value as PriceType);
+}
+
+export function getAvailablePriceTypes(
+  commissionType: CommissionType,
+  listingType: ListingType,
+): PriceType[] {
+  if (commissionType === "percent") {
+    return listingType === "service" ? ["average", "hourly"] : ["average"];
+  }
+  if (listingType === "service") return ["fixed", "hourly"];
+  return ["fixed"];
+}
+
+export function resolvePriceType(
+  priceType: PriceType | null | undefined,
+  commissionType: CommissionType,
+  listingType: ListingType,
+): PriceType {
+  const available = getAvailablePriceTypes(commissionType, listingType);
+  if (priceType && available.includes(priceType)) return priceType;
+  return available[0];
+}
+
 export function getSalePriceLabel(
   commissionType: CommissionType | null | undefined,
+  priceType?: PriceType | null,
 ) {
-  return commissionType === "percent" ? "Prix moyen" : "Prix";
+  if (priceType && priceType in PRICE_TYPE_LABELS) {
+    return PRICE_TYPE_LABELS[priceType];
+  }
+  if (commissionType === "percent") return PRICE_TYPE_LABELS.average;
+  return PRICE_TYPE_LABELS.fixed;
 }
 
 export function intentToSource(intent: ListingIntent): ListingSource {
@@ -173,5 +215,6 @@ export type EditListingData = ListingFields & {
   commission_type?: CommissionType;
   commission_value?: number | null;
   price?: number | null;
+  price_type?: PriceType | null;
   is_free?: boolean;
 };

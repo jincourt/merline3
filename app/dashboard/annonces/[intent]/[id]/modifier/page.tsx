@@ -46,6 +46,7 @@ export default async function ModifierAnnoncePage({
     commission_type: listing.commission_type,
     commission_value: listing.commission_value,
     price: listing.price ?? null,
+    price_type: listing.price_type ?? null,
     address: listing.address,
     email: listing.email,
     photos: listing.photos ?? [],
