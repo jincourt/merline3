@@ -57,6 +57,7 @@ export const OBJECT_CATEGORIES = [
   "Livres",
   "Art & Déco",
   "Sport",
+  "Véhicule",
   "Personnalisé",
 ] as const;
 

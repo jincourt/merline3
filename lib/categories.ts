@@ -60,6 +60,18 @@ export const OBJECT_CATEGORY_GROUPS: CategoryGroup[] = [
     ],
   },
   {
+    label: "Véhicule",
+    subcategories: [
+      "Voitures",
+      "Motos & scooters",
+      "Utilitaires & camions",
+      "Bateaux & nautique",
+      "Caravanes & camping-cars",
+      "Pièces & accessoires",
+      "Autre",
+    ],
+  },
+  {
     label: "Personnalisé",
     subcategories: [],
   },
