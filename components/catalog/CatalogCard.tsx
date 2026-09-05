@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Star } from "lucide-react";
 import type { CatalogListing } from "@/lib/types";
 import {
@@ -12,6 +11,7 @@ import {
 import { getAgentDisplayName } from "@/lib/agent-profiles";
 import { getListingHref } from "@/lib/types";
 import { MotionArticle } from "@/components/ui/motion";
+import { ListingPhotoGallery } from "@/components/listings/ListingPhotoGallery";
 import { ProfileAvatar } from "@/components/profiles/ProfileAvatar";
 import { ProfileReviewStars } from "@/components/profiles/ProfileReviewForm";
 
@@ -46,33 +46,29 @@ function CatalogCardRatingBadge({
   );
 }
 
-function ListingImage({
-  image,
+function CatalogCardImage({
+  photos,
   title,
   sizes,
   overlay,
 }: {
-  image?: string;
+  photos?: string[];
   title: string;
   sizes: string;
   overlay?: ReactNode;
 }) {
   return (
     <div className="catalog-card-image">
-      {image ? (
-        <Image
-          src={image}
-          alt={title}
-          fill
-          className="object-cover"
-          sizes={sizes}
-        />
-      ) : (
-        <div className="flex h-full items-center justify-center">
-          <span className="text-xs text-[var(--muted-dim)]">Aucune image</span>
-        </div>
-      )}
-      {overlay}
+      <ListingPhotoGallery
+        photos={photos ?? []}
+        alt={title}
+        variant="compact"
+        sizes={sizes}
+        showCounter={false}
+        fill
+        overlay={overlay}
+        stopLinkNavigation
+      />
     </div>
   );
 }
@@ -180,7 +176,7 @@ export function CatalogCard({
   delay?: number;
   variant?: "list" | "grid" | "profile";
 }) {
-  const image = listing.photos?.find((photo) => photo?.startsWith("http"));
+  const photos = listing.photos ?? [];
   const href = getListingHref(listing.id, listing.intent);
   const commission = formatListingPrice(listing);
   const salePrice = formatCatalogSalePrice(listing);
@@ -190,8 +186,8 @@ export function CatalogCard({
       <MotionArticle delay={delay} hoverLift={false} className="h-full">
         <Link href={href} className="catalog-card catalog-card-grid group flex h-full flex-col">
           <div className="catalog-card-grid-media">
-            <ListingImage
-              image={image}
+            <CatalogCardImage
+              photos={photos}
               title={listing.title}
               sizes="(max-width: 1024px) 50vw, 33vw"
               overlay={
@@ -232,8 +228,8 @@ export function CatalogCard({
       <MotionArticle delay={delay} hoverLift={false}>
         <Link href={href} className="catalog-card catalog-card-profile group">
           <div className="catalog-card-profile-media">
-            <ListingImage
-              image={image}
+            <CatalogCardImage
+              photos={photos}
               title={listing.title}
               sizes="15rem"
               overlay={
@@ -273,8 +269,8 @@ export function CatalogCard({
     <MotionArticle delay={delay} hoverLift={false}>
       <Link href={href} className="catalog-card catalog-card-list group">
         <div className="catalog-card-list-media">
-          <ListingImage
-            image={image}
+          <CatalogCardImage
+            photos={photos}
             title={listing.title}
             sizes="(max-width: 768px) 100vw, 200px"
           />
