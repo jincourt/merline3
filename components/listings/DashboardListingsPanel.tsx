@@ -99,58 +99,64 @@ export function DashboardListingsPanel({ listings }: { listings: DashboardListin
 
   return (
     <div className="dashboard-listings-panel-wrap">
-      <MotionDiv delay={0.06} className="dashboard-listings-panel">
-        <div className="dashboard-listings-panel-head">
-          <label htmlFor="dashboard-listings-search" className="sr-only">
-            Rechercher une annonce
-          </label>
-          <input
-            id="dashboard-listings-search"
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Rechercher une annonce"
-            className="field-input dashboard-listings-panel-search"
-          />
-          <SelectDropdown
-            id="dashboard-listings-status"
-            value={status}
-            onChange={setStatus}
-            options={[...STATUS_OPTIONS]}
-            placeholder="Statut"
-            className="catalog-toolbar-select dashboard-listings-panel-filter"
-            active={Boolean(status)}
-            mobileBehavior="dialog"
-            portalPanel
-            panelAlign="start"
-          />
-          <SelectDropdown
-            id="dashboard-listings-sort"
-            value={sort}
-            onChange={(value) => setSort(value as SortValue)}
-            options={[...SORT_OPTIONS]}
-            placeholder="Trier"
-            className="catalog-toolbar-select dashboard-listings-panel-filter"
-            active={Boolean(sort) && sort !== "newest"}
-            mobileBehavior="dialog"
-            portalPanel
-            panelAlign="end"
-          />
+      <MotionDiv delay={0.06} className="dashboard-listings-panel-stack">
+        <div className="dashboard-listings-panel dashboard-listings-toolbar-panel">
+          <div className="dashboard-listings-panel-head">
+            <label htmlFor="dashboard-listings-search" className="sr-only">
+              Rechercher une annonce
+            </label>
+            <input
+              id="dashboard-listings-search"
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Rechercher une annonce"
+              className="field-input dashboard-listings-panel-search"
+            />
+            <SelectDropdown
+              id="dashboard-listings-status"
+              value={status}
+              onChange={setStatus}
+              options={[...STATUS_OPTIONS]}
+              placeholder="Statut"
+              className="catalog-toolbar-select dashboard-listings-panel-filter"
+              active={Boolean(status)}
+              mobileBehavior="dialog"
+              portalPanel
+              panelAlign="start"
+            />
+            <SelectDropdown
+              id="dashboard-listings-sort"
+              value={sort}
+              onChange={(value) => setSort(value as SortValue)}
+              options={[...SORT_OPTIONS]}
+              placeholder="Trier"
+              className="catalog-toolbar-select dashboard-listings-panel-filter"
+              active={Boolean(sort) && sort !== "newest"}
+              mobileBehavior="dialog"
+              portalPanel
+              panelAlign="end"
+            />
+          </div>
         </div>
 
         {filteredListings.length === 0 ? (
-          <div className="dashboard-listings-panel-empty">
-            <p className="dashboard-listings-panel-empty-title">Aucun résultat</p>
-            <p className="dashboard-listings-panel-empty-desc">
-              Aucune annonce ne correspond à votre recherche.
-            </p>
+          <div className="dashboard-listings-panel dashboard-listings-list-panel">
+            <div className="dashboard-listings-panel-empty">
+              <p className="dashboard-listings-panel-empty-title">Aucun résultat</p>
+              <p className="dashboard-listings-panel-empty-desc">
+                Aucune annonce ne correspond à votre recherche.
+              </p>
+            </div>
           </div>
         ) : (
-          <ul className="dashboard-listings-list">
-            {filteredListings.map((listing) => (
-              <DashboardListingCard key={listing.id} listing={listing} />
-            ))}
-          </ul>
+          <div className="dashboard-listings-panel dashboard-listings-list-panel">
+            <ul className="dashboard-listings-list">
+              {filteredListings.map((listing) => (
+                <DashboardListingCard key={listing.id} listing={listing} />
+              ))}
+            </ul>
+          </div>
         )}
       </MotionDiv>
     </div>

@@ -151,12 +151,18 @@ function CatalogCardFinanceBadge({
   salePrice: string;
 }) {
   const showSalePrice = listing.intent === "sell" && listing.price != null;
+  const isHourlyRate = listing.price_type === "hourly";
 
   return (
     <p className="catalog-card-finance">
       {showSalePrice ? (
         <>
-          <span className="catalog-card-finance-price">{salePrice}</span>
+          <span
+            className="catalog-card-finance-price"
+            {...(isHourlyRate ? { "aria-label": `${salePrice} par heure` } : {})}
+          >
+            {salePrice}
+          </span>
           <span className="catalog-card-finance-sep" aria-hidden>
             ·
           </span>

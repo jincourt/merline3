@@ -7,6 +7,7 @@ import {
   updateListingStatus,
   type ListingStatus,
 } from "@/app/auth/actions";
+import { ListingDeleteButton } from "@/components/listings/ListingDeleteButton";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
 import { getListingEditHref, getListingHref } from "@/lib/types";
 import type { CommissionType } from "@/lib/types";
@@ -139,6 +140,15 @@ export function DashboardListingCard({
               Modifier
             </Link>
           )}
+          {isIncomplete ? (
+            <ListingDeleteButton
+              listingId={listing.id}
+              intent={listing.intent}
+              title={listing.title}
+              variant="icon"
+              redirectAfterDelete={false}
+            />
+          ) : null}
         </div>
       </div>
     </li>

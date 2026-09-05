@@ -248,7 +248,7 @@ export function formatListingPrice(item: CatalogListing) {
 }
 
 export function formatCatalogSalePrice(item: CatalogListing) {
-  return formatSalePrice(item.price);
+  return formatSalePrice(item.price, item.price_type);
 }
 
 export function getCatalogSalePriceLabel(item: CatalogListing) {

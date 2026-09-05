@@ -10,21 +10,28 @@ export function ListingDeleteButton({
   listingId,
   intent,
   title,
+  variant = "default",
+  redirectAfterDelete = true,
 }: {
   listingId: string;
   intent: "sell" | "buy";
   title: string;
+  variant?: "default" | "icon";
+  redirectAfterDelete?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const isIcon = variant === "icon";
 
   function handleDeleteConfirm() {
     startTransition(async () => {
       const result = await deleteListing(listingId, intent);
       if (result.success) {
         setDeleteDialogOpen(false);
-        router.push("/dashboard/annonces");
+        if (redirectAfterDelete) {
+          router.push("/dashboard/annonces");
+        }
         router.refresh();
       }
     });
@@ -36,10 +43,15 @@ export function ListingDeleteButton({
         type="button"
         onClick={() => setDeleteDialogOpen(true)}
         disabled={pending}
-        className="dashboard-listing-delete-btn"
+        className={
+          isIcon
+            ? "dashboard-listing-row-delete-btn"
+            : "dashboard-listing-delete-btn"
+        }
+        aria-label={isIcon ? "Supprimer l'annonce" : undefined}
       >
         <Trash2 className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-        Supprimer l&apos;annonce
+        {!isIcon ? "Supprimer l'annonce" : null}
       </button>
 
       <ConfirmDialog

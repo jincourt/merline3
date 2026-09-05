@@ -149,8 +149,17 @@ export function formatCommission(
   return formatChfAmount(commissionValue);
 }
 
-export function formatSalePrice(price: number | null | undefined) {
+export function formatSalePrice(
+  price: number | null | undefined,
+  priceType?: PriceType | null,
+) {
   if (price === null || price === undefined) return "—";
+  if (priceType === "hourly") {
+    const amount = new Intl.NumberFormat("fr-CH", {
+      maximumFractionDigits: 0,
+    }).format(price);
+    return `${amount} CHF/h`;
+  }
   return formatChfAmount(price);
 }
 
