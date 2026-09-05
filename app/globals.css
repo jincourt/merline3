@@ -6599,6 +6599,104 @@ textarea.field-input {
   box-shadow: 0 1px 2px rgba(10, 37, 64, 0.04);
 }
 
+.listing-photo-gallery {
+  width: 100%;
+}
+
+.listing-photo-gallery-frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+}
+
+@media (min-width: 1024px) {
+  .listing-photo-gallery-frame {
+    aspect-ratio: 1 / 1;
+  }
+}
+
+.listing-photo-gallery-image {
+  transition: opacity 0.2s ease;
+}
+
+.listing-photo-gallery-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--foreground);
+  box-shadow: 0 2px 10px rgba(10, 37, 64, 0.14);
+  transform: translateY(-50%);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.listing-photo-gallery-nav:hover {
+  background: #ffffff;
+  border-color: rgba(255, 255, 255, 0.95);
+}
+
+.listing-photo-gallery-nav:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.listing-photo-gallery-nav svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.listing-photo-gallery-nav-prev {
+  left: 0.75rem;
+}
+
+.listing-photo-gallery-nav-next {
+  right: 0.75rem;
+}
+
+.listing-photo-gallery-counter {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  border-radius: 9999px;
+  background: rgba(10, 37, 64, 0.72);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+}
+
+@media (min-width: 640px) {
+  .listing-photo-gallery-nav {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .listing-photo-gallery-nav-prev {
+    left: 1rem;
+  }
+
+  .listing-photo-gallery-nav-next {
+    right: 1rem;
+  }
+
+  .listing-photo-gallery-counter {
+    right: 1rem;
+    bottom: 1rem;
+    font-size: 0.8125rem;
+  }
+}
+
 .listing-page-details {
   width: 100%;
   min-width: 0;

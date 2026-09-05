@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -7,6 +6,7 @@ import { CatalogBreadcrumb } from "@/components/catalog/CatalogBreadcrumb";
 import { ListingDescription } from "@/components/listings/ListingDescription";
 import { ListingPageHeader } from "@/components/listings/ListingPageHeader";
 import { ListingMessageForm } from "@/components/listings/ListingMessageForm";
+import { ListingPhotoGallery } from "@/components/listings/ListingPhotoGallery";
 import { ListingPricing } from "@/components/listings/ListingPricing";
 import { ProfileContactDialog } from "@/components/profiles/ProfileContactDialog";
 import { ListingOwnerPreview } from "@/components/profiles/ListingOwnerPreview";
@@ -60,7 +60,7 @@ export default async function AnnoncePage({
     ? await isListingFavorited(supabase, user.id, id, src)
     : false;
 
-  const image = listing.photos?.find((photo) => photo?.startsWith("http"));
+  const photos = listing.photos ?? [];
   const intent = sourceToIntent(src);
   const isOwner = Boolean(user && listing.user_id && user.id === listing.user_id);
   const loginHref = `/login?next=${encodeURIComponent(`/annonce/${src}/${id}`)}`;
@@ -134,22 +134,7 @@ export default async function AnnoncePage({
           <div className="listing-page-grid">
             <MotionDiv delay={0.06} className="listing-page-media-col">
               <div className="listing-page-media">
-                {image ? (
-                  <div className="relative aspect-[4/3] lg:aspect-square">
-                    <Image
-                      src={image}
-                      alt={listing.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 1023px) 100vw, 50vw"
-                      priority
-                    />
-                  </div>
-                ) : (
-                  <div className="flex aspect-[4/3] items-center justify-center bg-[var(--surface-elevated)] lg:aspect-square">
-                    <span className="text-sm text-[var(--muted-dim)]">Aucune image</span>
-                  </div>
-                )}
+                <ListingPhotoGallery photos={photos} alt={listing.title} />
               </div>
             </MotionDiv>
 
