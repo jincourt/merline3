@@ -1,10 +1,14 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { Footer } from "@/components/layout/Footer";
 import { PageMotion } from "@/components/layout/PageMotion";
+import { HeaderIcon, PlusIcon } from "@/components/layout/HeaderIcons";
 import {
   MessagesListPanel,
   type MessageConversation,
+  type MessageGroup,
+  type MessageThread,
 } from "@/components/messages/MessagesListPanel";
 import { getAgentDisplayName } from "@/lib/agent-profiles";
 import type { ConvSource } from "@/lib/types";
@@ -15,6 +19,13 @@ type ConversationRow = {
   src: ConvSource;
   owner_id: string;
   peer_id: string;
+  updated_at: string;
+};
+
+type GroupRow = {
+  id: string;
+  title: string;
+  image_url: string | null;
   updated_at: string;
 };
 
@@ -98,6 +109,80 @@ function getConversationTitle(
   return listingTitles.get(`${conv.src}:${conv.listing_id}`) ?? "";
 }
 
+async function getUserGroups(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+) {
+  const { data: memberships } = await supabase
+    .from("msg_group_members")
+    .select("group_id, last_read_at")
+    .eq("user_id", userId);
+
+  const groupIds = (memberships ?? []).map((membership) => membership.group_id);
+  if (!groupIds.length) return [] as MessageGroup[];
+
+  const readMap = new Map(
+    (memberships ?? []).map((membership) => [
+      membership.group_id,
+      membership.last_read_at,
+    ]),
+  );
+
+  const [{ data: groups }, { data: memberCounts }] = await Promise.all([
+    supabase
+      .from("msg_groups")
+      .select("id, title, image_url, updated_at")
+      .in("id", groupIds),
+    supabase.from("msg_group_members").select("group_id").in("group_id", groupIds),
+  ]);
+
+  const countMap = new Map<string, number>();
+  for (const row of memberCounts ?? []) {
+    countMap.set(row.group_id, (countMap.get(row.group_id) ?? 0) + 1);
+  }
+
+  const enriched = await Promise.all(
+    (groups ?? []).map(async (group: GroupRow) => {
+      const [lastMsgResult, unreadResult] = await Promise.all([
+        supabase
+          .from("msg_group_msgs")
+          .select("body, created_at, sender_id")
+          .eq("group_id", group.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        (async () => {
+          const lastReadAt = readMap.get(group.id);
+          let query = supabase
+            .from("msg_group_msgs")
+            .select("id", { count: "exact", head: true })
+            .eq("group_id", group.id)
+            .neq("sender_id", userId);
+
+          if (lastReadAt) {
+            query = query.gt("created_at", lastReadAt);
+          }
+
+          return query;
+        })(),
+      ]);
+
+      return {
+        kind: "group" as const,
+        id: group.id,
+        title: group.title?.trim() ?? "Groupe",
+        imageUrl: group.image_url?.trim() ?? "",
+        memberCount: countMap.get(group.id) ?? 0,
+        lastBody: lastMsgResult.data?.body ?? "",
+        lastAt: lastMsgResult.data?.created_at ?? group.updated_at,
+        unread: unreadResult.count ?? 0,
+      };
+    }),
+  );
+
+  return enriched;
+}
+
 export default async function MessagesPage() {
   const user = await getUser();
   if (!user) return null;
@@ -111,12 +196,13 @@ export default async function MessagesPage() {
 
   const conversations = convs ?? [];
 
-  const [listingTitles, profileTitles] = await Promise.all([
+  const [listingTitles, profileTitles, groups] = await Promise.all([
     getListingTitles(supabase, conversations),
     getProfileTitles(supabase, conversations),
+    getUserGroups(supabase, user.id),
   ]);
 
-  const enriched: MessageConversation[] = await Promise.all(
+  const directThreads: MessageConversation[] = await Promise.all(
     conversations.map(async (conv) => {
       const title = getConversationTitle(conv, listingTitles, profileTitles);
       const [lastMsgResult, unreadResult] = await Promise.all([
@@ -150,6 +236,7 @@ export default async function MessagesPage() {
         : "Utilisateur";
 
       return {
+        kind: "direct" as const,
         id: conv.id,
         title,
         otherName,
@@ -163,6 +250,10 @@ export default async function MessagesPage() {
     }),
   );
 
+  const threads: MessageThread[] = [...directThreads, ...groups].sort(
+    (a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime(),
+  );
+
   return (
     <>
       <div className="messages-page w-full">
@@ -171,13 +262,22 @@ export default async function MessagesPage() {
             <header className="messages-page-head">
               <h1 className="messages-page-title">
                 Messages
-                {enriched.length > 0 ? (
-                  <span className="messages-page-count"> ({enriched.length})</span>
+                {threads.length > 0 ? (
+                  <span className="messages-page-count"> ({threads.length})</span>
                 ) : null}
               </h1>
+              <Link
+                href="/dashboard/messages/groupes/nouveau"
+                className="dashboard-listings-head-btn dashboard-listings-head-btn-dark messages-page-head-btn"
+              >
+                <HeaderIcon className="h-4 w-4">
+                  <PlusIcon />
+                </HeaderIcon>
+                Groupe
+              </Link>
             </header>
 
-            <MessagesListPanel conversations={enriched} />
+            <MessagesListPanel threads={threads} />
           </PageMotion>
         </div>
       </div>

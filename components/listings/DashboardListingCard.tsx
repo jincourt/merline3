@@ -3,14 +3,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useTransition } from "react";
-import {
-  updateListingStatus,
-  type ListingStatus,
-} from "@/app/auth/actions";
+import { updateListingStatus } from "@/app/auth/actions";
 import { ListingDeleteButton } from "@/components/listings/ListingDeleteButton";
 import { SelectDropdown } from "@/components/ui/SelectDropdown";
-import { getListingEditHref, getListingHref } from "@/lib/types";
-import type { CommissionType } from "@/lib/types";
+import {
+  getListingEditHref,
+  getListingHref,
+  type CommissionType,
+  type ListingStatus,
+} from "@/lib/types";
 
 export type DashboardListing = {
   id: string;

@@ -18,6 +18,7 @@ import {
   setupTypePath,
 } from "@/lib/auth";
 import { isValidProfileType } from "@/lib/profile-type";
+import type { ListingStatus } from "@/lib/types";
 
 export type AuthResult = {
   success: boolean;
@@ -395,8 +396,6 @@ export async function setupAgentDescription(
     redirectTo: sanitizeNextPath(next),
   };
 }
-
-export type ListingStatus = "active" | "paused" | "sold" | "closed" | "found";
 
 export async function updateListingStatus(
   listingId: string,

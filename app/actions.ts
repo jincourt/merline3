@@ -282,44 +282,6 @@ export type FavoriteActionResult = ActionResult & {
   favoriteCount?: number;
 };
 
-export async function submitContactRequest(
-  _prev: ActionResult | null,
-  formData: FormData,
-): Promise<ActionResult> {
-  const email = String(formData.get("email") ?? "").trim();
-  const phone = String(formData.get("phone") ?? "").trim();
-
-  if (!email || !email.includes("@")) {
-    return {
-      success: false,
-      message: "Veuillez entrer un email valide.",
-    };
-  }
-
-  if (phone.length < 8) {
-    return {
-      success: false,
-      message: "Veuillez entrer un numéro valide.",
-    };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase.from("contact_requests").insert({ email, phone });
-
-  if (error) {
-    return {
-      success: false,
-      message: "Impossible d'enregistrer votre numéro. Réessayez.",
-    };
-  }
-
-  revalidatePath("/");
-  return {
-    success: true,
-    message: "Merci ! Nous vous contactons très bientôt.",
-  };
-}
-
 export async function submitProduct(
   _prev: ActionResult | null,
   formData: FormData,
@@ -1333,4 +1295,152 @@ export async function updateSubscriptionAutoRenew(
       ? "Renouvellement automatique activé."
       : "Renouvellement automatique désactivé — l'abonnement se terminera à la date indiquée.",
   };
+}
+
+export type GroupActionResult = ActionResult & {
+  groupId?: string;
+};
+
+export async function createMessageGroup(
+  _prev: GroupActionResult | null,
+  formData: FormData,
+): Promise<GroupActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Connectez-vous pour créer un groupe." };
+  }
+
+  const title = String(formData.get("title") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const imageUrlRaw = String(formData.get("image_url") ?? "").trim();
+  const memberIdsRaw = String(formData.get("member_ids") ?? "").trim();
+
+  if (title.length < 1) {
+    return { success: false, message: "Le titre est requis." };
+  }
+
+  if (!isValidAvatarUrl(imageUrlRaw)) {
+    return { success: false, message: "URL d'image invalide." };
+  }
+
+  let memberIds: string[] = [];
+  if (memberIdsRaw) {
+    try {
+      const parsed = JSON.parse(memberIdsRaw);
+      if (Array.isArray(parsed)) {
+        memberIds = parsed
+          .filter((id): id is string => typeof id === "string")
+          .map((id) => id.trim())
+          .filter((id) => id && id !== user.id);
+      }
+    } catch {
+      return { success: false, message: "Membres invalides." };
+    }
+  }
+
+  if (memberIds.length < 1) {
+    return { success: false, message: "Ajoutez au moins un membre au groupe." };
+  }
+
+  const uniqueMemberIds = [...new Set(memberIds)];
+
+  const { data: group, error: groupError } = await supabase
+    .from("msg_groups")
+    .insert({
+      title,
+      description,
+      image_url: imageUrlRaw || null,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
+
+  if (groupError || !group) {
+    console.error("createMessageGroup:", groupError?.message);
+    return { success: false, message: "Impossible de créer le groupe." };
+  }
+
+  const membersToInsert = [
+    { group_id: group.id, user_id: user.id },
+    ...uniqueMemberIds.map((memberId) => ({
+      group_id: group.id,
+      user_id: memberId,
+    })),
+  ];
+
+  const { error: membersError } = await supabase
+    .from("msg_group_members")
+    .insert(membersToInsert);
+
+  if (membersError) {
+    console.error("createMessageGroup members:", membersError.message);
+    await supabase.from("msg_groups").delete().eq("id", group.id);
+    return { success: false, message: "Impossible d'ajouter les membres." };
+  }
+
+  revalidatePath("/dashboard/messages");
+  redirect(`/dashboard/messages/groupes/${group.id}`);
+}
+
+export async function sendGroupMessage(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: "Connectez-vous pour répondre." };
+  }
+
+  const groupId = String(formData.get("group_id") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+
+  if (!groupId || body.length < 1) {
+    return { success: false, message: "Message invalide." };
+  }
+
+  const { data: membership } = await supabase
+    .from("msg_group_members")
+    .select("group_id")
+    .eq("group_id", groupId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!membership) {
+    return { success: false, message: "Groupe introuvable." };
+  }
+
+  const { error } = await supabase.from("msg_group_msgs").insert({
+    group_id: groupId,
+    sender_id: user.id,
+    body,
+  });
+
+  if (error) {
+    console.error("sendGroupMessage:", error.message);
+    return { success: false, message: "Impossible d'envoyer le message." };
+  }
+
+  const now = new Date().toISOString();
+
+  await Promise.all([
+    supabase.from("msg_groups").update({ updated_at: now }).eq("id", groupId),
+    supabase
+      .from("msg_group_members")
+      .update({ last_read_at: now })
+      .eq("group_id", groupId)
+      .eq("user_id", user.id),
+  ]);
+
+  revalidatePath("/dashboard/messages");
+  revalidatePath(`/dashboard/messages/groupes/${groupId}`);
+
+  return { success: true, message: "Message envoyé." };
 }
