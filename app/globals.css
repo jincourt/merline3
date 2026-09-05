@@ -6532,14 +6532,14 @@ textarea.field-input {
 .public-profile-contact-btn {
   max-width: none;
   justify-content: center;
-  border-color: #0a0a0a;
-  background: #0a0a0a;
-  color: #ffffff;
+  border-color: var(--border);
+  background: transparent;
+  color: var(--foreground);
 }
 
 .public-profile-contact-btn:hover {
-  border-color: #262626;
-  background: #262626;
+  border-color: var(--border-strong);
+  background: rgba(0, 0, 0, 0.02);
   box-shadow: none;
 }
 
